@@ -316,14 +316,60 @@ export function renderAccountSchedule() {
 
 export function renderLibraryVideos(items) {
   state.currentLibraryItems = items;
+  const searchTerm = elements.librarySearchInput?.value.trim().toLowerCase() || "";
+  const statusFilter = elements.libraryStatusFilter?.value || "";
+  const assignmentFilter = elements.libraryAssignmentFilter?.value || "";
+  const filteredItems = items.filter((item) => {
+    const haystack = [
+      item.title,
+      item.original_filename,
+      item.source_label,
+      item.source_archive_path,
+      item.channel_title
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
+    const publicationStatus = String(item.publication_status || item.status || "ready").toLowerCase();
+    const hasChannel = Boolean(item.channel_title || item.youtube_account_id);
+    const matchesSearch = !searchTerm || haystack.includes(searchTerm);
+    const matchesStatus = !statusFilter || publicationStatus === statusFilter;
+    const matchesAssignment =
+      !assignmentFilter || (assignmentFilter === "assigned" ? hasChannel : !hasChannel);
+
+    return matchesSearch && matchesStatus && matchesAssignment;
+  });
+
+  state.currentLibraryFilteredCount = filteredItems.length;
+  const totalPages = Math.max(1, Math.ceil(filteredItems.length / state.currentLibraryPageSize));
+  state.currentLibraryPage = Math.min(state.currentLibraryPage, totalPages);
+  const pageStart = (state.currentLibraryPage - 1) * state.currentLibraryPageSize;
+  const pagedItems = filteredItems.slice(pageStart, pageStart + state.currentLibraryPageSize);
+
+  elements.libraryResultsMeta.classList.toggle("hidden", filteredItems.length === 0);
+  elements.libraryResultsMeta.textContent = filteredItems.length
+    ? `Mostrando ${pageStart + 1}-${Math.min(pageStart + pagedItems.length, filteredItems.length)} de ${filteredItems.length}`
+    : "";
+  elements.libraryPrevPageButton.disabled = state.currentLibraryPage <= 1;
+  elements.libraryNextPageButton.disabled = state.currentLibraryPage >= totalPages;
 
   if (items.length === 0) {
     elements.libraryVideoList.innerHTML = '<p class="empty-state">Todavia no hay videos en biblioteca.</p>';
+    elements.libraryResultsMeta.classList.add("hidden");
+    elements.libraryPrevPageButton.disabled = true;
+    elements.libraryNextPageButton.disabled = true;
     syncLibrarySelectionBar();
     return;
   }
 
-  elements.libraryVideoList.innerHTML = items
+  if (filteredItems.length === 0) {
+    elements.libraryVideoList.innerHTML =
+      '<p class="empty-state">No hay videos que coincidan con la busqueda o los filtros actuales.</p>';
+    syncLibrarySelectionBar();
+    return;
+  }
+
+  elements.libraryVideoList.innerHTML = pagedItems
     .map(
       (item) => `
         <article class="stack-card">

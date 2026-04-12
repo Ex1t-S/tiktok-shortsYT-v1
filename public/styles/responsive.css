@@ -32,7 +32,13 @@
   }
 
   .mini-grid,
+  .library-filters,
   .channel-video-head {
     grid-template-columns: 1fr;
+  }
+
+  .results-actions,
+  .inline-toolbar {
+    justify-content: flex-start;
   }
 }

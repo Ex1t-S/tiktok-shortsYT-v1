@@ -488,11 +488,53 @@
                       <h3>Biblioteca lista para publicar</h3>
                     </div>
                   </div>
+                  <div class="stack-list library-flow-notes">
+                    <article class="stack-card guide-card">
+                      <strong>Enviar a una cuenta</strong>
+                      <p>Usa esta opcion cuando ya sabes a que canal va un video puntual. Seleccionas el canal arriba y mandas solo esa pieza.</p>
+                    </article>
+                    <article class="stack-card guide-card">
+                      <strong>Distribuir entre canales</strong>
+                      <p>Usa esta opcion cuando seleccionaste varios videos y quieres repartirlos automaticamente entre varias cuentas.</p>
+                    </article>
+                  </div>
                   <div class="inline-toolbar">
                     <select id="library-queue-account-select" class="compact-select">
                       <option value="">Elegir cuenta de YouTube</option>
                     </select>
                     <span class="helper-inline">Selecciona videos, elige canal y déjalos listos para la cola.</span>
+                  </div>
+                  <div class="library-filters">
+                    <label>
+                      <span>Buscar en biblioteca</span>
+                      <input id="library-search-input" type="search" placeholder="Titulo, etiqueta, archivo o canal" />
+                    </label>
+                    <label>
+                      <span>Estado</span>
+                      <select id="library-status-filter" class="compact-select">
+                        <option value="">Todos</option>
+                        <option value="ready">Listos</option>
+                        <option value="queued">En cola</option>
+                        <option value="scheduled">Programados</option>
+                        <option value="published">Publicados</option>
+                        <option value="failed">Con error</option>
+                      </select>
+                    </label>
+                    <label>
+                      <span>Asignacion</span>
+                      <select id="library-assignment-filter" class="compact-select">
+                        <option value="">Todos</option>
+                        <option value="unassigned">Sin canal</option>
+                        <option value="assigned">Con canal</option>
+                      </select>
+                    </label>
+                  </div>
+                  <div class="results-actions library-results-actions">
+                    <span id="library-results-meta" class="helper-inline hidden"></span>
+                    <div class="pagination-actions">
+                      <button id="library-prev-page-button" type="button" class="ghost-button">Anterior</button>
+                      <button id="library-next-page-button" type="button" class="ghost-button">Siguiente</button>
+                    </div>
                   </div>
                   <div id="library-selection-bar" class="selection-bar hidden">
                     <span id="library-selected-count">0 seleccionados</span>
@@ -508,6 +550,16 @@
                       <p class="eyebrow">Paso 4</p>
                       <h3>Distribuir entre canales</h3>
                     </div>
+                  </div>
+                  <div class="stack-list distribution-guide">
+                    <article class="stack-card">
+                      <strong>Como funciona</strong>
+                      <p>1. Seleccionas varios videos en biblioteca. 2. Marcas las cuentas destino. 3. El sistema crea la cola repartiendo piezas entre esos canales.</p>
+                    </article>
+                    <article class="stack-card">
+                      <strong>Cuando usarlo</strong>
+                      <p>Es ideal para lotes. Si solo quieres mandar una pieza a un canal concreto, usa el boton `Enviar a una cuenta` del listado.</p>
+                    </article>
                   </div>
                   <p class="helper-copy">
                     Usa esta opcion cuando quieras repartir varios videos automaticamente entre varias cuentas.

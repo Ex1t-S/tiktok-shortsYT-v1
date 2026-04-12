@@ -113,6 +113,11 @@
   margin-top: 14px;
 }
 
+.library-flow-notes,
+.distribution-guide {
+  margin-bottom: 14px;
+}
+
 .selection-primary {
   display: flex;
   align-items: center;
@@ -123,6 +128,28 @@
 .inline-toolbar {
   justify-content: space-between;
   margin-bottom: 12px;
+}
+
+.library-filters {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) repeat(2, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.library-filters label {
+  display: grid;
+  gap: 6px;
+}
+
+.library-results-actions {
+  margin-bottom: 12px;
+}
+
+.pagination-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .results-actions {

@@ -239,6 +239,10 @@ async function loadLibrary() {
   renderLibraryVideos(items);
 }
 
+function resetLibraryPagination() {
+  state.currentLibraryPage = 1;
+}
+
 async function loadCandidates() {
   const params = new URLSearchParams();
   if (elements.candidateFilterStatus.value) {
@@ -372,12 +376,62 @@ elements.clearSelectionButton.addEventListener("click", () => {
 });
 
 elements.librarySelectAllButton.addEventListener("click", () => {
-  state.currentLibraryItems.forEach((item) => state.selectedLibraryIds.add(String(item.id)));
+  const searchTerm = elements.librarySearchInput.value.trim().toLowerCase();
+  const statusFilter = elements.libraryStatusFilter.value;
+  const assignmentFilter = elements.libraryAssignmentFilter.value;
+
+  state.currentLibraryItems
+    .filter((item) => {
+      const haystack = [
+        item.title,
+        item.original_filename,
+        item.source_label,
+        item.source_archive_path,
+        item.channel_title
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      const publicationStatus = String(item.publication_status || item.status || "ready").toLowerCase();
+      const hasChannel = Boolean(item.channel_title || item.youtube_account_id);
+      const matchesSearch = !searchTerm || haystack.includes(searchTerm);
+      const matchesStatus = !statusFilter || publicationStatus === statusFilter;
+      const matchesAssignment =
+        !assignmentFilter || (assignmentFilter === "assigned" ? hasChannel : !hasChannel);
+
+      return matchesSearch && matchesStatus && matchesAssignment;
+    })
+    .forEach((item) => state.selectedLibraryIds.add(String(item.id)));
   renderLibraryVideos(state.currentLibraryItems);
 });
 
 elements.libraryClearSelectionButton.addEventListener("click", () => {
   state.selectedLibraryIds.clear();
+  renderLibraryVideos(state.currentLibraryItems);
+});
+
+elements.librarySearchInput.addEventListener("input", () => {
+  resetLibraryPagination();
+  renderLibraryVideos(state.currentLibraryItems);
+});
+
+elements.libraryStatusFilter.addEventListener("change", () => {
+  resetLibraryPagination();
+  renderLibraryVideos(state.currentLibraryItems);
+});
+
+elements.libraryAssignmentFilter.addEventListener("change", () => {
+  resetLibraryPagination();
+  renderLibraryVideos(state.currentLibraryItems);
+});
+
+elements.libraryPrevPageButton.addEventListener("click", () => {
+  state.currentLibraryPage = Math.max(1, state.currentLibraryPage - 1);
+  renderLibraryVideos(state.currentLibraryItems);
+});
+
+elements.libraryNextPageButton.addEventListener("click", () => {
+  state.currentLibraryPage += 1;
   renderLibraryVideos(state.currentLibraryItems);
 });
 

@@ -62,6 +62,12 @@ export const elements = {
   librarySelectedCount: document.getElementById("library-selected-count"),
   librarySelectAllButton: document.getElementById("library-select-all-button"),
   libraryClearSelectionButton: document.getElementById("library-clear-selection-button"),
+  librarySearchInput: document.getElementById("library-search-input"),
+  libraryStatusFilter: document.getElementById("library-status-filter"),
+  libraryAssignmentFilter: document.getElementById("library-assignment-filter"),
+  libraryResultsMeta: document.getElementById("library-results-meta"),
+  libraryPrevPageButton: document.getElementById("library-prev-page-button"),
+  libraryNextPageButton: document.getElementById("library-next-page-button"),
   libraryVideoList: document.getElementById("library-video-list"),
   libraryQueueAccountSelect: document.getElementById("library-queue-account-select"),
   distributionForm: document.getElementById("distribution-form"),
@@ -111,6 +117,9 @@ export const state = {
   currentTrackLimit: 20,
   currentTrackBatchSize: 20,
   currentTrackTotalAvailable: 0,
+  currentLibraryPage: 1,
+  currentLibraryPageSize: 12,
+  currentLibraryFilteredCount: 0,
   trackingPollTimer: null,
   currentView: "tracking",
   selectedIds: new Set(),
@@ -226,7 +235,7 @@ export function syncLibrarySelectionBar() {
   elements.librarySelectionBar.classList.toggle("hidden", state.currentLibraryItems.length === 0);
   elements.librarySelectedCount.textContent = `${count} seleccionados`;
   elements.librarySelectAllButton.disabled =
-    state.currentLibraryItems.length === 0 || count === state.currentLibraryItems.length;
+    state.currentLibraryFilteredCount === 0 || count === state.currentLibraryFilteredCount;
   elements.libraryClearSelectionButton.disabled = count === 0;
   elements.distributionSubmitButton.disabled = count === 0;
 }
