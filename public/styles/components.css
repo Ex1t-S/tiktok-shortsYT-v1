@@ -1,0 +1,350 @@
+.summary-strip,
+.workflow-roadmap,
+.hero-health-strip,
+.dual-grid,
+.triple-grid,
+.mini-grid,
+.summary-grid,
+.media-grid,
+.candidate-grid,
+.card-grid,
+.publication-list {
+  display: grid;
+  gap: 16px;
+}
+
+.summary-strip {
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+}
+
+.workflow-roadmap {
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+}
+
+.hero-health-strip {
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  margin-top: 22px;
+}
+
+.health-pill,
+.summary-chip,
+.summary-grid article,
+.account-card,
+.stack-card,
+.notice-box {
+  border-radius: 18px;
+  border: 1px solid var(--line);
+}
+
+.health-pill {
+  padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.health-pill span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.8rem;
+  margin-bottom: 6px;
+}
+
+.health-pill strong,
+.summary-chip strong {
+  font-family: "Manrope", sans-serif;
+}
+
+.health-pill strong {
+  font-size: 1.35rem;
+}
+
+.summary-chip,
+.summary-grid article,
+.account-card,
+.stack-card,
+.notice-box {
+  background: linear-gradient(180deg, #ffffff 0%, #f7f8fb 100%);
+}
+
+.summary-chip {
+  padding: 18px;
+}
+
+.summary-chip span,
+.summary-grid span {
+  display: block;
+  color: var(--muted);
+  margin-bottom: 8px;
+  font-size: 0.86rem;
+}
+
+.summary-chip strong {
+  font-size: 1.72rem;
+}
+
+.summary-grid article {
+  padding: 16px;
+}
+
+.summary-grid strong {
+  font-size: 1.2rem;
+}
+
+.input-row,
+.actions,
+.selection-bar,
+.results-actions,
+.filters-row,
+.inline-toolbar,
+.media-meta,
+.card-actions,
+.inline-meta,
+.candidate-actions,
+.candidate-header,
+.publication-head,
+.account-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.actions,
+.account-actions {
+  margin-top: 14px;
+}
+
+.selection-primary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.inline-toolbar {
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.results-actions {
+  justify-content: flex-end;
+}
+
+.workflow-selection {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  padding: 14px;
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
+}
+
+.secondary-actions {
+  width: 100%;
+}
+
+.secondary-actions summary {
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 0.88rem;
+  font-weight: 600;
+  list-style: none;
+}
+
+.secondary-actions summary::-webkit-details-marker {
+  display: none;
+}
+
+.secondary-actions-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.quick-flow-list {
+  margin-top: 12px;
+}
+
+.compact-stack {
+  gap: 10px;
+}
+
+.worker-checkbox {
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.profile-link {
+  display: inline-block;
+  margin-top: 4px;
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.scrape-status-box {
+  margin-top: 16px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  background: rgba(255, 0, 51, 0.05);
+}
+
+.scrape-status-box p,
+.recent-error,
+.notice-box p {
+  margin: 8px 0 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.scrape-status-box.is-error {
+  background: rgba(255, 125, 91, 0.1);
+  color: #8a3c24;
+}
+
+.avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 18px;
+  object-fit: cover;
+  background: #f1f4f9;
+  border: 1px solid var(--line);
+}
+
+.guide-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.roadmap-card {
+  padding: 16px 18px;
+  border-radius: 20px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.roadmap-card.current {
+  border-color: rgba(255, 0, 51, 0.2);
+  box-shadow: 0 12px 24px rgba(255, 0, 51, 0.08);
+}
+
+.roadmap-step {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.roadmap-card strong {
+  display: block;
+  margin-top: 12px;
+  margin-bottom: 6px;
+  font-family: "Manrope", sans-serif;
+}
+
+.flow-callout {
+  display: grid;
+  gap: 10px;
+  background: linear-gradient(180deg, #fffafc 0%, #ffffff 100%);
+}
+
+.advanced-tools {
+  display: grid;
+  gap: 12px;
+}
+
+.tool-disclosure {
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  padding: 16px 18px;
+}
+
+.tool-disclosure summary {
+  cursor: pointer;
+  font-family: "Manrope", sans-serif;
+  font-weight: 700;
+}
+
+.tool-disclosure[open] .disclosure-body {
+  margin-top: 14px;
+}
+
+.guide-card::after {
+  content: "";
+  position: absolute;
+  inset: auto -20% -60% auto;
+  width: 180px;
+  height: 180px;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(255, 0, 51, 0.12), transparent 65%);
+  pointer-events: none;
+}
+
+.error-card {
+  background: linear-gradient(180deg, rgba(255, 248, 246, 0.98) 0%, rgba(255, 240, 235, 0.92) 100%);
+  border-color: rgba(255, 125, 91, 0.2);
+}
+
+.account-card,
+.stack-card {
+  padding: 16px;
+}
+
+.account-card h4,
+.stack-card strong,
+.publication-head strong {
+  margin: 0 0 6px;
+  font-family: "Manrope", sans-serif;
+}
+
+.account-actions button,
+.account-actions .button-link,
+.account-actions .ghost-button {
+  min-height: 42px;
+}
+
+.media-type,
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: rgba(249, 250, 251, 1);
+  border: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.media-type {
+  color: var(--accent-strong);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+}
+
+.badge.warm {
+  background: var(--warm-soft);
+  color: #a2472f;
+}
+
+.badge.success {
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+}
+
+.badge.danger {
+  background: rgba(255, 125, 91, 0.14);
+  color: #9d452d;
+}

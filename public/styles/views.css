@@ -1,0 +1,109 @@
+.dual-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.triple-grid {
+  grid-template-columns: 360px minmax(0, 1fr);
+}
+
+.wide-panel {
+  min-width: 0;
+}
+
+.mini-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.summary-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.card-grid {
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.media-grid {
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.candidate-grid {
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+}
+
+.media-card,
+.candidate-card,
+.publication-card {
+  overflow: hidden;
+  border-radius: 22px;
+  background: var(--panel);
+}
+
+.media-thumb {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  background: #eef1f7;
+}
+
+.candidate-thumb,
+.publication-thumb {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  background: #eef1f7;
+}
+
+.media-body,
+.candidate-body,
+.publication-body {
+  padding: 16px;
+}
+
+.media-caption,
+.candidate-caption {
+  line-height: 1.5;
+}
+
+.candidate-reason {
+  min-height: 2.6em;
+}
+
+.select-pill {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid var(--line);
+  color: var(--text);
+  z-index: 1;
+}
+
+.media-select {
+  margin: 0;
+}
+
+.channel-video-card {
+  gap: 14px;
+}
+
+.channel-video-head {
+  display: grid;
+  grid-template-columns: 128px minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+}
+
+.channel-video-thumb {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: 14px;
+  background: #eceff4;
+  border: 1px solid var(--line);
+}

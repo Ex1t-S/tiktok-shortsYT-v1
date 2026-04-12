@@ -1,0 +1,107 @@
+label {
+  display: grid;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.stack-form,
+.stack-list {
+  display: grid;
+  gap: 12px;
+}
+
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.checkbox-row input {
+  width: auto;
+}
+
+input,
+textarea,
+button,
+select,
+.button-link {
+  border-radius: 14px;
+  border: 1px solid transparent;
+  font: inherit;
+}
+
+input,
+textarea,
+select {
+  width: 100%;
+  padding: 14px 16px;
+  background: #fbfbfd;
+  color: var(--text);
+  border-color: var(--line);
+}
+
+textarea {
+  min-height: 140px;
+  resize: vertical;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: rgba(102, 112, 133, 0.72);
+}
+
+button,
+.button-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 16px;
+  background: linear-gradient(135deg, var(--accent) 0%, #ff4d6d 100%);
+  color: #ffffff;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 160ms ease, filter 160ms ease;
+}
+
+button[disabled],
+.button-link[aria-disabled="true"] {
+  cursor: wait;
+  opacity: 0.68;
+  filter: saturate(0.8);
+}
+
+button:hover,
+.button-link:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.04);
+}
+
+.ghost-button {
+  background: rgba(248, 250, 252, 0.98);
+  color: var(--text);
+  border-color: var(--line);
+}
+
+.ghost-button:hover {
+  background: #ffffff;
+}
+
+.compact-select {
+  min-width: 180px;
+}
+
+.helper-copy,
+.helper-inline {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.topbar-search input {
+  background: rgba(255, 255, 255, 0.06);
+  color: #e5e7eb;
+  border-color: rgba(255, 255, 255, 0.08);
+}

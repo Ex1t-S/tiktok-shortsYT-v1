@@ -1,0 +1,18 @@
+node_modules/
+.env
+.env.*
+!.env.example
+.npm-cache/
+playwright-report/
+test-results/
+.chrome-import/
+.playwright-tiktok-session/
+.storage/
+.yt-test/
+tiktok-cookies.txt
+Webshare*.txt
+downloaded-*
+*.mp4
+*.zip
+yt-dlp.exe
+Captura de pantalla*.png
