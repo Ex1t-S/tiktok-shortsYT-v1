@@ -1,63 +1,82 @@
-@media (max-width: 1320px) {
-  .studio-shell {
-    grid-template-columns: 1fr;
+@media (max-width: 1400px) {
+  .video-grid.compact {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .studio-sidebar {
-    position: static;
-    min-height: auto;
+  .profiles-layout {
+    grid-template-columns: 250px minmax(0, 1fr) 280px;
   }
 
-  .profiles-shell,
-  .track-workspace,
-  .hero-panel,
-  .dual-grid,
-  .profile-columns,
-  .summary-grid,
-  .profile-kpis,
-  .studio-topbar {
-    grid-template-columns: 1fr;
-  }
-
-  .profile-directory-panel {
-    position: static;
+  .mini-stats-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
-@media (max-width: 860px) {
-  .studio-shell {
-    width: min(100% - 16px, 100%);
-    padding: 10px 0 18px;
-  }
-
-  .studio-sidebar,
-  .hero-panel,
-  .panel {
-    border-radius: 20px;
-    padding: 18px;
-  }
-
-  .mini-grid,
-  .library-filters,
-  .secondary-actions-grid,
-  .advanced-tools-grid,
-  .summary-grid,
-  .profile-kpis {
+@media (max-width: 1180px) {
+  .app-shell {
     grid-template-columns: 1fr;
   }
 
-  .list-row,
-  .list-row.full-width,
-  .studio-topbar {
+  .sidebar {
+    min-height: auto;
+  }
+
+  .workspace-header {
     grid-template-columns: 1fr;
   }
 
-  .list-row-meta,
-  .profile-summary-head,
-  .results-actions,
-  .selection-bar,
-  .section-heading,
-  .section-heading.compact {
+  .profiles-layout,
+  .two-column-panel,
+  .overview-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-side-panel {
+    order: 3;
+  }
+}
+
+@media (max-width: 840px) {
+  .app-shell {
+    width: min(100%, calc(100% - 12px));
+    margin: 6px auto;
+    gap: 10px;
+  }
+
+  .workspace-header,
+  .panel,
+  .sidebar {
+    border-radius: 18px;
+    padding: 14px;
+  }
+
+  .video-grid.compact,
+  .mini-stats-grid,
+  .summary-strip {
+    grid-template-columns: 1fr;
+  }
+
+  .toolbar-form,
+  .toolbar-row,
+  .compact-action-controls,
+  .video-row,
+  .queue-row,
+  .channel-video-row,
+  .queue-card,
+  .profile-summary-head {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .video-row-actions,
+  .queue-row-actions,
+  .queue-card-side,
+  .compact-copy {
     justify-content: flex-start;
+    text-align: left;
+  }
+
+  .field-row.two-up {
+    grid-template-columns: 1fr;
   }
 }

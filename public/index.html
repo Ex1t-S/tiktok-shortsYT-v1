@@ -7,607 +7,273 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
-    <div class="app-shell studio-shell">
-      <aside class="sidebar studio-sidebar">
+    <div class="app-shell">
+      <aside class="sidebar">
         <div class="brand-block">
           <p class="eyebrow">Shorts Studio</p>
           <h1>Workspace</h1>
           <p class="sidebar-copy">
-            Panel refactorizado para trabajar por perfil: rastrear, guardar, mandar a cola y publicar sin perderte.
+            Flujo claro para rastrear, guardar, elegir perfil y mover videos a una cola entendible.
           </p>
         </div>
 
         <nav class="sidebar-nav">
           <button type="button" class="nav-tab active" data-view="tracking">1. Rastrear</button>
-          <button type="button" class="nav-tab" data-view="accounts">2. Perfiles</button>
-          <button type="button" class="nav-tab" data-view="queue">3. Cola general</button>
-          <button type="button" class="nav-tab" data-view="overview">Dashboard</button>
-          <button type="button" class="nav-tab" data-view="candidates">Revisión</button>
-          <button type="button" class="nav-tab" data-view="discovery">Semillas</button>
+          <button type="button" class="nav-tab" data-view="library">2. Biblioteca</button>
+          <button type="button" class="nav-tab" data-view="profiles">3. Perfiles</button>
+          <button type="button" class="nav-tab" data-view="queue">4. Cola</button>
+          <button type="button" class="nav-tab secondary" data-view="overview">Resumen</button>
         </nav>
 
         <div class="sidebar-note">
-          <span>Rastreo y captura separados de la publicación.</span>
-          <span>Ahora el canal es el centro del flujo, no la biblioteca.</span>
+          <span>Sin scroll infinito: todo paginado.</span>
+          <span>Primero biblioteca, después cola.</span>
         </div>
       </aside>
 
-      <main class="main-shell studio-main">
-        <header class="topbar studio-topbar">
+      <main class="workspace-shell">
+        <header class="workspace-header">
           <div>
-            <p class="eyebrow">Estado</p>
-            <strong>Panel operativo modular</strong>
+            <p class="eyebrow" id="header-eyebrow">Operación</p>
+            <h2 id="page-title">Rastrear</h2>
           </div>
-          <div class="topbar-status-card">
-            <span class="status-dot"></span>
-            <p id="status-text" class="status-text">Cargando panel...</p>
+          <div id="global-status" class="status-banner">
+            Cargando panel...
           </div>
-          <div class="topbar-meta">
-            <span class="topbar-chip">TikTok → Biblioteca → YouTube</span>
-            <span class="topbar-chip muted">Railway + Cloud + OAuth</span>
+          <div class="header-chips">
+            <span class="header-chip">TikTok → Biblioteca</span>
+            <span class="header-chip muted">Biblioteca → Cola → YouTube</span>
           </div>
         </header>
 
-        <div class="view-stack">
-          <section class="view-section active" data-view="tracking">
-            <section class="page-grid track-workspace">
-              <article class="panel track-control-panel">
-                <div class="section-heading compact">
-                  <div>
-                    <p class="eyebrow">Paso 1</p>
-                    <h3>Rastrear TikTok</h3>
-                  </div>
-                </div>
+        <section class="view-section active" data-view="tracking">
+          <div class="page-grid">
+            <section class="panel hero-panel">
+              <div>
+                <p class="eyebrow">Paso 1</p>
+                <h3>Rastrear TikTok</h3>
                 <p class="helper-copy">
-                  Buscá un perfil o hashtag. Esta sección solo encuentra material. Todavía no publica nada.
+                  Buscá un perfil, hashtag o URL. Después elegís qué videos guardar en biblioteca o mandar directo a la cola.
                 </p>
-                <form id="track-form" class="stack-form">
-                  <label>
-                    <span>Búsqueda</span>
-                    <input id="username" name="username" type="text" placeholder="@usuario, #tema o URL" required />
-                  </label>
-                  <div class="actions">
-                    <button id="submit-button" type="submit">Rastrear</button>
-                    <button id="refresh-button" type="button" class="ghost-button">Actualizar</button>
-                    <a id="zip-button" class="button-link ghost-button" href="#">Descargar ZIP</a>
+              </div>
+              <form id="track-form" class="toolbar-form">
+                <input id="username" name="username" type="text" placeholder="@usuario, #tema o URL" required />
+                <button id="submit-button" type="submit">Rastrear</button>
+                <button id="refresh-button" type="button" class="ghost-button">Actualizar</button>
+              </form>
+            </section>
+
+            <section class="panel tracking-layout">
+              <div class="tracking-summary" id="tracking-summary">
+                <div class="empty-state">Todavía no hay un perfil cargado.</div>
+              </div>
+
+              <div class="compact-action-bar">
+                <div class="compact-action-copy">
+                  <strong>Videos encontrados</strong>
+                  <span id="track-results-meta">Sin resultados todavía.</span>
+                </div>
+                <div class="compact-action-controls">
+                  <select id="queue-account-select">
+                    <option value="">Elegir perfil destino</option>
+                  </select>
+                  <button id="save-library-button" type="button" class="ghost-button" disabled>Guardar en biblioteca</button>
+                  <button id="queue-selected-button" type="button" disabled>Agregar a cola</button>
+                </div>
+              </div>
+
+              <div id="media-grid" class="video-grid compact"></div>
+
+              <div class="pager-row">
+                <span id="tracking-pager-label" class="pager-label">Página 1</span>
+                <div class="pager-controls">
+                  <button id="track-prev-page" type="button" class="ghost-button">Anterior</button>
+                  <button id="track-next-page" type="button" class="ghost-button">Siguiente</button>
+                  <button id="load-more-media-button" type="button" class="ghost-button hidden">Traer más</button>
+                </div>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <section class="view-section" data-view="library">
+          <section class="panel">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Paso 2</p>
+                <h3>Biblioteca disponible</h3>
+              </div>
+              <p class="helper-copy compact-copy">
+                Acá ves solo material guardado. Desde acá decidís si lo mandás a la cola de un perfil.
+              </p>
+            </div>
+
+            <div class="toolbar-row wrap">
+              <input id="library-search-input" type="search" placeholder="Buscar por título, origen o archivo" />
+              <select id="library-status-filter">
+                <option value="">Todos los estados</option>
+                <option value="ready">Listos</option>
+                <option value="published">Publicados</option>
+                <option value="failed">Fallidos</option>
+              </select>
+              <select id="library-source-filter">
+                <option value="">Todos los orígenes</option>
+                <option value="tracked_media">Trackeados</option>
+                <option value="zip_import">ZIP</option>
+                <option value="remote_url">URL remota</option>
+                <option value="s3-compatible">Cloud</option>
+              </select>
+              <select id="library-target-account-select">
+                <option value="">Perfil destino para mandar a cola</option>
+              </select>
+            </div>
+
+            <div class="toolbar-row compact between">
+              <span id="library-results-meta" class="helper-inline">0 videos</span>
+              <div class="pager-controls">
+                <button id="library-prev-page-button" type="button" class="ghost-button">Anterior</button>
+                <button id="library-next-page-button" type="button" class="ghost-button">Siguiente</button>
+              </div>
+            </div>
+
+            <div id="library-video-list" class="video-list"></div>
+          </section>
+        </section>
+
+        <section class="view-section" data-view="profiles">
+          <div class="profiles-layout">
+            <aside class="panel profile-list-panel">
+              <div class="section-heading compact">
+                <div>
+                  <p class="eyebrow">Perfiles</p>
+                  <h3>Canales conectados</h3>
+                </div>
+                <button id="refresh-accounts-button" type="button" class="ghost-button">Actualizar</button>
+              </div>
+
+              <div id="youtube-oauth-box" class="oauth-box"></div>
+              <div id="profiles-list" class="profiles-list"></div>
+
+              <div class="pager-row tight">
+                <span id="profiles-pager-label" class="pager-label">Página 1</span>
+                <div class="pager-controls">
+                  <button id="profiles-prev-page" type="button" class="ghost-button">Anterior</button>
+                  <button id="profiles-next-page" type="button" class="ghost-button">Siguiente</button>
+                </div>
+              </div>
+            </aside>
+
+            <section class="panel profile-main-panel">
+              <div id="profile-header" class="profile-header"></div>
+              <div class="profile-tab-bar" id="profile-tab-bar">
+                <button type="button" class="profile-tab active" data-tab="summary">Resumen</button>
+                <button type="button" class="profile-tab" data-tab="uploads">Subidos</button>
+                <button type="button" class="profile-tab" data-tab="queue">En cola</button>
+                <button type="button" class="profile-tab" data-tab="publish">Publicar</button>
+              </div>
+              <div id="profile-tab-content" class="profile-tab-content"></div>
+            </section>
+
+            <aside class="panel profile-side-panel">
+              <div class="section-heading compact">
+                <div>
+                  <p class="eyebrow">Acciones</p>
+                  <h3>Canal activo</h3>
+                </div>
+              </div>
+
+              <div id="profile-side-actions" class="stack-list"></div>
+
+              <details class="settings-block" open>
+                <summary>Agregar canal</summary>
+                <form id="youtube-form" class="stack-form compact-form">
+                  <input id="channel-title" type="text" placeholder="Nombre del canal" required />
+                  <div class="field-row two-up">
+                    <input id="channel-handle" type="text" placeholder="@handle" />
+                    <input id="channel-id" type="text" placeholder="Channel ID" />
                   </div>
+                  <input id="contact-email" type="email" placeholder="Email de contacto" />
+                  <button type="submit">Guardar canal</button>
                 </form>
+              </details>
 
-                <article id="summary-card" class="summary-profile-card hidden">
-                  <div class="summary-profile-head">
-                    <img id="avatar" class="avatar" alt="Avatar del perfil" />
-                    <div>
-                      <p id="tracked-kind" class="eyebrow">Perfil rastreado</p>
-                      <h3 id="display-name">Sin perfil</h3>
-                      <a id="profile-link" class="profile-link" href="#" target="_blank" rel="noreferrer">Abrir perfil</a>
-                    </div>
-                  </div>
-                  <div class="summary-grid compact-kpis">
-                    <article>
-                      <span>Total</span>
-                      <strong id="total-media">0</strong>
-                    </article>
-                    <article>
-                      <span>Videos</span>
-                      <strong id="video-count">0</strong>
-                    </article>
-                    <article>
-                      <span>Imágenes</span>
-                      <strong id="image-count">0</strong>
-                    </article>
-                    <article>
-                      <span>Último scrape</span>
-                      <strong id="last-scrape">-</strong>
-                    </article>
-                  </div>
-                </article>
+              <details class="settings-block">
+                <summary>Importar varios canales</summary>
+                <form id="youtube-bulk-form" class="stack-form compact-form">
+                  <textarea id="youtube-bulk-input" rows="5" placeholder="Titulo|@handle|UC...|mail@canal.com"></textarea>
+                  <button id="youtube-bulk-button" type="submit" class="ghost-button">Importar</button>
+                </form>
+              </details>
+            </aside>
+          </div>
+        </section>
 
-                <div id="scrape-status-box" class="scrape-status-box hidden"></div>
-              </article>
-
-              <article class="panel track-results-panel">
-                <div class="section-heading compact">
-                  <div>
-                    <p class="eyebrow">Resultados</p>
-                    <h3>Videos encontrados</h3>
-                  </div>
-                  <span id="track-results-meta" class="helper-inline hidden"></span>
-                </div>
-
-                <div id="selection-bar" class="selection-bar hidden sticky-lite">
-                  <div class="selection-primary">
-                    <span id="selected-count">0 seleccionados</span>
-                    <button id="select-all-button" type="button" class="ghost-button">Seleccionar visibles</button>
-                    <button id="clear-selection-button" type="button" class="ghost-button">Limpiar</button>
-                  </div>
-                  <div class="inline-meta selection-actions-row">
-                    <select id="queue-account-select" class="compact-select">
-                      <option value="">Elegir canal de destino</option>
-                    </select>
-                    <button id="save-library-button" type="button">Guardar en biblioteca</button>
-                    <button id="queue-selected-button" type="button" class="ghost-button">Mandar a cola</button>
-                    <button id="download-selected-button" type="button" class="ghost-button">Descargar</button>
-                  </div>
-                </div>
-
-                <div id="media-grid" class="media-grid dense-media-grid"></div>
-
-                <div class="results-actions top-spaced">
-                  <button id="load-more-media-button" type="button" class="ghost-button hidden">Cargar más</button>
-                </div>
-              </article>
-            </section>
-          </section>
-
-          <section class="view-section" data-view="accounts">
-            <section class="profiles-shell">
-              <aside class="panel profile-directory-panel">
-                <div class="section-heading compact">
-                  <div>
-                    <p class="eyebrow">Perfiles</p>
-                    <h3>Canales conectados</h3>
-                  </div>
-                  <button id="refresh-channel-videos-button" type="button" class="ghost-button">Actualizar</button>
-                </div>
-                <div id="youtube-oauth-box" class="notice-box"></div>
-                <div id="youtube-list" class="profile-account-list"></div>
-
-                <details class="secondary-actions open-card" open>
-                  <summary>Agregar o importar canales</summary>
-                  <div class="secondary-actions-grid top-spaced">
-                    <form id="youtube-form" class="stack-form panel-subtle">
-                      <label>
-                        <span>Nombre del canal</span>
-                        <input id="channel-title" name="channelTitle" type="text" placeholder="Mi canal de Shorts" required />
-                      </label>
-                      <div class="mini-grid">
-                        <label>
-                          <span>Handle</span>
-                          <input id="channel-handle" name="channelHandle" type="text" placeholder="@micanal" />
-                        </label>
-                        <label>
-                          <span>Channel ID</span>
-                          <input id="channel-id" name="channelId" type="text" placeholder="UC..." />
-                        </label>
-                      </div>
-                      <label>
-                        <span>Email de contacto</span>
-                        <input id="contact-email" name="contactEmail" type="email" placeholder="ops@canal.com" />
-                      </label>
-                      <button type="submit">Guardar canal</button>
-                    </form>
-
-                    <form id="youtube-bulk-form" class="stack-form panel-subtle">
-                      <label>
-                        <span>Importación masiva</span>
-                        <textarea id="youtube-bulk-input" rows="8" placeholder="Canal Uno|@canaluno|UC123|mail@dominio.com"></textarea>
-                      </label>
-                      <button id="youtube-bulk-button" type="submit" class="ghost-button">Importar cuentas</button>
-                    </form>
-                  </div>
-                </details>
-              </aside>
-
-              <section class="profiles-workspace">
-                <article class="panel profile-summary-panel">
-                  <div class="profile-summary-head">
-                    <div>
-                      <p class="eyebrow">Perfil activo</p>
-                      <h2 id="active-profile-title">Elegí un canal</h2>
-                      <p id="active-profile-meta" class="helper-copy">Cuando selecciones un perfil verás su resumen, su cola y sus videos.</p>
-                    </div>
-                    <div class="profile-summary-actions">
-                      <span id="active-profile-status" class="badge">sin cuenta</span>
-                      <a id="active-profile-oauth-link" class="button-link hidden" href="#">Conectar OAuth</a>
-                    </div>
-                  </div>
-                  <div id="active-profile-kpis" class="summary-grid profile-kpis"></div>
-                </article>
-
-                <div class="profile-columns">
-                  <article class="panel">
-                    <div class="section-heading compact">
-                      <div>
-                        <p class="eyebrow">Subidos</p>
-                        <h3>Videos recientes del canal</h3>
-                      </div>
-                    </div>
-                    <div id="channel-videos-list" class="compact-list"></div>
-                  </article>
-
-                  <article class="panel">
-                    <div class="section-heading compact">
-                      <div>
-                        <p class="eyebrow">Cola del perfil</p>
-                        <h3>Lo pendiente para este canal</h3>
-                      </div>
-                    </div>
-                    <div id="account-schedule-list" class="compact-list"></div>
-                  </article>
-                </div>
-
-                <article class="panel publish-workspace-panel">
-                  <div class="section-heading compact">
-                    <div>
-                      <p class="eyebrow">Publicar</p>
-                      <h3>Biblioteca lista para mandar a cola</h3>
-                    </div>
-                  </div>
-                  <p class="helper-copy">
-                    Acá ves solo el material guardado. El perfil activo es el destino por defecto para mandar videos a cola.
-                  </p>
-
-                  <div class="library-filters">
-                    <label>
-                      <span>Buscar</span>
-                      <input id="library-search-input" type="search" placeholder="Título, origen, archivo o canal" />
-                    </label>
-                    <label>
-                      <span>Estado</span>
-                      <select id="library-status-filter" class="compact-select">
-                        <option value="">Todos</option>
-                        <option value="ready">Listos</option>
-                        <option value="scheduled">Programados</option>
-                        <option value="publishing">Publicando</option>
-                        <option value="published">Publicados</option>
-                        <option value="failed">Fallidos</option>
-                      </select>
-                    </label>
-                    <label>
-                      <span>Asignación</span>
-                      <select id="library-assignment-filter" class="compact-select">
-                        <option value="">Todos</option>
-                        <option value="unassigned">Sin canal</option>
-                        <option value="assigned">Con canal</option>
-                      </select>
-                    </label>
-                    <label>
-                      <span>Origen</span>
-                      <select id="library-source-filter" class="compact-select">
-                        <option value="">Todos</option>
-                        <option value="tracked">Trackeados</option>
-                        <option value="zip">ZIP</option>
-                        <option value="cloud">Cloud</option>
-                        <option value="direct">Carga directa</option>
-                      </select>
-                    </label>
-                  </div>
-
-                  <div class="results-actions library-results-actions">
-                    <span id="library-results-meta" class="helper-inline hidden"></span>
-                    <div class="inline-meta">
-                      <select id="library-queue-account-select" class="compact-select">
-                        <option value="">Elegir cuenta de YouTube</option>
-                      </select>
-                      <button id="library-prev-page-button" type="button" class="ghost-button">Anterior</button>
-                      <button id="library-next-page-button" type="button" class="ghost-button">Siguiente</button>
-                    </div>
-                  </div>
-
-                  <div id="library-selection-bar" class="selection-bar hidden sticky-lite">
-                    <div class="selection-primary">
-                      <span id="library-selected-count">0 seleccionados</span>
-                      <button id="library-select-all-button" type="button" class="ghost-button">Seleccionar visibles</button>
-                      <button id="library-clear-selection-button" type="button" class="ghost-button">Limpiar</button>
-                    </div>
-                    <div class="inline-meta selection-actions-row">
-                      <button id="library-add-selected-button" type="button">Agregar seleccionados a cola</button>
-                    </div>
-                  </div>
-
-                  <div id="library-video-list" class="library-list compact-list"></div>
-                </article>
-
-                <details class="panel advanced-profile-tools">
-                  <summary>Herramientas avanzadas e importación</summary>
-                  <div class="advanced-tools-grid top-spaced">
-                    <form id="library-import-form" class="stack-form panel-subtle">
-                      <label>
-                        <span>ZIP a importar</span>
-                        <input id="library-zip-path" name="zipPath" type="text" placeholder="/data/paquete.zip" />
-                      </label>
-                      <label>
-                        <span>Etiqueta</span>
-                        <input id="library-label" name="label" type="text" placeholder="lote-abril" />
-                      </label>
-                      <div class="mini-grid">
-                        <label>
-                          <span>Cuenta destino</span>
-                          <select id="library-account-select" name="youtubeAccountId"></select>
-                        </label>
-                        <label>
-                          <span>Privacidad</span>
-                          <select id="library-privacy-status" name="privacyStatus">
-                            <option value="private">Privado</option>
-                            <option value="unlisted">Oculto</option>
-                            <option value="public">Público</option>
-                          </select>
-                        </label>
-                      </div>
-                      <div class="mini-grid">
-                        <label>
-                          <span>Primera fecha</span>
-                          <input id="library-start-at" name="startAt" type="datetime-local" />
-                        </label>
-                        <label>
-                          <span>Intervalo días</span>
-                          <input id="library-interval-days" name="intervalDays" type="number" min="1" value="1" />
-                        </label>
-                      </div>
-                      <label class="checkbox-row">
-                        <input id="library-schedule-daily" name="scheduleDaily" type="checkbox" />
-                        <span>Programar automáticamente</span>
-                      </label>
-                      <button id="library-import-button" type="submit">Importar ZIP</button>
-                    </form>
-
-                    <form id="library-video-form" class="stack-form panel-subtle">
-                      <label>
-                        <span>Etiqueta</span>
-                        <input id="library-video-label" name="label" type="text" placeholder="manual" />
-                      </label>
-                      <label>
-                        <span>Título</span>
-                        <input id="library-video-title" name="title" type="text" placeholder="Título opcional" />
-                      </label>
-                      <div class="mini-grid">
-                        <label>
-                          <span>Ruta local</span>
-                          <input id="library-video-path" name="filePath" type="text" placeholder="/videos/short.mp4" />
-                        </label>
-                        <label>
-                          <span>URL remota</span>
-                          <input id="library-video-url" name="sourceUrl" type="url" placeholder="https://..." />
-                        </label>
-                      </div>
-                      <div class="mini-grid">
-                        <label>
-                          <span>Provider</span>
-                          <input id="library-video-provider" name="storageProvider" type="text" placeholder="s3-compatible" />
-                        </label>
-                        <label>
-                          <span>Cuenta destino</span>
-                          <select id="library-video-account-select" name="youtubeAccountId"></select>
-                        </label>
-                      </div>
-                      <button id="library-video-button" type="submit">Guardar video manual</button>
-                    </form>
-
-                    <form id="distribution-form" class="stack-form panel-subtle">
-                      <label>
-                        <span>Cuentas destino</span>
-                        <div id="distribution-account-list" class="stack-list compact-stack"></div>
-                      </label>
-                      <div class="mini-grid">
-                        <label>
-                          <span>Primera subida</span>
-                          <input id="distribution-start-at" name="startAt" type="datetime-local" />
-                        </label>
-                        <label>
-                          <span>Horas entre videos</span>
-                          <input id="distribution-interval-hours" name="intervalHours" type="number" min="1" value="24" />
-                        </label>
-                      </div>
-                      <label>
-                        <span>Privacidad</span>
-                        <select id="distribution-privacy-status" name="privacyStatus">
-                          <option value="private">Privado</option>
-                          <option value="unlisted">Oculto</option>
-                          <option value="public">Público</option>
-                        </select>
-                      </label>
-                      <button id="distribution-submit-button" type="submit">Distribuir lote</button>
-                    </form>
-                  </div>
-                </details>
-              </section>
-            </section>
-          </section>
-
-          <section class="view-section" data-view="queue">
-            <section class="page-grid queue-page-grid">
-              <article class="panel wide-panel">
-                <div class="section-heading">
-                  <div>
-                    <p class="eyebrow">Cola general</p>
-                    <h3>Todo lo pendiente, lo publicado y lo fallido</h3>
-                  </div>
-                  <button id="refresh-publications-button" type="button" class="ghost-button">Actualizar cola</button>
-                </div>
-                <div id="publication-list" class="publication-board"></div>
-              </article>
-            </section>
-          </section>
-
-          <section class="view-section" data-view="overview">
-            <section id="overview" class="hero-panel">
-              <div class="hero-copy-block">
-                <p class="eyebrow">Dashboard</p>
-                <h2>Todo el estado del sistema en una sola pantalla.</h2>
-                <p class="hero-copy">
-                  Revisa salud, jobs, workers y actividad reciente sin salir del flujo principal.
-                </p>
-                <div class="actions">
-                  <button id="hero-track-button" type="button">Ir a rastrear</button>
-                  <button id="hero-queue-button" type="button" class="ghost-button">Ver cola</button>
-                </div>
-                <div id="hero-health-strip" class="hero-health-strip"></div>
+        <section class="view-section" data-view="queue">
+          <section class="panel">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Paso 4</p>
+                <h3>Cola general</h3>
               </div>
-              <div class="status-panel">
-                <p class="status-label">Estado actual</p>
-                <p class="status-text">Panel general de actividad</p>
-                <div id="dashboard-alert" class="dashboard-alert hidden"></div>
+              <button id="refresh-publications-button" type="button" class="ghost-button">Actualizar cola</button>
+            </div>
+
+            <div id="queue-summary-strip" class="summary-strip compact"></div>
+
+            <div class="queue-tab-bar" id="queue-tab-bar">
+              <button type="button" class="queue-tab active" data-queue-tab="all">Todo</button>
+              <button type="button" class="queue-tab" data-queue-tab="active">Pendientes</button>
+              <button type="button" class="queue-tab" data-queue-tab="publishing">Publicando</button>
+              <button type="button" class="queue-tab" data-queue-tab="scheduled">Programados</button>
+              <button type="button" class="queue-tab" data-queue-tab="failed">Fallidos</button>
+              <button type="button" class="queue-tab" data-queue-tab="published">Publicados</button>
+            </div>
+
+            <div id="publication-list" class="queue-list"></div>
+
+            <div class="pager-row">
+              <span id="queue-pager-label" class="pager-label">Página 1</span>
+              <div class="pager-controls">
+                <button id="queue-prev-page" type="button" class="ghost-button">Anterior</button>
+                <button id="queue-next-page" type="button" class="ghost-button">Siguiente</button>
               </div>
-            </section>
-
-            <section class="section-block">
-              <div class="section-heading">
-                <div>
-                  <p class="eyebrow">Resumen</p>
-                  <h3>Pipeline</h3>
-                </div>
-              </div>
-              <div id="summary-strip" class="summary-strip"></div>
-            </section>
-
-            <section class="section-block dual-grid">
-              <article class="panel">
-                <div class="section-heading compact">
-                  <div>
-                    <p class="eyebrow">Actividad</p>
-                    <h3>Perfiles recientes</h3>
-                  </div>
-                </div>
-                <div id="recent-profiles-list" class="stack-list"></div>
-              </article>
-
-              <article class="panel">
-                <div class="section-heading compact">
-                  <div>
-                    <p class="eyebrow">Actividad</p>
-                    <h3>Publicaciones recientes</h3>
-                  </div>
-                </div>
-                <div id="recent-publications-list" class="stack-list"></div>
-              </article>
-            </section>
-
-            <section class="section-block dual-grid">
-              <article class="panel">
-                <div class="section-heading compact">
-                  <div>
-                    <p class="eyebrow">Jobs</p>
-                    <h3>Publicación</h3>
-                  </div>
-                  <button id="refresh-jobs-button" type="button" class="ghost-button">Actualizar jobs</button>
-                </div>
-                <div id="jobs-summary-strip" class="summary-strip compact-summary"></div>
-                <div id="jobs-list" class="stack-list top-spaced"></div>
-              </article>
-
-              <article class="panel">
-                <div class="section-heading compact">
-                  <div>
-                    <p class="eyebrow">Workers</p>
-                    <h3>Estado actual</h3>
-                  </div>
-                  <button id="refresh-workers-button" type="button" class="ghost-button">Actualizar workers</button>
-                </div>
-                <div id="workers-summary-strip" class="summary-strip compact-summary"></div>
-                <div id="workers-list" class="stack-list top-spaced"></div>
-              </article>
-            </section>
-
-            <section class="section-block">
-              <article class="panel">
-                <div class="section-heading compact">
-                  <div>
-                    <p class="eyebrow">Errores</p>
-                    <h3>Fallas recientes</h3>
-                  </div>
-                </div>
-                <div id="recent-errors-list" class="stack-list"></div>
-              </article>
-            </section>
+            </div>
           </section>
+        </section>
 
-          <section class="view-section" data-view="candidates">
-            <section id="candidates" class="section-block">
-              <div class="section-heading">
-                <div>
-                  <p class="eyebrow">Revisión</p>
-                  <h3>Candidatos editoriales</h3>
-                </div>
-                <div class="filters-row">
-                  <select id="candidate-filter-status" class="compact-select">
-                    <option value="">Todas las revisiones</option>
-                    <option value="pending">Pendiente</option>
-                    <option value="approved">Aprobado</option>
-                    <option value="rejected">Rechazado</option>
-                  </select>
-                  <select id="candidate-filter-category" class="compact-select">
-                    <option value="">Todas las categorías</option>
-                    <option value="ai">AI</option>
-                    <option value="brainrot">Brainrot</option>
-                    <option value="gaming">Gaming</option>
-                    <option value="other">Otro</option>
-                  </select>
-                  <button id="refresh-candidates-button" type="button" class="ghost-button">Actualizar</button>
-                </div>
+        <section class="view-section" data-view="overview">
+          <section class="panel">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Resumen</p>
+                <h3>Estado del sistema</h3>
               </div>
-              <div id="candidate-grid" class="candidate-grid"></div>
-            </section>
+            </div>
+            <div id="summary-strip" class="summary-strip"></div>
+            <div class="overview-grid">
+              <article class="compact-info-card">
+                <strong>Flujo recomendado</strong>
+                <p>Rastrear → guardar en biblioteca → elegir perfil → mover a cola → publicar.</p>
+              </article>
+              <article class="compact-info-card">
+                <strong>Regla visual</strong>
+                <p>Pocas filas por página. Nada de listas eternas ni cajas superpuestas.</p>
+              </article>
+              <article class="compact-info-card">
+                <strong>OAuth</strong>
+                <p>Conectá el canal desde Perfiles. Si falla, revisá el redirect URI de Railway en Google Cloud.</p>
+              </article>
+            </div>
           </section>
-
-          <section class="view-section" data-view="discovery">
-            <section id="discovery" class="section-block">
-              <div class="section-heading">
-                <div>
-                  <p class="eyebrow">Semillas</p>
-                  <h3>Scouting y descubrimiento</h3>
-                </div>
-              </div>
-              <div class="dual-grid">
-                <article class="panel">
-                  <form id="seed-form" class="stack-form">
-                    <div class="mini-grid">
-                      <label>
-                        <span>Tipo</span>
-                        <select id="seed-type" name="seedType">
-                          <option value="profile">Perfil</option>
-                          <option value="hashtag">Hashtag</option>
-                          <option value="keyword">Keyword</option>
-                        </select>
-                      </label>
-                      <label>
-                        <span>Consulta</span>
-                        <input id="seed-query" name="query" type="text" placeholder="@perfil o #tema" required />
-                      </label>
-                    </div>
-                    <label>
-                      <span>Etiqueta</span>
-                      <input id="seed-label" name="label" type="text" placeholder="AI, gaming, brainrot..." />
-                    </label>
-                    <button type="submit">Guardar semilla</button>
-                  </form>
-                </article>
-
-                <article class="panel">
-                  <div id="seed-list" class="stack-list"></div>
-                </article>
-              </div>
-            </section>
-          </section>
-        </div>
+        </section>
       </main>
     </div>
-
-    <template id="media-card-template">
-      <article class="media-card compact-media-card">
-        <label class="select-pill">
-          <input class="media-select" type="checkbox" />
-          <span>Elegir</span>
-        </label>
-        <img class="media-thumb" alt="" />
-        <div class="media-body">
-          <div class="media-meta">
-            <span class="media-type"></span>
-            <a class="post-link" target="_blank" rel="noreferrer">Ver post</a>
-          </div>
-          <p class="media-caption"></p>
-          <p class="media-extra"></p>
-          <div class="card-actions">
-            <a class="button-link download-link">Descargar</a>
-          </div>
-        </div>
-      </article>
-    </template>
 
     <script type="module" src="/app.js"></script>
   </body>

@@ -1,195 +1,154 @@
 export const elements = {
-  navTabs: Array.from(document.querySelectorAll(".nav-tab")),
-  form: document.getElementById("track-form"),
-  username: document.getElementById("username"),
-  submitButton: document.getElementById("submit-button"),
-  refreshButton: document.getElementById("refresh-button"),
-  zipButton: document.getElementById("zip-button"),
-  statusText: document.getElementById("status-text"),
-  summaryCard: document.getElementById("summary-card"),
-  trackedKind: document.getElementById("tracked-kind"),
-  avatar: document.getElementById("avatar"),
-  displayName: document.getElementById("display-name"),
-  profileLink: document.getElementById("profile-link"),
-  totalMedia: document.getElementById("total-media"),
-  videoCount: document.getElementById("video-count"),
-  imageCount: document.getElementById("image-count"),
-  lastScrape: document.getElementById("last-scrape"),
-  mediaGrid: document.getElementById("media-grid"),
-  loadMoreMediaButton: document.getElementById("load-more-media-button"),
-  trackResultsMeta: document.getElementById("track-results-meta"),
-  template: document.getElementById("media-card-template"),
-  selectionBar: document.getElementById("selection-bar"),
-  selectedCount: document.getElementById("selected-count"),
-  selectAllButton: document.getElementById("select-all-button"),
-  clearSelectionButton: document.getElementById("clear-selection-button"),
-  saveLibraryButton: document.getElementById("save-library-button"),
-  downloadSelectedButton: document.getElementById("download-selected-button"),
-  queueSelectedButton: document.getElementById("queue-selected-button"),
-  queueAccountSelect: document.getElementById("queue-account-select"),
-  summaryStrip: document.getElementById("summary-strip"),
-  seedForm: document.getElementById("seed-form"),
-  seedType: document.getElementById("seed-type"),
-  seedQuery: document.getElementById("seed-query"),
-  seedLabel: document.getElementById("seed-label"),
-  seedList: document.getElementById("seed-list"),
-  youtubeForm: document.getElementById("youtube-form"),
-  youtubeBulkForm: document.getElementById("youtube-bulk-form"),
-  youtubeBulkInput: document.getElementById("youtube-bulk-input"),
-  youtubeBulkButton: document.getElementById("youtube-bulk-button"),
-  channelTitle: document.getElementById("channel-title"),
-  channelHandle: document.getElementById("channel-handle"),
-  channelId: document.getElementById("channel-id"),
-  contactEmail: document.getElementById("contact-email"),
-  libraryImportForm: document.getElementById("library-import-form"),
-  libraryZipPath: document.getElementById("library-zip-path"),
-  libraryLabel: document.getElementById("library-label"),
-  libraryAccountSelect: document.getElementById("library-account-select"),
-  libraryPrivacyStatus: document.getElementById("library-privacy-status"),
-  libraryStartAt: document.getElementById("library-start-at"),
-  libraryIntervalDays: document.getElementById("library-interval-days"),
-  libraryScheduleDaily: document.getElementById("library-schedule-daily"),
-  libraryImportButton: document.getElementById("library-import-button"),
-  libraryVideoForm: document.getElementById("library-video-form"),
-  libraryVideoLabel: document.getElementById("library-video-label"),
-  libraryVideoTitle: document.getElementById("library-video-title"),
-  libraryVideoPath: document.getElementById("library-video-path"),
-  libraryVideoUrl: document.getElementById("library-video-url"),
-  libraryVideoProvider: document.getElementById("library-video-provider"),
-  libraryVideoAccountSelect: document.getElementById("library-video-account-select"),
-  libraryVideoButton: document.getElementById("library-video-button"),
-  librarySelectionBar: document.getElementById("library-selection-bar"),
-  librarySelectedCount: document.getElementById("library-selected-count"),
-  librarySelectAllButton: document.getElementById("library-select-all-button"),
-  libraryClearSelectionButton: document.getElementById("library-clear-selection-button"),
-  libraryAddSelectedButton: document.getElementById("library-add-selected-button"),
-  librarySearchInput: document.getElementById("library-search-input"),
-  libraryStatusFilter: document.getElementById("library-status-filter"),
-  libraryAssignmentFilter: document.getElementById("library-assignment-filter"),
-  librarySourceFilter: document.getElementById("library-source-filter"),
-  libraryResultsMeta: document.getElementById("library-results-meta"),
-  libraryPrevPageButton: document.getElementById("library-prev-page-button"),
-  libraryNextPageButton: document.getElementById("library-next-page-button"),
-  libraryVideoList: document.getElementById("library-video-list"),
-  libraryQueueAccountSelect: document.getElementById("library-queue-account-select"),
-  distributionForm: document.getElementById("distribution-form"),
-  distributionAccountList: document.getElementById("distribution-account-list"),
-  distributionStartAt: document.getElementById("distribution-start-at"),
-  distributionIntervalHours: document.getElementById("distribution-interval-hours"),
-  distributionPrivacyStatus: document.getElementById("distribution-privacy-status"),
-  distributionSubmitButton: document.getElementById("distribution-submit-button"),
-  channelVideosList: document.getElementById("channel-videos-list"),
-  accountScheduleList: document.getElementById("account-schedule-list"),
-  refreshChannelVideosButton: document.getElementById("refresh-channel-videos-button"),
-  youtubeOauthBox: document.getElementById("youtube-oauth-box"),
-  youtubeList: document.getElementById("youtube-list"),
-  activeProfileTitle: document.getElementById("active-profile-title"),
-  activeProfileMeta: document.getElementById("active-profile-meta"),
-  activeProfileStatus: document.getElementById("active-profile-status"),
-  activeProfileOauthLink: document.getElementById("active-profile-oauth-link"),
-  activeProfileKpis: document.getElementById("active-profile-kpis"),
-  viewSections: Array.from(document.querySelectorAll(".view-section")),
-  candidateGrid: document.getElementById("candidate-grid"),
-  candidateFilterStatus: document.getElementById("candidate-filter-status"),
-  candidateFilterCategory: document.getElementById("candidate-filter-category"),
-  refreshCandidatesButton: document.getElementById("refresh-candidates-button"),
-  publicationList: document.getElementById("publication-list"),
-  refreshPublicationsButton: document.getElementById("refresh-publications-button"),
-  refreshJobsButton: document.getElementById("refresh-jobs-button"),
-  jobsSummaryStrip: document.getElementById("jobs-summary-strip"),
-  jobsList: document.getElementById("jobs-list"),
-  refreshWorkersButton: document.getElementById("refresh-workers-button"),
-  workersSummaryStrip: document.getElementById("workers-summary-strip"),
-  workersList: document.getElementById("workers-list"),
-  heroTrackButton: document.getElementById("hero-track-button"),
-  heroQueueButton: document.getElementById("hero-queue-button"),
-  heroHealthStrip: document.getElementById("hero-health-strip"),
-  dashboardAlert: document.getElementById("dashboard-alert"),
-  recentProfilesList: document.getElementById("recent-profiles-list"),
-  recentPublicationsList: document.getElementById("recent-publications-list"),
-  recentErrorsList: document.getElementById("recent-errors-list"),
-  scrapeStatusBox: document.getElementById("scrape-status-box")
+  navTabs: Array.from(document.querySelectorAll('.nav-tab')),
+  viewSections: Array.from(document.querySelectorAll('.view-section')),
+  headerEyebrow: document.getElementById('header-eyebrow'),
+  pageTitle: document.getElementById('page-title'),
+  globalStatus: document.getElementById('global-status'),
+
+  trackForm: document.getElementById('track-form'),
+  username: document.getElementById('username'),
+  submitButton: document.getElementById('submit-button'),
+  refreshButton: document.getElementById('refresh-button'),
+  trackingSummary: document.getElementById('tracking-summary'),
+  mediaGrid: document.getElementById('media-grid'),
+  trackResultsMeta: document.getElementById('track-results-meta'),
+  queueAccountSelect: document.getElementById('queue-account-select'),
+  saveLibraryButton: document.getElementById('save-library-button'),
+  queueSelectedButton: document.getElementById('queue-selected-button'),
+  trackPrevPage: document.getElementById('track-prev-page'),
+  trackNextPage: document.getElementById('track-next-page'),
+  trackingPagerLabel: document.getElementById('tracking-pager-label'),
+  loadMoreMediaButton: document.getElementById('load-more-media-button'),
+
+  librarySearchInput: document.getElementById('library-search-input'),
+  libraryStatusFilter: document.getElementById('library-status-filter'),
+  librarySourceFilter: document.getElementById('library-source-filter'),
+  libraryTargetAccountSelect: document.getElementById('library-target-account-select'),
+  libraryResultsMeta: document.getElementById('library-results-meta'),
+  libraryPrevPageButton: document.getElementById('library-prev-page-button'),
+  libraryNextPageButton: document.getElementById('library-next-page-button'),
+  libraryVideoList: document.getElementById('library-video-list'),
+
+  refreshAccountsButton: document.getElementById('refresh-accounts-button'),
+  youtubeOauthBox: document.getElementById('youtube-oauth-box'),
+  profilesList: document.getElementById('profiles-list'),
+  profilesPagerLabel: document.getElementById('profiles-pager-label'),
+  profilesPrevPage: document.getElementById('profiles-prev-page'),
+  profilesNextPage: document.getElementById('profiles-next-page'),
+  profileHeader: document.getElementById('profile-header'),
+  profileTabBar: document.getElementById('profile-tab-bar'),
+  profileTabContent: document.getElementById('profile-tab-content'),
+  profileSideActions: document.getElementById('profile-side-actions'),
+
+  youtubeForm: document.getElementById('youtube-form'),
+  youtubeBulkForm: document.getElementById('youtube-bulk-form'),
+  youtubeBulkButton: document.getElementById('youtube-bulk-button'),
+  youtubeBulkInput: document.getElementById('youtube-bulk-input'),
+  channelTitle: document.getElementById('channel-title'),
+  channelHandle: document.getElementById('channel-handle'),
+  channelId: document.getElementById('channel-id'),
+  contactEmail: document.getElementById('contact-email'),
+
+  queueSummaryStrip: document.getElementById('queue-summary-strip'),
+  queueTabBar: document.getElementById('queue-tab-bar'),
+  publicationList: document.getElementById('publication-list'),
+  refreshPublicationsButton: document.getElementById('refresh-publications-button'),
+  queuePrevPage: document.getElementById('queue-prev-page'),
+  queueNextPage: document.getElementById('queue-next-page'),
+  queuePagerLabel: document.getElementById('queue-pager-label'),
+
+  summaryStrip: document.getElementById('summary-strip')
 };
 
 export const state = {
-  currentUsername: "",
-  currentTrackQuery: "",
+  currentView: 'tracking',
+  currentTrackQuery: '',
+  currentUsername: '',
   currentItems: [],
-  currentLibraryItems: [],
-  currentAccounts: [],
-  currentPublications: [],
-  currentJobs: [],
-  currentWorkers: [],
+  currentTrackingProfile: null,
   currentTrackingRun: null,
-  currentTrackLimit: 20,
-  currentTrackBatchSize: 20,
+  currentTrackLimit: 24,
+  currentTrackBatchSize: 24,
   currentTrackTotalAvailable: 0,
-  currentLibraryPage: 1,
-  currentLibraryPageSize: 10,
-  currentLibraryFilteredCount: 0,
-  currentChannelVideos: [],
-  currentActiveAccountId: null,
+  currentTrackPage: 1,
+  currentTrackPageSize: 6,
+  selectedTrackIds: new Set(),
   trackingPollTimer: null,
-  currentView: "tracking",
-  selectedIds: new Set(),
-  selectedLibraryIds: new Set()
+
+  accounts: [],
+  oauth: null,
+  selectedAccountId: null,
+  accountVideosById: {},
+  currentProfileTab: 'summary',
+  profileListPage: 1,
+  profileListPageSize: 5,
+  profileUploadsPage: 1,
+  profileQueuePage: 1,
+  profilePublishPage: 1,
+  profileTabPageSize: 5,
+
+  libraryItems: [],
+  libraryPage: 1,
+  libraryPageSize: 6,
+  libraryFilters: {
+    search: '',
+    status: '',
+    source: ''
+  },
+  profilePublishFilters: {
+    search: '',
+    source: '',
+    availability: 'available'
+  },
+
+  publications: [],
+  queueTab: 'all',
+  queuePage: 1,
+  queuePageSize: 8,
+  dashboardSummary: null
+};
+
+const VIEW_META = {
+  tracking: ['Operación', 'Rastrear'],
+  library: ['Biblioteca', 'Biblioteca'],
+  profiles: ['Perfiles', 'Perfiles'],
+  queue: ['Cola', 'Cola general'],
+  overview: ['Resumen', 'Resumen']
 };
 
 export function setActiveView(view) {
   state.currentView = view;
   elements.navTabs.forEach((button) => {
-    button.classList.toggle("active", button.dataset.view === view);
+    button.classList.toggle('active', button.dataset.view === view);
   });
   elements.viewSections.forEach((section) => {
-    section.classList.toggle("active", section.dataset.view === view);
+    section.classList.toggle('active', section.dataset.view === view);
   });
-}
-
-export function syncSeedQueryPlaceholder() {
-  const type = elements.seedType.value;
-  if (type === "hashtag") {
-    elements.seedQuery.placeholder = "#tema";
-    return;
-  }
-
-  if (type === "keyword") {
-    elements.seedQuery.placeholder = "keyword o frase";
-    return;
-  }
-
-  elements.seedQuery.placeholder = "@perfil";
+  const [eyebrow, title] = VIEW_META[view] || ['Operación', 'Workspace'];
+  if (elements.headerEyebrow) elements.headerEyebrow.textContent = eyebrow;
+  if (elements.pageTitle) elements.pageTitle.textContent = title;
 }
 
 export function setStatus(message, isError = false) {
-  elements.statusText.textContent = message;
-  elements.statusText.style.color = isError ? "#ff9e84" : "";
+  if (!elements.globalStatus) return;
+  elements.globalStatus.textContent = message;
+  elements.globalStatus.classList.toggle('is-error', Boolean(isError));
 }
 
 export function setButtonBusy(button, busyText, isBusy) {
-  if (!button) {
-    return;
-  }
-
+  if (!button) return;
   if (!button.dataset.defaultLabel) {
     button.dataset.defaultLabel = button.textContent;
   }
-
+  button.disabled = isBusy;
   button.textContent = isBusy ? busyText : button.dataset.defaultLabel;
 }
 
 export async function runWithBusyButton(button, busyText, task) {
-  if (!button) {
-    return task();
-  }
-
-  const previousDisabled = button.disabled;
-  button.disabled = true;
   setButtonBusy(button, busyText, true);
-
   try {
     return await task();
   } finally {
-    button.disabled = previousDisabled;
     setButtonBusy(button, busyText, false);
   }
 }
@@ -203,49 +162,4 @@ export function stopTrackingPolling() {
 
 export function setTrackingPollTimer(timer) {
   state.trackingPollTimer = timer;
-}
-
-export function setTrackingControlsBusy(isBusy) {
-  elements.submitButton.disabled = isBusy;
-  elements.refreshButton.disabled = isBusy;
-  setButtonBusy(elements.submitButton, "Rastreando...", isBusy);
-  setButtonBusy(elements.refreshButton, "Actualizando...", isBusy);
-}
-
-export function syncSelectionBar() {
-  const count = state.selectedIds.size;
-  elements.selectionBar.classList.toggle("hidden", state.currentItems.length === 0);
-  elements.selectedCount.textContent = `${count} seleccionados`;
-  elements.saveLibraryButton.disabled = count === 0;
-  elements.downloadSelectedButton.disabled = count === 0;
-  elements.clearSelectionButton.disabled = count === 0;
-  elements.selectAllButton.disabled = state.currentItems.length === 0 || count === state.currentItems.length;
-  elements.queueSelectedButton.disabled = count === 0 || !elements.queueAccountSelect.value;
-}
-
-export function syncTrackResultsControls() {
-  const visibleCount = state.currentItems.length;
-  const totalAvailable = Math.max(Number(state.currentTrackTotalAvailable || 0), visibleCount);
-  const hasItems = visibleCount > 0;
-  const isRunning = String(state.currentTrackingRun?.status || "").toLowerCase() === "running";
-
-  elements.trackResultsMeta.classList.toggle("hidden", !hasItems);
-  elements.trackResultsMeta.textContent = hasItems
-    ? `Mostrando ${visibleCount} de ${totalAvailable}${isRunning ? " | tracking en curso" : ""}`
-    : "";
-
-  const canLoadMore = hasItems && !isRunning && visibleCount >= state.currentTrackLimit;
-  elements.loadMoreMediaButton.classList.toggle("hidden", !canLoadMore);
-  elements.loadMoreMediaButton.disabled = isRunning;
-}
-
-export function syncLibrarySelectionBar() {
-  const count = state.selectedLibraryIds.size;
-  elements.librarySelectionBar.classList.toggle("hidden", state.currentLibraryItems.length === 0);
-  elements.librarySelectedCount.textContent = `${count} seleccionados`;
-  elements.librarySelectAllButton.disabled =
-    state.currentLibraryFilteredCount === 0 || count === state.currentLibraryFilteredCount;
-  elements.libraryClearSelectionButton.disabled = count === 0;
-  elements.distributionSubmitButton.disabled = count === 0;
-  elements.libraryAddSelectedButton.disabled = count === 0 || !elements.libraryQueueAccountSelect.value;
 }
