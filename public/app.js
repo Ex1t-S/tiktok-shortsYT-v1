@@ -36,6 +36,7 @@ import {
 import {
   getPrimaryConnectedAccount,
   renderAccountSchedule,
+  renderActiveAccountSummary,
   renderCandidates,
   renderLibraryVideos,
   renderMedia,
@@ -54,12 +55,12 @@ setOverviewActions({
 
 setContentActions({
   loadAccounts,
-  loadChannelVideos: loadYoutubeChannelVideos,
   loadCandidates,
   loadDashboard,
   loadLibrary,
   loadPublications,
-  loadSeeds
+  loadSeeds,
+  loadYoutubeChannelVideos
 });
 
 function handleOauthFeedback() {
@@ -70,9 +71,9 @@ function handleOauthFeedback() {
   }
 
   if (oauthStatus === "success") {
-    setStatus(`La cuenta de YouTube ${params.get("account_id") || ""} quedo conectada.`);
+    setStatus(`La cuenta de YouTube ${params.get("account_id") || ""} quedó conectada.`);
   } else {
-    setStatus(params.get("message") || "Fallo Google OAuth.", true);
+    setStatus(params.get("message") || "Falló Google OAuth.", true);
   }
 
   const cleanUrl = new URL(window.location.href);
@@ -150,7 +151,7 @@ function scheduleTrackingPolling(username) {
 
         if (status === "failed") {
           stopTrackingPolling();
-          setStatus(payload.scrape?.progress_message || "El tracking fallo.", true);
+          setStatus(payload.scrape?.progress_message || "El tracking falló.", true);
         }
       } catch (error) {
         stopTrackingPolling();
@@ -184,44 +185,46 @@ async function loadSeeds() {
 async function loadAccounts() {
   const { accounts, oauth } = await fetchJson("/api/youtube/accounts");
   renderYoutubeAccounts(accounts, oauth);
-  const primaryAccount = getPrimaryConnectedAccount();
-  await loadYoutubeChannelVideos(primaryAccount?.id);
+  const activeAccount = getPrimaryConnectedAccount();
+  await loadYoutubeChannelVideos(activeAccount?.id);
 }
-
 
 async function loadYoutubeChannelVideos(accountId) {
   if (!accountId) {
-    elements.channelVideosList.innerHTML = '<p class="empty-state">Conecta un canal de YouTube para ver métricas.</p>';
-    return [];
+    state.currentChannelVideos = [];
+    elements.channelVideosList.innerHTML = '<p class="empty-state">Conecta un canal de YouTube para ver sus métricas.</p>';
+    renderActiveAccountSummary();
+    return;
   }
 
   const data = await fetchJson(`/api/youtube/accounts/${accountId}/videos?limit=12`);
   const items = Array.isArray(data.items) ? data.items : [];
-  state.currentChannelVideosByAccount[String(accountId)] = items;
+  state.currentChannelVideos = items;
+  renderActiveAccountSummary();
 
   if (items.length === 0) {
     elements.channelVideosList.innerHTML =
-      '<p class="empty-state">YouTube todavía no devolvió videos recientes para este canal.</p>';
-    renderYoutubeAccounts(state.currentAccounts, state.currentYoutubeOauth);
-    return items;
+      '<p class="empty-state">YouTube todavía no devolvió videos para este canal.</p>';
+    return;
   }
 
   elements.channelVideosList.innerHTML = items
     .map(
       (item) => `
-        <article class="channel-video-row">
+        <article class="list-row channel-row">
           <img
-            class="channel-video-thumb compact"
+            class="list-thumb"
             src="${item.thumbnails?.medium?.url || item.thumbnails?.default?.url || ""}"
             alt="${item.title || ""}"
           />
-          <div class="channel-video-main">
+          <div class="list-row-main">
             <strong>${item.title || ""}</strong>
-            <p>${formatMetric(item.viewCount)} vistas · ${formatDate(item.publishedAt)}</p>
+            <p>${formatDate(item.publishedAt)} · ${translateStatus(item.privacyStatus || "unknown")}</p>
           </div>
-          <div class="channel-video-side">
+          <div class="list-row-meta compact-end">
+            <span>${formatMetric(item.viewCount)} vistas</span>
             <span>${formatMetric(item.likeCount)} likes</span>
-            <span>${item.duration ? formatIsoDuration(item.duration) : translateStatus(item.privacyStatus || "unknown")}</span>
+            ${item.duration ? `<span>${formatIsoDuration(item.duration)}</span>` : ""}
             ${
               item.url
                 ? `<a class="ghost-button" href="${item.url}" target="_blank" rel="noreferrer">Abrir</a>`
@@ -232,9 +235,6 @@ async function loadYoutubeChannelVideos(accountId) {
       `
     )
     .join("");
-
-  renderYoutubeAccounts(state.currentAccounts, state.currentYoutubeOauth);
-  return items;
 }
 
 async function loadLibrary() {
@@ -265,7 +265,6 @@ async function loadPublications() {
   const { items } = await fetchJson("/api/publications");
   state.currentPublications = items;
   renderPublications(items);
-  renderAccountSchedule();
 }
 
 async function trackUsername(username) {
@@ -298,7 +297,7 @@ async function trackUsername(username) {
     scheduleTrackingPolling(state.currentUsername);
     setStatus(
       result.alreadyRunning
-        ? `Ya habia un tracking corriendo para ${normalizedLabel}. Estoy mostrando el progreso en vivo.`
+        ? `Ya había un tracking corriendo para ${normalizedLabel}. Estoy mostrando el progreso en vivo.`
         : `Tracking iniciado para ${normalizedLabel}. Voy a ir mostrando el progreso y los videos guardados.`
     );
   } catch (error) {
@@ -321,7 +320,7 @@ async function expandTrackingResults() {
   const input = state.currentTrackQuery;
   const searchingHashtag = isHashtagQuery(input);
   const normalizedLabel = searchingHashtag ? input : input.replace(/^@+/, "@");
-  setStatus(`Buscando 20 items mas para ${normalizedLabel}...`);
+  setStatus(`Buscando 20 items más para ${normalizedLabel}...`);
   setTrackingControlsBusy(true);
   elements.loadMoreMediaButton.disabled = true;
 
@@ -346,7 +345,7 @@ elements.form.addEventListener("submit", async (event) => {
   const username = elements.username.value;
 
   if (!username.trim()) {
-    setStatus("La busqueda es obligatoria.", true);
+    setStatus("La búsqueda es obligatoria.", true);
     return;
   }
 
@@ -367,6 +366,7 @@ elements.loadMoreMediaButton.addEventListener("click", async () => {
 });
 
 elements.queueAccountSelect.addEventListener("change", syncSelectionBar);
+elements.libraryQueueAccountSelect.addEventListener("change", syncLibrarySelectionBar);
 
 elements.selectAllButton.addEventListener("click", () => {
   state.currentItems.forEach((item) => state.selectedIds.add(String(item.id)));
@@ -382,7 +382,7 @@ elements.librarySelectAllButton.addEventListener("click", () => {
   const searchTerm = elements.librarySearchInput.value.trim().toLowerCase();
   const statusFilter = elements.libraryStatusFilter.value;
   const assignmentFilter = elements.libraryAssignmentFilter.value;
-  const sourceFilter = elements.librarySourceFilter?.value || "";
+  const sourceFilter = elements.librarySourceFilter.value;
 
   state.currentLibraryItems
     .filter((item) => {
@@ -398,11 +398,18 @@ elements.librarySelectAllButton.addEventListener("click", () => {
         .toLowerCase();
       const publicationStatus = String(item.publication_status || item.status || "ready").toLowerCase();
       const hasChannel = Boolean(item.channel_title || item.youtube_account_id);
+      const provider = String(item.storage_provider || "").toLowerCase();
+      const sourceKind = String(item.source_kind || item.kind || "").toLowerCase();
       const matchesSearch = !searchTerm || haystack.includes(searchTerm);
       const matchesStatus = !statusFilter || publicationStatus === statusFilter;
       const matchesAssignment =
         !assignmentFilter || (assignmentFilter === "assigned" ? hasChannel : !hasChannel);
-      const matchesSource = !sourceFilter || String(item.source_kind || "").toLowerCase() === sourceFilter;
+      const matchesSource =
+        !sourceFilter ||
+        (sourceFilter === "tracked" && (sourceKind.includes("tracked") || provider === "remote_url")) ||
+        (sourceFilter === "zip" && (provider === "zip_import" || Boolean(item.source_archive_path))) ||
+        (sourceFilter === "cloud" && (provider === "s3-compatible" || Boolean(item.storage_object_key))) ||
+        (sourceFilter === "direct" && provider === "local" && !item.source_archive_path);
 
       return matchesSearch && matchesStatus && matchesAssignment && matchesSource;
     })
@@ -415,25 +422,46 @@ elements.libraryClearSelectionButton.addEventListener("click", () => {
   renderLibraryVideos(state.currentLibraryItems);
 });
 
-elements.librarySearchInput.addEventListener("input", () => {
-  resetLibraryPagination();
-  renderLibraryVideos(state.currentLibraryItems);
+elements.libraryAddSelectedButton.addEventListener("click", async () => {
+  const libraryVideoIds = Array.from(state.selectedLibraryIds)
+    .map((value) => Number(value))
+    .filter(Number.isFinite);
+  const youtubeAccountId = Number(elements.libraryQueueAccountSelect.value || state.currentActiveAccountId);
+
+  if (libraryVideoIds.length === 0) {
+    setStatus("Selecciona al menos un video de la biblioteca.", true);
+    return;
+  }
+
+  if (!Number.isFinite(youtubeAccountId)) {
+    setStatus("Elige un perfil antes de mandar videos a la cola.", true);
+    return;
+  }
+
+  await runWithBusyButton(elements.libraryAddSelectedButton, "Agregando...", async () => {
+    setStatus(`Mandando ${libraryVideoIds.length} videos a la cola del perfil...`);
+    try {
+      await postJson("/api/publications", { libraryVideoIds, youtubeAccountId });
+      state.selectedLibraryIds.clear();
+      await Promise.all([loadPublications(), loadLibrary(), loadDashboard()]);
+      setStatus("Los videos seleccionados fueron agregados a la cola.");
+      setActiveView("accounts");
+    } catch (error) {
+      setStatus(error.message, true);
+    } finally {
+      syncLibrarySelectionBar();
+    }
+  });
 });
 
-elements.libraryStatusFilter.addEventListener("change", () => {
-  resetLibraryPagination();
-  renderLibraryVideos(state.currentLibraryItems);
-});
-
-elements.libraryAssignmentFilter.addEventListener("change", () => {
-  resetLibraryPagination();
-  renderLibraryVideos(state.currentLibraryItems);
-});
-
-elements.librarySourceFilter?.addEventListener("change", () => {
-  resetLibraryPagination();
-  renderLibraryVideos(state.currentLibraryItems);
-});
+[elements.librarySearchInput, elements.libraryStatusFilter, elements.libraryAssignmentFilter, elements.librarySourceFilter].forEach(
+  (input) => {
+    input.addEventListener(input.tagName === "INPUT" ? "input" : "change", () => {
+      resetLibraryPagination();
+      renderLibraryVideos(state.currentLibraryItems);
+    });
+  }
+);
 
 elements.libraryPrevPageButton.addEventListener("click", () => {
   state.currentLibraryPage = Math.max(1, state.currentLibraryPage - 1);
@@ -462,7 +490,7 @@ elements.saveLibraryButton.addEventListener("click", async () => {
       });
       await Promise.all([loadLibrary(), loadDashboard(), loadPublications()]);
       setStatus(
-        `Se guardaron ${result.result?.createdCount || 0} videos en biblioteca. Ya puedes enviarlos a cualquier cuenta de YouTube.`
+        `Se guardaron ${result.result?.createdCount || 0} videos en biblioteca. Ya puedes mandarlos al perfil que quieras.`
       );
       setActiveView("accounts");
     } catch (error) {
@@ -497,7 +525,7 @@ elements.downloadSelectedButton.addEventListener("click", async () => {
 
 elements.queueSelectedButton.addEventListener("click", async () => {
   const ids = Array.from(state.selectedIds);
-  const youtubeAccountId = Number(elements.queueAccountSelect.value);
+  const youtubeAccountId = Number(elements.queueAccountSelect.value || state.currentActiveAccountId);
 
   if (ids.length === 0) {
     setStatus("Selecciona al menos un video.", true);
@@ -515,7 +543,7 @@ elements.queueSelectedButton.addEventListener("click", async () => {
     try {
       await postJson("/api/publications", { mediaIds: ids, youtubeAccountId });
       await Promise.all([loadPublications(), loadDashboard(), loadLibrary()]);
-      setStatus(`Se enviaron ${ids.length} videos a la cola de publicacion.`);
+      setStatus(`Se enviaron ${ids.length} videos a la cola de publicación.`);
       setActiveView("queue");
     } catch (error) {
       setStatus(error.message, true);
@@ -564,21 +592,18 @@ elements.youtubeForm.addEventListener("submit", async (event) => {
 
 elements.youtubeBulkForm.addEventListener("submit", async (event) => {
   event.preventDefault();
-
   const accounts = parseBulkYoutubeAccounts(elements.youtubeBulkInput.value);
   if (accounts.length === 0) {
-    setStatus("Pega al menos una cuenta valida para importar.", true);
+    setStatus("Pega al menos una cuenta válida.", true);
     return;
   }
 
   await runWithBusyButton(elements.youtubeBulkButton, "Importando...", async () => {
-    setStatus(`Importando ${accounts.length} canales de YouTube...`);
-
     try {
       await postJson("/api/youtube/accounts/bulk", { accounts });
       elements.youtubeBulkForm.reset();
       await Promise.all([loadAccounts(), loadDashboard()]);
-      setStatus(`Se importaron ${accounts.length} canales.`);
+      setStatus(`Se importaron ${accounts.length} cuentas de YouTube.`);
     } catch (error) {
       setStatus(error.message, true);
     }
@@ -588,31 +613,20 @@ elements.youtubeBulkForm.addEventListener("submit", async (event) => {
 elements.libraryImportForm.addEventListener("submit", async (event) => {
   event.preventDefault();
 
-  const zipPath = elements.libraryZipPath.value.trim();
-  if (!zipPath) {
-    setStatus("La ruta del ZIP es obligatoria.", true);
-    return;
-  }
-
-  await runWithBusyButton(elements.libraryImportButton, "Subiendo ZIP...", async () => {
-    setStatus(`Importando ${zipPath} y creando la cola de Shorts...`);
-
+  await runWithBusyButton(elements.libraryImportButton, "Importando ZIP...", async () => {
     try {
-      const payload = {
-        zipPath,
-        label: elements.libraryLabel.value.trim(),
+      await postJson("/api/library/import-zip", {
+        zipPath: elements.libraryZipPath.value,
+        label: elements.libraryLabel.value,
         youtubeAccountId: elements.libraryAccountSelect.value ? Number(elements.libraryAccountSelect.value) : null,
         privacyStatus: elements.libraryPrivacyStatus.value,
         startAt: elements.libraryStartAt.value ? new Date(elements.libraryStartAt.value).toISOString() : null,
-        scheduleDaily: elements.libraryScheduleDaily.checked,
-        intervalDays: Number(elements.libraryIntervalDays.value || 1)
-      };
-      const result = await postJson("/api/library/import-zip", payload);
+        intervalDays: Number(elements.libraryIntervalDays.value || 1),
+        scheduleDaily: elements.libraryScheduleDaily.checked
+      });
+      elements.libraryImportForm.reset();
       await Promise.all([loadLibrary(), loadPublications(), loadDashboard()]);
-      setStatus(
-        `Se importaron ${result.result?.createdCount || 0} videos desde el ZIP. ${(result.queuedItems || []).length} publicaciones creadas.`
-      );
-      setActiveView("accounts");
+      setStatus("El ZIP fue importado a la biblioteca.");
     } catch (error) {
       setStatus(error.message, true);
     }
@@ -622,29 +636,20 @@ elements.libraryImportForm.addEventListener("submit", async (event) => {
 elements.libraryVideoForm.addEventListener("submit", async (event) => {
   event.preventDefault();
 
-  const filePath = elements.libraryVideoPath.value.trim();
-  const sourceUrl = elements.libraryVideoUrl.value.trim();
-  if (!filePath && !sourceUrl) {
-    setStatus("Carga una ruta local o una URL remota.", true);
-    return;
-  }
-
-  await runWithBusyButton(elements.libraryVideoButton, "Guardando...", async () => {
-    setStatus(sourceUrl ? "Guardando video remoto..." : "Guardando video local...");
-
+  await runWithBusyButton(elements.libraryVideoButton, "Guardando video...", async () => {
     try {
       const payload = {
-        label: elements.libraryVideoLabel.value.trim(),
-        title: elements.libraryVideoTitle.value.trim(),
-        filePath,
-        sourceUrl,
+        label: elements.libraryVideoLabel.value,
+        title: elements.libraryVideoTitle.value,
+        filePath: elements.libraryVideoPath.value,
+        sourceUrl: elements.libraryVideoUrl.value,
         storageProvider: elements.libraryVideoProvider.value,
         youtubeAccountId: elements.libraryVideoAccountSelect.value ? Number(elements.libraryVideoAccountSelect.value) : null
       };
       const result = await postJson("/api/library/videos", payload);
       await Promise.all([loadLibrary(), loadPublications(), loadDashboard()]);
       setStatus(
-        `El video se guardo en biblioteca. ${(result.queuedItems || []).length} publicacion${
+        `El video se guardó en biblioteca. ${(result.queuedItems || []).length} publicación${
           (result.queuedItems || []).length === 1 ? "" : "es"
         } creada${(result.queuedItems || []).length === 1 ? "" : "s"}.`
       );
@@ -690,7 +695,7 @@ elements.distributionForm.addEventListener("submit", async (event) => {
       });
       state.selectedLibraryIds.clear();
       await Promise.all([loadLibrary(), loadPublications(), loadPublicationJobs(), loadDashboard()]);
-      setStatus("La distribucion automatica quedo cargada en la cola.");
+      setStatus("La distribución automática quedó cargada en la cola.");
       setActiveView("queue");
     } catch (error) {
       setStatus(error.message, true);
@@ -731,7 +736,7 @@ elements.candidateFilterCategory.addEventListener("change", loadCandidates);
 elements.refreshPublicationsButton.addEventListener("click", async () => {
   try {
     await loadPublications();
-    setStatus("La cola de publicacion fue actualizada.");
+    setStatus("La cola de publicación fue actualizada.");
   } catch (error) {
     setStatus(error.message, true);
   }
@@ -739,9 +744,9 @@ elements.refreshPublicationsButton.addEventListener("click", async () => {
 
 elements.refreshChannelVideosButton.addEventListener("click", async () => {
   try {
-    const primaryAccount = getPrimaryConnectedAccount();
-    await loadYoutubeChannelVideos(primaryAccount?.id);
-    setStatus("Las metricas del canal fueron actualizadas.");
+    const currentAccount = getPrimaryConnectedAccount();
+    await loadYoutubeChannelVideos(currentAccount?.id);
+    setStatus("Las métricas del canal fueron actualizadas.");
   } catch (error) {
     setStatus(error.message, true);
   }

@@ -1,30 +1,36 @@
-@media (max-width: 1180px) {
-  .app-shell {
+@media (max-width: 1320px) {
+  .studio-shell {
     grid-template-columns: 1fr;
   }
 
-  .sidebar {
+  .studio-sidebar {
     position: static;
     min-height: auto;
   }
 
-  .topbar,
+  .profiles-shell,
+  .track-workspace,
   .hero-panel,
   .dual-grid,
-  .triple-grid,
+  .profile-columns,
   .summary-grid,
-  .workflow-strip {
+  .profile-kpis,
+  .studio-topbar {
     grid-template-columns: 1fr;
+  }
+
+  .profile-directory-panel {
+    position: static;
   }
 }
 
-@media (max-width: 720px) {
-  .app-shell {
-    width: min(100% - 18px, 100%);
-    padding: 14px 0 20px;
+@media (max-width: 860px) {
+  .studio-shell {
+    width: min(100% - 16px, 100%);
+    padding: 10px 0 18px;
   }
 
-  .sidebar,
+  .studio-sidebar,
   .hero-panel,
   .panel {
     border-radius: 20px;
@@ -33,50 +39,25 @@
 
   .mini-grid,
   .library-filters,
-  .channel-video-head {
+  .secondary-actions-grid,
+  .advanced-tools-grid,
+  .summary-grid,
+  .profile-kpis {
     grid-template-columns: 1fr;
   }
 
+  .list-row,
+  .list-row.full-width,
+  .studio-topbar {
+    grid-template-columns: 1fr;
+  }
+
+  .list-row-meta,
+  .profile-summary-head,
   .results-actions,
-  .inline-toolbar {
+  .selection-bar,
+  .section-heading,
+  .section-heading.compact {
     justify-content: flex-start;
-  }
-}
-
-
-
-@media (max-width: 1320px) {
-  .profiles-layout,
-  .profiles-content-grid,
-  .profiles-bottom-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .profile-summary-strip {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .library-video-row,
-  .queue-row-card,
-  .channel-video-row {
-    grid-template-columns: 1fr;
-  }
-
-  .channel-video-side {
-    justify-items: start;
-  }
-}
-
-@media (max-width: 720px) {
-  .profile-summary-strip,
-  .profile-library-filters {
-    grid-template-columns: 1fr;
-  }
-
-  .profile-list,
-  .channel-video-rows,
-  .profile-library-list,
-  .stack-list.compact-stack {
-    max-height: none;
   }
 }

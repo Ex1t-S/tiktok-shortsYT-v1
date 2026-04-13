@@ -62,6 +62,7 @@ export const elements = {
   librarySelectedCount: document.getElementById("library-selected-count"),
   librarySelectAllButton: document.getElementById("library-select-all-button"),
   libraryClearSelectionButton: document.getElementById("library-clear-selection-button"),
+  libraryAddSelectedButton: document.getElementById("library-add-selected-button"),
   librarySearchInput: document.getElementById("library-search-input"),
   libraryStatusFilter: document.getElementById("library-status-filter"),
   libraryAssignmentFilter: document.getElementById("library-assignment-filter"),
@@ -82,7 +83,11 @@ export const elements = {
   refreshChannelVideosButton: document.getElementById("refresh-channel-videos-button"),
   youtubeOauthBox: document.getElementById("youtube-oauth-box"),
   youtubeList: document.getElementById("youtube-list"),
-  profileOverviewStrip: document.getElementById("profile-overview-strip"),
+  activeProfileTitle: document.getElementById("active-profile-title"),
+  activeProfileMeta: document.getElementById("active-profile-meta"),
+  activeProfileStatus: document.getElementById("active-profile-status"),
+  activeProfileOauthLink: document.getElementById("active-profile-oauth-link"),
+  activeProfileKpis: document.getElementById("active-profile-kpis"),
   viewSections: Array.from(document.querySelectorAll(".view-section")),
   candidateGrid: document.getElementById("candidate-grid"),
   candidateFilterStatus: document.getElementById("candidate-filter-status"),
@@ -120,11 +125,10 @@ export const state = {
   currentTrackBatchSize: 20,
   currentTrackTotalAvailable: 0,
   currentLibraryPage: 1,
-  currentLibraryPageSize: 12,
+  currentLibraryPageSize: 10,
   currentLibraryFilteredCount: 0,
-  selectedAccountId: null,
-  currentYoutubeOauth: null,
-  currentChannelVideosByAccount: {},
+  currentChannelVideos: [],
+  currentActiveAccountId: null,
   trackingPollTimer: null,
   currentView: "tracking",
   selectedIds: new Set(),
@@ -243,4 +247,5 @@ export function syncLibrarySelectionBar() {
     state.currentLibraryFilteredCount === 0 || count === state.currentLibraryFilteredCount;
   elements.libraryClearSelectionButton.disabled = count === 0;
   elements.distributionSubmitButton.disabled = count === 0;
+  elements.libraryAddSelectedButton.disabled = count === 0 || !elements.libraryQueueAccountSelect.value;
 }

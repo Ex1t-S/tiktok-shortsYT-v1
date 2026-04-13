@@ -2,32 +2,24 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-.triple-grid {
-  grid-template-columns: 360px minmax(0, 1fr);
-}
-
-.wide-panel {
-  min-width: 0;
-}
-
 .mini-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.library-filters {
-  grid-template-columns: minmax(0, 2fr) repeat(2, minmax(0, 1fr));
 }
 
 .summary-grid {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
-.card-grid {
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+.profile-kpis {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
 }
 
 .media-grid {
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.dense-media-grid {
+  align-items: start;
 }
 
 .candidate-grid {
@@ -35,23 +27,24 @@
 }
 
 .media-card,
-.candidate-card,
-.publication-card {
+.candidate-card {
   overflow: hidden;
   border-radius: 22px;
   background: var(--panel);
 }
 
+.compact-media-card .media-thumb {
+  aspect-ratio: 16 / 11;
+}
+
 .media-thumb {
   display: block;
   width: 100%;
-  aspect-ratio: 4 / 5;
   object-fit: cover;
   background: #eef1f7;
 }
 
-.candidate-thumb,
-.publication-thumb {
+.candidate-thumb {
   display: block;
   width: 100%;
   aspect-ratio: 16 / 9;
@@ -60,8 +53,7 @@
 }
 
 .media-body,
-.candidate-body,
-.publication-body {
+.candidate-body {
   padding: 16px;
 }
 
@@ -92,51 +84,17 @@
   margin: 0;
 }
 
-.channel-video-card {
-  gap: 14px;
+.compact-end {
+  justify-content: flex-end;
 }
 
-.channel-video-head {
-  display: grid;
-  grid-template-columns: 128px minmax(0, 1fr);
-  gap: 14px;
-  align-items: start;
+.open-card > summary {
+  cursor: pointer;
+  color: var(--muted);
+  font-weight: 700;
+  list-style: none;
 }
 
-.channel-video-thumb {
-  width: 100%;
-  aspect-ratio: 16 / 9;
-  object-fit: cover;
-  border-radius: 14px;
-  background: #eceff4;
-  border: 1px solid var(--line);
-}
-
-
-
-.profiles-layout,
-.profiles-content-grid,
-.profiles-bottom-grid,
-.profile-summary-strip {
-  display: grid;
-  gap: 18px;
-}
-
-.profile-list {
-  max-height: 44vh;
-  overflow: auto;
-  padding-right: 2px;
-}
-
-.channel-video-rows,
-.profile-library-list {
-  max-height: 58vh;
-  overflow: auto;
-  padding-right: 4px;
-}
-
-.stack-list.compact-stack {
-  max-height: 58vh;
-  overflow: auto;
-  padding-right: 4px;
+.open-card > summary::-webkit-details-marker {
+  display: none;
 }

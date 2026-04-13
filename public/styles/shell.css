@@ -1,40 +1,40 @@
-.app-shell {
-  width: min(1500px, calc(100% - 32px));
+.studio-shell {
+  width: min(1680px, calc(100% - 24px));
   margin: 0 auto;
-  padding: 18px 0 28px;
+  padding: 14px 0 24px;
   display: grid;
-  grid-template-columns: 292px minmax(0, 1fr);
-  gap: 22px;
+  grid-template-columns: 260px minmax(0, 1fr);
+  gap: 18px;
 }
 
-.sidebar,
+.studio-sidebar,
 .hero-panel,
 .panel,
 .media-card,
-.candidate-card,
-.publication-card {
+.candidate-card {
   border: 1px solid var(--line);
   box-shadow: var(--shadow);
 }
 
-.sidebar {
+.studio-sidebar {
   position: sticky;
-  top: 18px;
+  top: 14px;
   align-self: start;
-  min-height: calc(100vh - 36px);
-  border-radius: 24px;
-  padding: 24px 20px;
+  min-height: calc(100vh - 28px);
+  border-radius: 22px;
+  padding: 22px 18px;
   display: flex;
   flex-direction: column;
-  gap: 24px;
-  background: linear-gradient(180deg, rgba(20, 23, 30, 0.98) 0%, rgba(14, 17, 23, 0.98) 100%);
+  gap: 20px;
+  background: linear-gradient(180deg, rgba(15, 18, 24, 0.98) 0%, rgba(10, 12, 18, 0.98) 100%);
   border-color: rgba(255, 255, 255, 0.06);
   color: #e5e7eb;
 }
 
 .brand-block h1,
 .hero-copy-block h2,
-.section-heading h3 {
+.section-heading h3,
+.profile-summary-head h2 {
   margin: 0;
   font-family: "Manrope", sans-serif;
   letter-spacing: -0.05em;
@@ -48,9 +48,9 @@
 }
 
 .sidebar-copy {
-  margin: 14px 0 0;
+  margin: 12px 0 0;
   color: #98a2b3;
-  line-height: 1.55;
+  line-height: 1.6;
 }
 
 .eyebrow {
@@ -117,58 +117,54 @@
   font-size: 0.82rem;
 }
 
-.main-shell {
-  display: grid;
-  gap: 22px;
-}
-
-.workflow-roadmap {
-  margin-top: -4px;
-}
-
-.workflow-hero {
+.studio-main {
   display: grid;
   gap: 18px;
 }
 
-.workflow-strip {
+.studio-topbar {
   display: grid;
-  grid-template-columns: minmax(0, 1.25fr) minmax(320px, 0.9fr);
-  gap: 18px;
-  align-items: start;
-}
-
-.compact-panel {
-  padding: 20px;
-  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
-}
-
-.flow-callout h3 {
-  margin-top: 6px;
-}
-
-.account-schedule-heading {
-  margin-top: 18px;
-}
-
-.topbar {
-  display: grid;
-  grid-template-columns: 200px minmax(0, 1fr) auto;
-  gap: 16px;
+  grid-template-columns: 220px minmax(0, 1fr) auto;
+  gap: 14px;
   align-items: center;
-  padding: 10px 14px;
+  padding: 12px 14px;
   border-radius: 18px;
   background: rgba(12, 14, 18, 0.92);
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.22);
 }
 
-.topbar-title strong {
+.studio-topbar strong {
   display: block;
   margin-top: 2px;
   color: #f8fafc;
   font-family: "Manrope", sans-serif;
   font-size: 1rem;
+}
+
+.topbar-status-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  padding: 0 14px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: #22c55e;
+  box-shadow: 0 0 0 6px rgba(34, 197, 94, 0.14);
+}
+
+.status-text {
+  margin: 0;
+  color: #f8fafc;
+  line-height: 1.5;
 }
 
 .topbar-meta {
@@ -192,13 +188,14 @@
   color: #cbd5e1;
 }
 
-.view-stack {
+.view-stack,
+.view-section {
   display: grid;
+  gap: 18px;
 }
 
 .view-section {
   display: none;
-  gap: 22px;
 }
 
 .view-section.active {
@@ -221,7 +218,7 @@
 .hero-panel,
 .panel {
   border-radius: 24px;
-  padding: 24px;
+  padding: 22px;
   background: var(--panel);
 }
 
@@ -233,7 +230,7 @@
 
 .hero-copy-block h2 {
   margin-top: 10px;
-  font-size: clamp(2rem, 4vw, 3.4rem);
+  font-size: clamp(2rem, 4vw, 3.2rem);
   line-height: 1.02;
   max-width: 16ch;
 }
@@ -258,138 +255,85 @@
   font-size: 0.85rem;
 }
 
-.status-text {
-  margin: 0;
-  min-height: 3em;
-  font-size: 1rem;
-  line-height: 1.5;
-}
-
-.dashboard-alert {
-  margin-top: 14px;
-  padding: 14px 16px;
-  border-radius: 18px;
-  border: 1px solid rgba(255, 125, 91, 0.24);
-  background: rgba(255, 125, 91, 0.08);
-  color: #8a3c24;
-  line-height: 1.5;
-}
-
-.section-block {
+.page-grid {
   display: grid;
-  gap: 14px;
-}
-
-.section-heading {
-  display: flex;
-  justify-content: space-between;
-  gap: 14px;
-  align-items: end;
-}
-
-.section-heading.compact {
-  align-items: start;
-}
-
-.section-heading h3 {
-  margin-top: 6px;
-  font-size: 1.34rem;
-}
-
-
-
-.app-shell {
-  width: min(1720px, calc(100% - 24px));
-  grid-template-columns: 250px minmax(0, 1fr);
   gap: 18px;
 }
 
-.topbar {
-  grid-template-columns: 180px minmax(0, 1fr) auto;
+.track-workspace {
+  grid-template-columns: 360px minmax(0, 1fr);
 }
 
-.compact-callout {
-  padding: 18px 22px;
+.track-control-panel,
+.track-results-panel {
+  min-width: 0;
 }
 
-.profiles-layout {
+.summary-profile-card {
+  margin-top: 18px;
+  padding: 16px;
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  background: linear-gradient(180deg, #ffffff 0%, #f7f8fb 100%);
+}
+
+.summary-profile-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.profiles-shell {
   display: grid;
   grid-template-columns: 320px minmax(0, 1fr);
   gap: 18px;
   align-items: start;
 }
 
-.profiles-sidebar,
-.profiles-main {
+.profile-directory-panel {
+  position: sticky;
+  top: 14px;
+  align-self: start;
+  display: grid;
+  gap: 14px;
+}
+
+.profiles-workspace {
   display: grid;
   gap: 18px;
 }
 
-.profiles-main {
-  min-width: 0;
-}
-
-.profile-hero-panel {
-  padding-bottom: 18px;
-}
-
-.profile-overview-strip {
+.profile-summary-panel {
   display: grid;
-  gap: 16px;
+  gap: 18px;
 }
 
-.profile-overview-head {
+.profile-summary-head {
   display: flex;
-  align-items: center;
+  align-items: start;
   justify-content: space-between;
   gap: 16px;
+}
+
+.profile-summary-head h2 {
+  margin-top: 6px;
+  font-size: clamp(1.8rem, 3vw, 2.5rem);
+}
+
+.profile-summary-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   flex-wrap: wrap;
 }
 
-.profile-overview-head strong {
-  font-size: 1.2rem;
-  font-family: "Manrope", sans-serif;
-}
-
-.profile-overview-head p {
-  margin: 6px 0 0;
-  color: var(--muted);
-}
-
-.profiles-content-grid,
-.profiles-bottom-grid {
+.profile-columns {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 18px;
 }
 
-.publish-panel {
-  display: grid;
-  gap: 16px;
-}
-
-.publish-toolbar {
-  display: grid;
-  gap: 14px;
-}
-
-.profile-library-list,
-.channel-video-rows,
-.profile-list {
-  display: grid;
-  gap: 12px;
-}
-
-.queue-group-panel {
-  padding: 20px 22px;
-}
-
-.profile-tools summary {
-  font-weight: 700;
-}
-
-.toolbar-label {
-  color: var(--muted);
-  font-size: 0.85rem;
-  font-weight: 700;
+.queue-page-grid {
+  grid-template-columns: 1fr;
 }
