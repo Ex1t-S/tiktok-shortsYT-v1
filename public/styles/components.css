@@ -157,9 +157,9 @@
 }
 
 .workflow-selection {
-  position: sticky;
-  top: 0;
-  z-index: 4;
+  position: relative;
+  top: auto;
+  z-index: 1;
   padding: 14px;
   border-radius: 18px;
   border: 1px solid var(--line);

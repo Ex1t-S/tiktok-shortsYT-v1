@@ -327,9 +327,8 @@
 }
 
 .topbar-studio {
-  position: sticky;
-  top: 12px;
-  z-index: 7;
+  position: relative;
+  z-index: 1;
   grid-template-columns: 240px minmax(0, 1fr) auto;
   padding: 12px 14px;
   border-radius: 16px;
@@ -423,8 +422,8 @@
 }
 
 .studio-rail {
-  position: sticky;
-  top: 82px;
+  position: relative;
+  top: auto;
   align-self: start;
 }
 
@@ -450,23 +449,23 @@
 }
 
 .sticky-toolbar {
-  position: sticky;
-  top: 132px;
-  z-index: 4;
+  position: relative;
+  top: auto;
+  z-index: 1;
   padding: 10px 12px;
   margin: 0 -2px;
   border-radius: 16px;
   background: rgba(255, 255, 255, 0.94);
   border: 1px solid var(--line);
-  backdrop-filter: blur(8px);
+  backdrop-filter: none;
 }
 
 .sticky-selection-bar {
-  position: sticky;
-  top: 192px;
-  z-index: 3;
+  position: relative;
+  top: auto;
+  z-index: 1;
   background: rgba(255, 255, 255, 0.97);
-  backdrop-filter: blur(8px);
+  backdrop-filter: none;
 }
 
 .queue-toolbar {
