@@ -9,11 +9,21 @@ const { normalizeUsername } = require("./tiktokScraper");
 const execFileAsync = promisify(execFile);
 
 function resolveYtDlpPath() {
-  if (path.isAbsolute(env.ytDlpPath)) {
-    return env.ytDlpPath;
+  const value = String(env.ytDlpPath || "").trim();
+
+  if (!value) {
+    return process.platform === "win32" ? "yt-dlp.exe" : "yt-dlp";
   }
 
-  return path.resolve(process.cwd(), env.ytDlpPath);
+  if (path.isAbsolute(value)) {
+    return value;
+  }
+
+  if (!value.includes("/") && !value.includes("\\")) {
+    return value;
+  }
+
+  return path.resolve(process.cwd(), value);
 }
 
 async function runYtDlp(args, options = {}) {
