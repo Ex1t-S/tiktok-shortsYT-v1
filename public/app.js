@@ -54,6 +54,7 @@ setOverviewActions({
 
 setContentActions({
   loadAccounts,
+  loadChannelVideos: loadYoutubeChannelVideos,
   loadCandidates,
   loadDashboard,
   loadLibrary,
@@ -187,51 +188,53 @@ async function loadAccounts() {
   await loadYoutubeChannelVideos(primaryAccount?.id);
 }
 
+
 async function loadYoutubeChannelVideos(accountId) {
   if (!accountId) {
-    elements.channelVideosList.innerHTML = '<p class="empty-state">Conecta un canal de YouTube para ver metricas.</p>';
-    return;
+    elements.channelVideosList.innerHTML = '<p class="empty-state">Conecta un canal de YouTube para ver métricas.</p>';
+    return [];
   }
 
   const data = await fetchJson(`/api/youtube/accounts/${accountId}/videos?limit=12`);
   const items = Array.isArray(data.items) ? data.items : [];
+  state.currentChannelVideosByAccount[String(accountId)] = items;
 
   if (items.length === 0) {
     elements.channelVideosList.innerHTML =
-      '<p class="empty-state">YouTube todavia no devolvio videos para este canal.</p>';
-    return;
+      '<p class="empty-state">YouTube todavía no devolvió videos recientes para este canal.</p>';
+    renderYoutubeAccounts(state.currentAccounts, state.currentYoutubeOauth);
+    return items;
   }
 
   elements.channelVideosList.innerHTML = items
     .map(
       (item) => `
-        <article class="stack-card channel-video-card">
-          <div class="channel-video-head">
-            <img
-              class="channel-video-thumb"
-              src="${item.thumbnails?.medium?.url || item.thumbnails?.default?.url || ""}"
-              alt="${item.title || ""}"
-            />
-            <div>
-              <strong>${item.title || ""}</strong>
-              <p>${formatDate(item.publishedAt)} | ${translateStatus(item.privacyStatus || "unknown")}</p>
-            </div>
+        <article class="channel-video-row">
+          <img
+            class="channel-video-thumb compact"
+            src="${item.thumbnails?.medium?.url || item.thumbnails?.default?.url || ""}"
+            alt="${item.title || ""}"
+          />
+          <div class="channel-video-main">
+            <strong>${item.title || ""}</strong>
+            <p>${formatMetric(item.viewCount)} vistas · ${formatDate(item.publishedAt)}</p>
           </div>
-          <div class="inline-meta">
-            <span>${formatMetric(item.viewCount)} vistas</span>
-            <span>${formatMetric(item.likeCount)} me gusta</span>
-            <span>${formatMetric(item.commentCount)} comentarios</span>
-            ${item.duration ? `<span>${formatIsoDuration(item.duration)}</span>` : ""}
+          <div class="channel-video-side">
+            <span>${formatMetric(item.likeCount)} likes</span>
+            <span>${item.duration ? formatIsoDuration(item.duration) : translateStatus(item.privacyStatus || "unknown")}</span>
+            ${
+              item.url
+                ? `<a class="ghost-button" href="${item.url}" target="_blank" rel="noreferrer">Abrir</a>`
+                : ""
+            }
           </div>
-          ${
-            item.url
-              ? `<div class="account-actions"><a class="ghost-button" href="${item.url}" target="_blank" rel="noreferrer">Abrir en YouTube</a></div>`
-              : ""
-          }
         </article>
       `
     )
     .join("");
+
+  renderYoutubeAccounts(state.currentAccounts, state.currentYoutubeOauth);
+  return items;
 }
 
 async function loadLibrary() {
@@ -379,6 +382,7 @@ elements.librarySelectAllButton.addEventListener("click", () => {
   const searchTerm = elements.librarySearchInput.value.trim().toLowerCase();
   const statusFilter = elements.libraryStatusFilter.value;
   const assignmentFilter = elements.libraryAssignmentFilter.value;
+  const sourceFilter = elements.librarySourceFilter?.value || "";
 
   state.currentLibraryItems
     .filter((item) => {
@@ -398,8 +402,9 @@ elements.librarySelectAllButton.addEventListener("click", () => {
       const matchesStatus = !statusFilter || publicationStatus === statusFilter;
       const matchesAssignment =
         !assignmentFilter || (assignmentFilter === "assigned" ? hasChannel : !hasChannel);
+      const matchesSource = !sourceFilter || String(item.source_kind || "").toLowerCase() === sourceFilter;
 
-      return matchesSearch && matchesStatus && matchesAssignment;
+      return matchesSearch && matchesStatus && matchesAssignment && matchesSource;
     })
     .forEach((item) => state.selectedLibraryIds.add(String(item.id)));
   renderLibraryVideos(state.currentLibraryItems);
@@ -421,6 +426,11 @@ elements.libraryStatusFilter.addEventListener("change", () => {
 });
 
 elements.libraryAssignmentFilter.addEventListener("change", () => {
+  resetLibraryPagination();
+  renderLibraryVideos(state.currentLibraryItems);
+});
+
+elements.librarySourceFilter?.addEventListener("change", () => {
   resetLibraryPagination();
   renderLibraryVideos(state.currentLibraryItems);
 });
