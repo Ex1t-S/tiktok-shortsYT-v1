@@ -295,3 +295,200 @@
   margin-top: 6px;
   font-size: 1.34rem;
 }
+
+/* --- studio layout refresh --- */
+.app-shell {
+  width: calc(100% - 24px);
+  max-width: 1920px;
+  padding: 12px 0 18px;
+  grid-template-columns: 248px minmax(0, 1fr);
+  gap: 16px;
+}
+
+.sidebar {
+  top: 12px;
+  min-height: calc(100vh - 24px);
+  padding: 20px 16px;
+  gap: 18px;
+  border-radius: 20px;
+}
+
+.brand-block h1 {
+  font-size: 1.8rem;
+}
+
+.nav-tab {
+  padding: 11px 13px;
+}
+
+.main-shell,
+.view-section {
+  gap: 16px;
+}
+
+.topbar-studio {
+  position: sticky;
+  top: 12px;
+  z-index: 7;
+  grid-template-columns: 240px minmax(0, 1fr) auto;
+  padding: 12px 14px;
+  border-radius: 16px;
+}
+
+.topbar-summary {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding: 0 6px;
+}
+
+.topbar-kicker {
+  color: #98a2b3;
+  font-size: 0.74rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.topbar-summary strong {
+  color: #f8fafc;
+  font-family: "Manrope", sans-serif;
+  font-size: 0.98rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.workflow-roadmap {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 0;
+}
+
+.roadmap-card {
+  padding: 14px 16px;
+  border-radius: 18px;
+}
+
+.roadmap-card p {
+  margin: 6px 0 0;
+  font-size: 0.85rem;
+  line-height: 1.45;
+}
+
+.hero-panel,
+.panel {
+  border-radius: 20px;
+  padding: 20px;
+}
+
+.flow-callout {
+  padding: 16px 18px;
+}
+
+.flow-callout h3,
+.section-heading h3 {
+  line-height: 1.15;
+}
+
+.section-heading h3 {
+  font-size: 1.22rem;
+}
+
+.studio-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 14px;
+  padding: 0 2px;
+}
+
+.studio-header h3 {
+  margin: 6px 0 0;
+  font-family: "Manrope", sans-serif;
+  font-size: 1.55rem;
+  letter-spacing: -0.04em;
+}
+
+.studio-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(320px, 0.92fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.studio-main,
+.studio-rail {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+}
+
+.studio-rail {
+  position: sticky;
+  top: 82px;
+  align-self: start;
+}
+
+.rail-panel,
+.metrics-panel,
+.library-panel,
+.queue-panel {
+  min-width: 0;
+}
+
+.compact-form,
+.advanced-panel .advanced-tools {
+  gap: 10px;
+}
+
+.section-microcopy {
+  display: inline-block;
+  margin: 0 0 10px;
+}
+
+.rail-copy {
+  margin: 0;
+}
+
+.sticky-toolbar {
+  position: sticky;
+  top: 132px;
+  z-index: 4;
+  padding: 10px 12px;
+  margin: 0 -2px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid var(--line);
+  backdrop-filter: blur(8px);
+}
+
+.sticky-selection-bar {
+  position: sticky;
+  top: 192px;
+  z-index: 3;
+  background: rgba(255, 255, 255, 0.97);
+  backdrop-filter: blur(8px);
+}
+
+.queue-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.queue-toolbar-label {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}

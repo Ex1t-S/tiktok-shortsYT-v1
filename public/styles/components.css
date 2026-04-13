@@ -375,3 +375,92 @@
   background: rgba(255, 125, 91, 0.14);
   color: #9d452d;
 }
+
+/* --- calmer cards for operational screens --- */
+.summary-strip,
+.workflow-roadmap,
+.hero-health-strip,
+.dual-grid,
+.triple-grid,
+.mini-grid,
+.summary-grid,
+.media-grid,
+.candidate-grid,
+.card-grid,
+.publication-list {
+  gap: 14px;
+}
+
+.stack-form,
+.stack-list {
+  gap: 10px;
+}
+
+.stack-card,
+.account-card,
+.notice-box,
+.summary-chip,
+.summary-grid article {
+  padding: 14px 16px;
+}
+
+.stack-card p,
+.account-card p,
+.notice-box p {
+  margin: 0;
+}
+
+.library-filters {
+  grid-template-columns: minmax(0, 2.2fr) repeat(2, minmax(160px, 0.9fr));
+  gap: 10px;
+}
+
+.library-results-actions {
+  align-items: center;
+}
+
+.selection-bar {
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.94);
+}
+
+.tool-disclosure {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+}
+
+.tool-disclosure summary {
+  cursor: pointer;
+  padding: 14px 16px;
+  font-weight: 700;
+  list-style: none;
+}
+
+.tool-disclosure summary::-webkit-details-marker {
+  display: none;
+}
+
+.tool-disclosure[open] summary {
+  border-bottom: 1px solid var(--line);
+}
+
+.disclosure-body {
+  padding: 14px 16px 16px;
+}
+
+.account-actions,
+.card-actions,
+.results-actions,
+.inline-toolbar,
+.publication-head,
+.publication-body .inline-meta {
+  align-items: center;
+}
+
+.workflow-selection {
+  top: 0;
+  border-radius: 16px;
+}

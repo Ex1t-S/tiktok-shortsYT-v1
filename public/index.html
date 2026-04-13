@@ -37,13 +37,14 @@
       </aside>
 
       <main class="main-shell">
-        <header class="topbar">
+        <header class="topbar topbar-studio">
           <div class="topbar-title">
             <p class="eyebrow">Operación</p>
             <strong>Rastreo, biblioteca y cola</strong>
           </div>
-          <div class="topbar-search">
-            <input type="text" value="Objetivo: encontrar videos, guardarlos en nube y subir Shorts" readonly />
+          <div class="topbar-summary">
+            <span class="topbar-kicker">Objetivo</span>
+            <strong>Encontrar videos, guardarlos en nube y moverlos a una cola clara y visible.</strong>
           </div>
           <div class="topbar-meta">
             <span class="topbar-chip">Cloud + YouTube</span>
@@ -319,347 +320,309 @@
           </section>
 
           <section class="view-section" data-view="accounts">
-            <section id="accounts" class="section-block">
-              <article class="panel flow-callout">
+            <section id="accounts" class="section-block studio-page">
+              <div class="studio-header">
                 <div>
-                  <p class="eyebrow">Flujo recomendado</p>
-                  <h3>Conecta canales y usa la biblioteca como punto de control antes de publicar.</h3>
+                  <p class="eyebrow">Paso 2 y 3</p>
+                  <h3>Biblioteca + canales en una vista de trabajo</h3>
                 </div>
                 <p class="helper-copy">
-                  Las herramientas de ZIP, carga directa e importacion masiva siguen disponibles, pero se usan solo cuando hace
-                  falta una carga especial.
+                  La biblioteca queda al frente y el lateral derecho concentra canales, distribución y herramientas avanzadas.
                 </p>
-              </article>
-
-              <div class="section-heading">
-                <div>
-                  <p class="eyebrow">Paso 2</p>
-                  <h3>Canales y biblioteca operativa</h3>
-                </div>
               </div>
 
-              <div class="triple-grid">
-                <article class="panel">
-                  <form id="youtube-form" class="stack-form">
-                    <label>
-                      <span>Nombre del canal</span>
-                      <input id="channel-title" name="channelTitle" type="text" placeholder="Mi canal de Shorts" required />
-                    </label>
-                    <div class="mini-grid">
-                      <label>
-                        <span>Handle</span>
-                        <input id="channel-handle" name="channelHandle" type="text" placeholder="@micanal" />
-                      </label>
-                      <label>
-                        <span>Channel ID</span>
-                        <input id="channel-id" name="channelId" type="text" placeholder="UC..." />
-                      </label>
+              <div class="studio-layout">
+                <div class="studio-main">
+                  <article class="panel library-panel">
+                    <div class="section-heading compact">
+                      <div>
+                        <p class="eyebrow">Biblioteca</p>
+                        <h3>Videos listos para publicar</h3>
+                      </div>
                     </div>
-                    <label>
-                      <span>Email de contacto</span>
-                      <input id="contact-email" name="contactEmail" type="email" placeholder="ops@ejemplo.com" />
-                    </label>
-                    <button type="submit">Guardar canal</button>
-                  </form>
-                </article>
-
-                <article class="panel wide-panel">
-                  <div id="youtube-oauth-box" class="notice-box hidden"></div>
-                  <div id="youtube-list" class="card-grid"></div>
-                </article>
-              </div>
-
-              <article class="panel">
-                <div class="section-heading compact">
-                  <div>
-                    <p class="eyebrow">Opcional</p>
-                    <h3>Herramientas de carga avanzada</h3>
-                  </div>
-                </div>
-                <div class="advanced-tools">
-                  <details class="tool-disclosure">
-                    <summary>Importar videos desde ZIP</summary>
-                    <form id="library-import-form" class="stack-form disclosure-body">
-                    <label>
-                      <span>Ruta del ZIP en el servidor</span>
-                      <input id="library-zip-path" name="zipPath" type="text" placeholder="ai-cinema021-media.zip" required />
-                    </label>
-                    <label>
-                      <span>Etiqueta</span>
-                      <input id="library-label" name="label" type="text" placeholder="ai.cinema021" />
-                    </label>
-                    <div class="mini-grid">
+                    <div class="stack-list library-flow-notes compact-guide-list">
+                      <article class="stack-card guide-card">
+                        <strong>Flujo recomendado</strong>
+                        <p>Filtra, selecciona y manda a una cuenta solo cuando ya tengas claro el destino.</p>
+                      </article>
+                      <article class="stack-card guide-card">
+                        <strong>Distribución masiva</strong>
+                        <p>Cuando armes un lote, usa el lateral para repartir entre varios canales sin perder la biblioteca de vista.</p>
+                      </article>
+                    </div>
+                    <div class="inline-toolbar sticky-toolbar">
+                      <select id="library-queue-account-select" class="compact-select">
+                        <option value="">Elegir cuenta de YouTube</option>
+                      </select>
+                      <span class="helper-inline">Elige una cuenta para envíos puntuales desde la lista.</span>
+                    </div>
+                    <div class="library-filters">
                       <label>
-                        <span>Cuenta de YouTube</span>
-                        <select id="library-account-select" name="youtubeAccountId">
-                          <option value="">Elegir cuenta de YouTube</option>
+                        <span>Buscar en biblioteca</span>
+                        <input id="library-search-input" type="search" placeholder="Título, etiqueta, archivo o canal" />
+                      </label>
+                      <label>
+                        <span>Estado</span>
+                        <select id="library-status-filter" class="compact-select">
+                          <option value="">Todos</option>
+                          <option value="ready">Listos</option>
+                          <option value="queued">En cola</option>
+                          <option value="scheduled">Programados</option>
+                          <option value="published">Publicados</option>
+                          <option value="failed">Con error</option>
                         </select>
                       </label>
                       <label>
+                        <span>Asignación</span>
+                        <select id="library-assignment-filter" class="compact-select">
+                          <option value="">Todos</option>
+                          <option value="unassigned">Sin canal</option>
+                          <option value="assigned">Con canal</option>
+                        </select>
+                      </label>
+                    </div>
+                    <div class="results-actions library-results-actions">
+                      <span id="library-results-meta" class="helper-inline hidden"></span>
+                      <div class="pagination-actions">
+                        <button id="library-prev-page-button" type="button" class="ghost-button">Anterior</button>
+                        <button id="library-next-page-button" type="button" class="ghost-button">Siguiente</button>
+                      </div>
+                    </div>
+                    <div id="library-selection-bar" class="selection-bar hidden sticky-selection-bar">
+                      <span id="library-selected-count">0 seleccionados</span>
+                      <button id="library-select-all-button" type="button" class="ghost-button">Seleccionar todo</button>
+                      <button id="library-clear-selection-button" type="button" class="ghost-button">Limpiar</button>
+                    </div>
+                    <div id="library-video-list" class="stack-list library-video-list"></div>
+                  </article>
+
+                  <article class="panel metrics-panel">
+                    <div class="section-heading">
+                      <div>
+                        <p class="eyebrow">Canal</p>
+                        <h3>Publicados, agenda y piezas listas</h3>
+                      </div>
+                      <button id="refresh-channel-videos-button" type="button" class="ghost-button">Actualizar canal</button>
+                    </div>
+                    <div class="dual-grid studio-secondary-grid">
+                      <div>
+                        <p class="helper-inline section-microcopy">Últimos videos y métricas visibles del canal principal conectado.</p>
+                        <div id="channel-videos-list" class="stack-list scroll-stack"></div>
+                      </div>
+                      <div>
+                        <p class="helper-inline section-microcopy">Agenda de publicaciones listas, programadas o esperando acción.</p>
+                        <div id="account-schedule-list" class="stack-list scroll-stack"></div>
+                      </div>
+                    </div>
+                  </article>
+                </div>
+
+                <aside class="studio-rail">
+                  <article class="panel rail-panel">
+                    <div class="section-heading compact">
+                      <div>
+                        <p class="eyebrow">Canales</p>
+                        <h3>Conectar YouTube</h3>
+                      </div>
+                    </div>
+                    <form id="youtube-form" class="stack-form compact-form">
+                      <label>
+                        <span>Nombre del canal</span>
+                        <input id="channel-title" name="channelTitle" type="text" placeholder="Mi canal de Shorts" required />
+                      </label>
+                      <div class="mini-grid">
+                        <label>
+                          <span>Handle</span>
+                          <input id="channel-handle" name="channelHandle" type="text" placeholder="@micanal" />
+                        </label>
+                        <label>
+                          <span>Channel ID</span>
+                          <input id="channel-id" name="channelId" type="text" placeholder="UC..." />
+                        </label>
+                      </div>
+                      <label>
+                        <span>Email de contacto</span>
+                        <input id="contact-email" name="contactEmail" type="email" placeholder="ops@ejemplo.com" />
+                      </label>
+                      <button type="submit">Guardar canal</button>
+                    </form>
+                    <div id="youtube-oauth-box" class="notice-box hidden"></div>
+                    <div id="youtube-list" class="card-grid rail-card-grid"></div>
+                  </article>
+
+                  <article class="panel rail-panel">
+                    <div class="section-heading compact">
+                      <div>
+                        <p class="eyebrow">Distribución</p>
+                        <h3>Repartir entre canales</h3>
+                      </div>
+                    </div>
+                    <p class="helper-copy rail-copy">
+                      Úsalo cuando ya seleccionaste varios videos y quieras crear la cola automática sin salir de esta pantalla.
+                    </p>
+                    <form id="distribution-form" class="stack-form compact-form">
+                      <label>
+                        <span>Cuentas destino</span>
+                        <div id="distribution-account-list" class="stack-list compact-stack"></div>
+                      </label>
+                      <div class="mini-grid">
+                        <label>
+                          <span>Primera subida</span>
+                          <input id="distribution-start-at" name="startAt" type="datetime-local" />
+                        </label>
+                        <label>
+                          <span>Horas entre videos</span>
+                          <input id="distribution-interval-hours" name="intervalHours" type="number" min="1" value="24" />
+                        </label>
+                      </div>
+                      <label>
                         <span>Privacidad</span>
-                        <select id="library-privacy-status" name="privacyStatus">
+                        <select id="distribution-privacy-status" name="privacyStatus">
                           <option value="private">Privado</option>
                           <option value="unlisted">Oculto</option>
                           <option value="public">Público</option>
                         </select>
                       </label>
-                    </div>
-                    <div class="mini-grid">
-                      <label>
-                        <span>Primera subida</span>
-                        <input id="library-start-at" name="startAt" type="datetime-local" />
-                      </label>
-                      <label>
-                        <span>Días entre subidas</span>
-                        <input id="library-interval-days" name="intervalDays" type="number" min="1" value="1" />
-                      </label>
-                    </div>
-                    <label class="checkbox-row">
-                      <input id="library-schedule-daily" name="scheduleDaily" type="checkbox" checked />
-                      <span>Crear programación diaria</span>
-                    </label>
-                    <button id="library-import-button" type="submit">Subir ZIP a biblioteca</button>
+                      <button id="distribution-submit-button" type="submit">Crear cola desde biblioteca</button>
                     </form>
-                  </details>
+                  </article>
 
-                  <details class="tool-disclosure">
-                    <summary>Registrar archivo local o URL remota</summary>
-                    <form id="library-video-form" class="stack-form disclosure-body">
-                    <label>
-                      <span>Etiqueta</span>
-                      <input id="library-video-label" name="label" type="text" placeholder="lote ai.cinema en nube" />
-                    </label>
-                    <label>
-                      <span>Título</span>
-                      <input id="library-video-title" name="title" type="text" placeholder="AI Cinema Short 01" />
-                    </label>
-                    <label>
-                      <span>Ruta local en servidor</span>
-                      <input id="library-video-path" name="filePath" type="text" placeholder=".storage/uploads/short-01.mp4" />
-                    </label>
-                    <label>
-                      <span>URL remota</span>
-                      <input id="library-video-url" name="sourceUrl" type="url" placeholder="https://bucket.example.com/short-01.mp4" />
-                    </label>
-                    <div class="mini-grid">
-                      <label>
-                        <span>Proveedor</span>
-                        <select id="library-video-provider" name="storageProvider">
-                          <option value="local">Archivo local</option>
-                          <option value="remote_url">URL remota</option>
-                          <option value="s3-compatible">S3 / R2 / presigned</option>
-                        </select>
-                      </label>
-                      <label>
-                        <span>Cuenta de YouTube</span>
-                        <select id="library-video-account-select" name="youtubeAccountId">
-                          <option value="">Elegir cuenta de YouTube</option>
-                        </select>
-                      </label>
+                  <article class="panel rail-panel advanced-panel">
+                    <div class="section-heading compact">
+                      <div>
+                        <p class="eyebrow">Opcional</p>
+                        <h3>Herramientas avanzadas</h3>
+                      </div>
                     </div>
-                    <button id="library-video-button" type="submit">Guardar en nube</button>
-                    </form>
-                  </details>
+                    <p class="helper-copy rail-copy">ZIP, URLs remotas e importación masiva quedan plegados para no tapar el flujo principal.</p>
+                    <div class="advanced-tools">
+                      <details class="tool-disclosure">
+                        <summary>Importar videos desde ZIP</summary>
+                        <form id="library-import-form" class="stack-form disclosure-body">
+                          <label>
+                            <span>Ruta del ZIP en el servidor</span>
+                            <input id="library-zip-path" name="zipPath" type="text" placeholder="ai-cinema021-media.zip" required />
+                          </label>
+                          <label>
+                            <span>Etiqueta</span>
+                            <input id="library-label" name="label" type="text" placeholder="ai.cinema021" />
+                          </label>
+                          <div class="mini-grid">
+                            <label>
+                              <span>Cuenta de YouTube</span>
+                              <select id="library-account-select" name="youtubeAccountId">
+                                <option value="">Elegir cuenta de YouTube</option>
+                              </select>
+                            </label>
+                            <label>
+                              <span>Privacidad</span>
+                              <select id="library-privacy-status" name="privacyStatus">
+                                <option value="private">Privado</option>
+                                <option value="unlisted">Oculto</option>
+                                <option value="public">Público</option>
+                              </select>
+                            </label>
+                          </div>
+                          <div class="mini-grid">
+                            <label>
+                              <span>Primera subida</span>
+                              <input id="library-start-at" name="startAt" type="datetime-local" />
+                            </label>
+                            <label>
+                              <span>Días entre subidas</span>
+                              <input id="library-interval-days" name="intervalDays" type="number" min="1" value="1" />
+                            </label>
+                          </div>
+                          <label class="checkbox-row">
+                            <input id="library-schedule-daily" name="scheduleDaily" type="checkbox" checked />
+                            <span>Crear programación diaria</span>
+                          </label>
+                          <button id="library-import-button" type="submit">Subir ZIP a biblioteca</button>
+                        </form>
+                      </details>
 
-                  <details class="tool-disclosure">
-                    <summary>Importar muchas cuentas de YouTube</summary>
-                    <form id="youtube-bulk-form" class="stack-form disclosure-body">
-                      <label>
-                        <span>Pega una cuenta por lÃ­nea</span>
-                        <textarea
-                          id="youtube-bulk-input"
-                          name="accounts"
-                          rows="8"
-                          placeholder="Canal Uno|@canaluno|UC123|mail1@dominio.com&#10;Canal Dos|@canaldos|UC456|mail2@dominio.com"
-                        ></textarea>
-                      </label>
-                      <p class="helper-copy">Formato: `Titulo|Handle|ChannelId|Email`. El `ChannelId` y el `Email` son opcionales.</p>
-                      <button id="youtube-bulk-button" type="submit">Importar cuentas</button>
-                    </form>
-                  </details>
-                </div>
-              </article>
+                      <details class="tool-disclosure">
+                        <summary>Registrar archivo local o URL remota</summary>
+                        <form id="library-video-form" class="stack-form disclosure-body">
+                          <label>
+                            <span>Etiqueta</span>
+                            <input id="library-video-label" name="label" type="text" placeholder="lote ai.cinema en nube" />
+                          </label>
+                          <label>
+                            <span>Título</span>
+                            <input id="library-video-title" name="title" type="text" placeholder="AI Cinema Short 01" />
+                          </label>
+                          <label>
+                            <span>Ruta local en servidor</span>
+                            <input id="library-video-path" name="filePath" type="text" placeholder=".storage/uploads/short-01.mp4" />
+                          </label>
+                          <label>
+                            <span>URL remota</span>
+                            <input id="library-video-url" name="sourceUrl" type="url" placeholder="https://bucket.example.com/short-01.mp4" />
+                          </label>
+                          <div class="mini-grid">
+                            <label>
+                              <span>Proveedor</span>
+                              <select id="library-video-provider" name="storageProvider">
+                                <option value="local">Archivo local</option>
+                                <option value="remote_url">URL remota</option>
+                                <option value="s3-compatible">S3 / R2 / presigned</option>
+                              </select>
+                            </label>
+                            <label>
+                              <span>Cuenta de YouTube</span>
+                              <select id="library-video-account-select" name="youtubeAccountId">
+                                <option value="">Elegir cuenta de YouTube</option>
+                              </select>
+                            </label>
+                          </div>
+                          <button id="library-video-button" type="submit">Guardar en nube</button>
+                        </form>
+                      </details>
 
-              <div class="dual-grid">
-                <article class="panel">
-                  <div class="section-heading compact">
-                    <div>
-                      <p class="eyebrow">Paso 3</p>
-                      <h3>Biblioteca lista para publicar</h3>
+                      <details class="tool-disclosure">
+                        <summary>Importar muchas cuentas de YouTube</summary>
+                        <form id="youtube-bulk-form" class="stack-form disclosure-body">
+                          <label>
+                            <span>Pega una cuenta por línea</span>
+                            <textarea
+                              id="youtube-bulk-input"
+                              name="accounts"
+                              rows="8"
+                              placeholder="Canal Uno|@canaluno|UC123|mail1@dominio.com&#10;Canal Dos|@canaldos|UC456|mail2@dominio.com"
+                            ></textarea>
+                          </label>
+                          <p class="helper-copy">Formato: `Título|Handle|ChannelId|Email`. El `ChannelId` y el `Email` son opcionales.</p>
+                          <button id="youtube-bulk-button" type="submit">Importar cuentas</button>
+                        </form>
+                      </details>
                     </div>
-                  </div>
-                  <div class="stack-list library-flow-notes">
-                    <article class="stack-card guide-card">
-                      <strong>Enviar a una cuenta</strong>
-                      <p>Usa esta opcion cuando ya sabes a que canal va un video puntual. Seleccionas el canal arriba y mandas solo esa pieza.</p>
-                    </article>
-                    <article class="stack-card guide-card">
-                      <strong>Distribuir entre canales</strong>
-                      <p>Usa esta opcion cuando seleccionaste varios videos y quieres repartirlos automaticamente entre varias cuentas.</p>
-                    </article>
-                  </div>
-                  <div class="inline-toolbar">
-                    <select id="library-queue-account-select" class="compact-select">
-                      <option value="">Elegir cuenta de YouTube</option>
-                    </select>
-                    <span class="helper-inline">Selecciona videos, elige canal y déjalos listos para la cola.</span>
-                  </div>
-                  <div class="library-filters">
-                    <label>
-                      <span>Buscar en biblioteca</span>
-                      <input id="library-search-input" type="search" placeholder="Titulo, etiqueta, archivo o canal" />
-                    </label>
-                    <label>
-                      <span>Estado</span>
-                      <select id="library-status-filter" class="compact-select">
-                        <option value="">Todos</option>
-                        <option value="ready">Listos</option>
-                        <option value="queued">En cola</option>
-                        <option value="scheduled">Programados</option>
-                        <option value="published">Publicados</option>
-                        <option value="failed">Con error</option>
-                      </select>
-                    </label>
-                    <label>
-                      <span>Asignacion</span>
-                      <select id="library-assignment-filter" class="compact-select">
-                        <option value="">Todos</option>
-                        <option value="unassigned">Sin canal</option>
-                        <option value="assigned">Con canal</option>
-                      </select>
-                    </label>
-                  </div>
-                  <div class="results-actions library-results-actions">
-                    <span id="library-results-meta" class="helper-inline hidden"></span>
-                    <div class="pagination-actions">
-                      <button id="library-prev-page-button" type="button" class="ghost-button">Anterior</button>
-                      <button id="library-next-page-button" type="button" class="ghost-button">Siguiente</button>
-                    </div>
-                  </div>
-                  <div id="library-selection-bar" class="selection-bar hidden">
-                    <span id="library-selected-count">0 seleccionados</span>
-                    <button id="library-select-all-button" type="button" class="ghost-button">Seleccionar todo</button>
-                    <button id="library-clear-selection-button" type="button" class="ghost-button">Limpiar</button>
-                  </div>
-                  <div id="library-video-list" class="stack-list"></div>
-                </article>
-
-                <article class="panel">
-                  <div class="section-heading compact">
-                    <div>
-                      <p class="eyebrow">Paso 4</p>
-                      <h3>Distribuir entre canales</h3>
-                    </div>
-                  </div>
-                  <div class="stack-list distribution-guide">
-                    <article class="stack-card">
-                      <strong>Como funciona</strong>
-                      <p>1. Seleccionas varios videos en biblioteca. 2. Marcas las cuentas destino. 3. El sistema crea la cola repartiendo piezas entre esos canales.</p>
-                    </article>
-                    <article class="stack-card">
-                      <strong>Cuando usarlo</strong>
-                      <p>Es ideal para lotes. Si solo quieres mandar una pieza a un canal concreto, usa el boton `Enviar a una cuenta` del listado.</p>
-                    </article>
-                  </div>
-                  <p class="helper-copy">
-                    Usa esta opcion cuando quieras repartir varios videos automaticamente entre varias cuentas.
-                  </p>
-                  <form id="distribution-form" class="stack-form">
-                    <label>
-                      <span>Cuentas destino</span>
-                      <div id="distribution-account-list" class="stack-list compact-stack"></div>
-                    </label>
-                    <div class="mini-grid">
-                      <label>
-                        <span>Primera subida</span>
-                        <input id="distribution-start-at" name="startAt" type="datetime-local" />
-                      </label>
-                      <label>
-                        <span>Horas entre videos</span>
-                        <input id="distribution-interval-hours" name="intervalHours" type="number" min="1" value="24" />
-                      </label>
-                    </div>
-                    <label>
-                      <span>Privacidad</span>
-                      <select id="distribution-privacy-status" name="privacyStatus">
-                        <option value="private">Privado</option>
-                        <option value="unlisted">Oculto</option>
-                        <option value="public">Público</option>
-                      </select>
-                    </label>
-                    <button id="distribution-submit-button" type="submit">Crear cola desde biblioteca</button>
-                  </form>
-                </article>
-              </div>
-
-              <div class="dual-grid legacy-bulk-tools">
-                <article class="panel hidden">
-                  <div class="section-heading compact">
-                    <div>
-                      <p class="eyebrow">Canales</p>
-                      <h3 class="hidden">Importar varias cuentas</h3>
-                    </div>
-                  </div>
-                  <form id="legacy-youtube-bulk-form" class="stack-form">
-                    <label>
-                      <span>Pega una cuenta por línea</span>
-                      <textarea
-                        id="legacy-youtube-bulk-input"
-                        name="accounts"
-                        rows="8"
-                        placeholder="Canal Uno|@canaluno|UC123|mail1@dominio.com&#10;Canal Dos|@canaldos|UC456|mail2@dominio.com"
-                      ></textarea>
-                    </label>
-                    <p class="helper-copy">Formato: `Titulo|Handle|ChannelId|Email`. El `ChannelId` y el `Email` son opcionales.</p>
-                    <button id="legacy-youtube-bulk-button" type="submit">Importar cuentas</button>
-                  </form>
-                </article>
-
-                <article class="panel">
-                  <div class="section-heading">
-                    <div>
-                      <p class="eyebrow">Canal</p>
-                      <h3>Videos publicados y métricas</h3>
-                    </div>
-                    <button id="refresh-channel-videos-button" type="button" class="ghost-button">Actualizar canal</button>
-                  </div>
-                  <div id="channel-videos-list" class="stack-list"></div>
-                  <div class="section-heading compact account-schedule-heading">
-                    <div>
-                      <p class="eyebrow">Canal</p>
-                      <h3>Agenda y publicaciones listas</h3>
-                    </div>
-                  </div>
-                  <div id="account-schedule-list" class="stack-list"></div>
-                </article>
+                  </article>
+                </aside>
               </div>
             </section>
           </section>
-
           <section class="view-section" data-view="queue">
-            <section id="queue" class="section-block">
-              <article class="panel flow-callout">
+            <section id="queue" class="section-block studio-page queue-page">
+              <div class="studio-header">
                 <div>
-                  <p class="eyebrow">Ultimo paso</p>
-                  <h3>La cola es el lugar para revisar, publicar y sincronizar.</h3>
+                  <p class="eyebrow">Paso 4</p>
+                  <h3>Cola de Shorts clara y operativa</h3>
                 </div>
-                <p class="helper-copy">
-                  Cuando un item llega aca ya deberia tener canal, privacidad y fecha definidos. Si algo falla, vuelve a esta
-                  pantalla para reintentar o sincronizar.
-                </p>
-              </article>
-
-              <div class="section-heading">
-                <div>
-                  <p class="eyebrow">Paso 5</p>
-                  <h3>Cola de Shorts visible</h3>
+                <div class="filters-row">
+                  <p class="helper-copy">Revisa, publica, sincroniza y detecta fallos sin perderte en una lista infinita.</p>
+                  <button id="refresh-publications-button" type="button" class="ghost-button">Actualizar cola</button>
                 </div>
-                <button id="refresh-publications-button" type="button" class="ghost-button">Actualizar cola</button>
               </div>
-              <div id="publication-list" class="publication-list"></div>
+              <article class="panel queue-panel">
+                <div class="queue-toolbar">
+                  <span class="queue-toolbar-label">Vista de trabajo</span>
+                  <span class="helper-inline">Cada item debería llegar con canal, privacidad y fecha ya definidos.</span>
+                </div>
+                <div id="publication-list" class="publication-list queue-list"></div>
+              </article>
             </section>
           </section>
-
           <section class="view-section" data-view="candidates">
             <section id="candidates" class="section-block">
               <div class="section-heading">

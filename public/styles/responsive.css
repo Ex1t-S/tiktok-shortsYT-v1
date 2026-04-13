@@ -42,3 +42,78 @@
     justify-content: flex-start;
   }
 }
+
+@media (max-width: 1440px) {
+  .workflow-roadmap {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .studio-layout {
+    grid-template-columns: minmax(0, 1fr) 360px;
+  }
+}
+
+@media (max-width: 1180px) {
+  .topbar-studio,
+  .studio-layout,
+  .studio-secondary-grid,
+  .workflow-roadmap,
+  #library-video-list .stack-card,
+  .publication-card {
+    grid-template-columns: 1fr;
+  }
+
+  .studio-rail,
+  .sticky-toolbar,
+  .sticky-selection-bar {
+    position: static;
+  }
+
+  #library-video-list,
+  #publication-list,
+  #youtube-list,
+  #channel-videos-list,
+  #account-schedule-list,
+  #distribution-account-list {
+    max-height: none;
+    overflow: visible;
+    padding-right: 0;
+  }
+
+  #library-video-list .stack-card > .checkbox-row,
+  #library-video-list .stack-card > div:first-of-type,
+  #library-video-list .stack-card > .inline-meta,
+  #library-video-list .stack-card > .media-extra,
+  #library-video-list .stack-card > .account-actions {
+    grid-column: auto;
+    grid-row: auto;
+  }
+
+  .queue-page .filters-row,
+  .queue-toolbar,
+  .studio-header {
+    align-items: start;
+    justify-content: flex-start;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 720px) {
+  .app-shell {
+    width: calc(100% - 16px);
+    padding: 10px 0 16px;
+  }
+
+  .sidebar,
+  .panel,
+  .hero-panel {
+    padding: 16px;
+    border-radius: 18px;
+  }
+
+  .workflow-roadmap,
+  .library-filters,
+  .mini-grid {
+    grid-template-columns: 1fr;
+  }
+}

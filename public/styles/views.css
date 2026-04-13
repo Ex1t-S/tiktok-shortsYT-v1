@@ -111,3 +111,110 @@
   background: #eceff4;
   border: 1px solid var(--line);
 }
+
+/* --- studio density + work areas --- */
+.studio-secondary-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+}
+
+.rail-card-grid {
+  grid-template-columns: 1fr;
+}
+
+.scroll-stack,
+#youtube-list,
+#distribution-account-list,
+#library-video-list,
+#publication-list {
+  max-height: 68vh;
+  overflow: auto;
+  padding-right: 6px;
+}
+
+#channel-videos-list,
+#account-schedule-list {
+  max-height: 58vh;
+  overflow: auto;
+  padding-right: 6px;
+}
+
+#library-video-list .stack-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 10px 14px;
+  align-items: start;
+}
+
+#library-video-list .stack-card > .checkbox-row {
+  grid-column: 1;
+  grid-row: 1 / span 4;
+  align-self: start;
+  margin: 2px 0 0;
+}
+
+#library-video-list .stack-card > div:first-of-type,
+#library-video-list .stack-card > .inline-meta,
+#library-video-list .stack-card > .media-extra {
+  grid-column: 2;
+}
+
+#library-video-list .stack-card > .account-actions {
+  grid-column: 3;
+  grid-row: 1 / span 4;
+  align-self: center;
+  justify-content: flex-end;
+  margin: 0;
+}
+
+#library-video-list .stack-card strong,
+#publication-list strong,
+#youtube-list h4 {
+  line-height: 1.25;
+}
+
+#library-video-list .media-extra {
+  margin: 0;
+}
+
+.publication-list {
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.publication-card {
+  display: grid;
+  grid-template-columns: 180px minmax(0, 1fr);
+  align-items: stretch;
+  border-radius: 18px;
+}
+
+.publication-thumb {
+  width: 100%;
+  height: 100%;
+  min-height: 154px;
+  aspect-ratio: auto;
+}
+
+.publication-body {
+  display: grid;
+  gap: 10px;
+  align-content: start;
+}
+
+.publication-body p {
+  margin: 0;
+}
+
+.account-card {
+  display: grid;
+  gap: 10px;
+}
+
+.channel-video-card {
+  padding: 14px 16px;
+}
+
+.queue-page .studio-header {
+  align-items: center;
+}
