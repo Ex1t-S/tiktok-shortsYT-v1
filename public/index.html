@@ -17,216 +17,139 @@
       <aside class="sidebar">
         <div class="brand-block">
           <p class="eyebrow">Shorts Studio</p>
-          <h1>Flujo simple</h1>
-          <p class="sidebar-copy">Rastrear TikTok, guardar en nube, elegir canal y dejar la cola lista.</p>
+          <h1>Operación clara</h1>
+          <p class="sidebar-copy">
+            Encontrá videos, guardalos en biblioteca, asignales canal y controlá la subida sin perderte entre pantallas.
+          </p>
         </div>
 
         <nav class="sidebar-nav">
-          <button type="button" class="nav-tab active" data-view="tracking">1. Rastrear</button>
-          <button type="button" class="nav-tab" data-view="accounts">2. Biblioteca + canales</button>
-          <button type="button" class="nav-tab" data-view="queue">3. Cola visible</button>
-          <button type="button" class="nav-tab" data-view="overview">Panel</button>
-          <button type="button" class="nav-tab" data-view="candidates">Revisión</button>
-          <button type="button" class="nav-tab" data-view="discovery">Avanzado</button>
+          <button type="button" class="nav-tab active" data-view="tracking">1. Rastrear y revisar</button>
+          <button type="button" class="nav-tab" data-view="accounts">2. Biblioteca y canales</button>
+          <button type="button" class="nav-tab" data-view="queue">3. Cola y publicaciones</button>
+          <button type="button" class="nav-tab" data-view="overview">Panel operativo</button>
+          <button type="button" class="nav-tab" data-view="candidates">Revisión editorial</button>
+          <button type="button" class="nav-tab" data-view="discovery">Scouting avanzado</button>
         </nav>
 
         <div class="sidebar-note">
-          <span>Principal: rastrear, guardar y programar</span>
-          <span>La cola y los fallos quedan visibles</span>
+          <span><strong>Biblioteca</strong> = guardado, todavía sin publicar.</span>
+          <span><strong>Cola</strong> = ya tiene canal y está pendiente de subir.</span>
+          <span><strong>Publicados</strong> = ya salieron a YouTube.</span>
         </div>
       </aside>
 
       <main class="main-shell">
-        <header class="topbar topbar-studio">
+        <header class="topbar studio-header">
           <div class="topbar-title">
-            <p class="eyebrow">Operación</p>
-            <strong>Rastreo, biblioteca y cola</strong>
+            <p class="eyebrow">Flujo principal</p>
+            <strong>Rastrear → guardar → asignar canal → subir</strong>
           </div>
-          <div class="topbar-summary">
-            <span class="topbar-kicker">Objetivo</span>
-            <strong>Encontrar videos, guardarlos en nube y moverlos a una cola clara y visible.</strong>
+          <div class="topbar-meta topbar-meta--flow">
+            <span class="topbar-chip">Biblioteca = material guardado</span>
+            <span class="topbar-chip muted">Cola = pendiente de publicar</span>
           </div>
-          <div class="topbar-meta">
-            <span class="topbar-chip">Cloud + YouTube</span>
-            <span class="topbar-chip muted">Cola persistente</span>
+          <div class="topbar-status">
+            <p class="eyebrow">Estado en vivo</p>
+            <p id="status-text" class="status-line">Listo para rastrear un perfil o hashtag.</p>
           </div>
         </header>
 
-        <section class="workflow-roadmap">
-          <article class="roadmap-card current">
-            <span class="roadmap-step">Paso 1</span>
-            <strong>Rastrear TikTok</strong>
-            <p>Busca un perfil o hashtag y espera a que aparezcan los videos.</p>
-          </article>
-          <article class="roadmap-card">
-            <span class="roadmap-step">Paso 2</span>
-            <strong>Guardar en biblioteca</strong>
-            <p>Guarda solo los videos buenos para reutilizarlos.</p>
-          </article>
-          <article class="roadmap-card">
-            <span class="roadmap-step">Paso 3</span>
-            <strong>Elegir canal</strong>
-            <p>Conecta la cuenta correcta antes de dejar lista la cola.</p>
-          </article>
-          <article class="roadmap-card">
-            <span class="roadmap-step">Paso 4</span>
-            <strong>Publicar y controlar</strong>
-            <p>Revisa el estado final desde la cola y las metricas.</p>
-          </article>
-        </section>
-
         <div class="view-stack">
-          <section class="view-section" data-view="overview">
-            <section id="overview" class="hero-panel">
-              <div class="hero-copy-block">
-                <p class="eyebrow">Panel operativo</p>
-                <h2>Todo el estado del sistema en una sola pantalla.</h2>
-                <p class="hero-copy">Usa este panel para revisar salud, jobs, workers y actividad reciente sin salir del flujo.</p>
-                <div class="actions">
-                  <button id="hero-track-button" type="button">Ir a rastrear</button>
-                  <button id="hero-queue-button" type="button" class="ghost-button">Ver cola</button>
-                </div>
-                <div id="hero-health-strip" class="hero-health-strip"></div>
-              </div>
-              <div class="status-panel">
-                <p class="status-label">Estado actual</p>
-                <p id="status-text" class="status-text">Cargando panel...</p>
-                <div id="dashboard-alert" class="dashboard-alert hidden"></div>
-              </div>
-            </section>
-
-            <section class="section-block">
-              <div class="section-heading">
-                <div>
-                  <p class="eyebrow">Resumen</p>
-                  <h3>Pipeline</h3>
-                </div>
-              </div>
-              <div id="summary-strip" class="summary-strip"></div>
-            </section>
-
-            <section class="section-block dual-grid">
-              <article class="panel">
-                <div class="section-heading compact">
-                  <div>
-                    <p class="eyebrow">Actividad</p>
-                    <h3>Perfiles recientes</h3>
-                  </div>
-                </div>
-                <div id="recent-profiles-list" class="stack-list"></div>
-              </article>
-
-              <article class="panel">
-                <div class="section-heading compact">
-                  <div>
-                    <p class="eyebrow">Actividad</p>
-                    <h3>Trabajos recientes</h3>
-                  </div>
-                </div>
-                <div id="recent-publications-list" class="stack-list"></div>
-              </article>
-            </section>
-
-            <section class="section-block dual-grid">
-              <article class="panel">
-                <div class="section-heading compact">
-                  <div>
-                    <p class="eyebrow">Errores</p>
-                    <h3>Scrapes fallidos</h3>
-                  </div>
-                </div>
-                <div id="recent-errors-list" class="stack-list"></div>
-              </article>
-
-              <article class="panel">
-                <div class="section-heading compact">
-                  <div>
-                    <p class="eyebrow">Flujo</p>
-                    <h3>Camino recomendado</h3>
-                  </div>
-                </div>
-                <div class="stack-list">
-                  <article class="stack-card guide-card">
-                    <strong>Rastrear</strong>
-                    <p>Busca un perfil o hashtag y deja que el progreso se vea en vivo.</p>
-                  </article>
-                  <article class="stack-card guide-card">
-                    <strong>Guardar en nube</strong>
-                    <p>Selecciona los videos buenos y guárdalos una vez para reutilizarlos.</p>
-                  </article>
-                  <article class="stack-card guide-card">
-                    <strong>Cola visible</strong>
-                    <p>Asigna canal, programa y controla los Shorts desde la cola.</p>
-                  </article>
-                </div>
-              </article>
-            </section>
-
-            <section class="section-block">
-              <article class="panel">
-                <div class="section-heading">
-                  <div>
-                    <p class="eyebrow">Jobs</p>
-                    <h3>Cola de publicaciones</h3>
-                  </div>
-                  <button id="refresh-jobs-button" type="button" class="ghost-button">Actualizar jobs</button>
-                </div>
-                <div id="jobs-summary-strip" class="summary-strip"></div>
-                <div id="jobs-list" class="stack-list"></div>
-              </article>
-            </section>
-
-            <section class="section-block">
-              <article class="panel">
-                <div class="section-heading">
-                  <div>
-                    <p class="eyebrow">Workers</p>
-                    <h3>Estado de workers</h3>
-                  </div>
-                  <button id="refresh-workers-button" type="button" class="ghost-button">Actualizar workers</button>
-                </div>
-                <div id="workers-summary-strip" class="summary-strip"></div>
-                <div id="workers-list" class="stack-list"></div>
-              </article>
-            </section>
-          </section>
-
           <section class="view-section active" data-view="tracking">
-            <section id="tracking" class="section-block">
-              <article class="panel flow-callout">
-                <div>
-                  <p class="eyebrow">Camino principal</p>
-                  <h3>Trackear, revisar, guardar y despues mandar a cola.</h3>
+            <section id="tracking" class="section-block section-stack">
+              <article class="panel intro-panel">
+                <div class="intro-copy">
+                  <p class="eyebrow">Paso 1</p>
+                  <h2>Rastrear TikTok y decidir qué vale la pena guardar.</h2>
+                  <p class="helper-copy">
+                    Acá todavía no se publica nada. Primero encontrás videos, los revisás y recién después los mandás a la
+                    biblioteca o directo a la cola.
+                  </p>
                 </div>
-                <p class="helper-copy">
-                  Si estas operando normal, usa este orden: buscar en TikTok, revisar resultados, guardar en biblioteca y
-                  luego ir a canales para decidir a que cuenta va cada video.
-                </p>
+                <div class="flow-steps">
+                  <article class="flow-step is-active">
+                    <span>1</span>
+                    <strong>Buscar</strong>
+                    <p>Perfil, hashtag o URL.</p>
+                  </article>
+                  <article class="flow-step">
+                    <span>2</span>
+                    <strong>Revisar</strong>
+                    <p>Elegí las piezas buenas.</p>
+                  </article>
+                  <article class="flow-step">
+                    <span>3</span>
+                    <strong>Guardar o mandar</strong>
+                    <p>Biblioteca o cola directa.</p>
+                  </article>
+                </div>
               </article>
 
-              <article class="panel workflow-hero">
+              <article class="panel track-panel">
                 <div class="section-heading compact">
                   <div>
-                    <p class="eyebrow">Paso 1</p>
-                    <h3>Rastrear TikTok</h3>
+                    <p class="eyebrow">Entrada</p>
+                    <h3>Buscar perfil, hashtag o URL</h3>
                   </div>
                 </div>
-
                 <form id="track-form" class="stack-form">
                   <label>
                     <span>Búsqueda</span>
-                    <div class="input-row">
+                    <div class="input-row input-row--primary">
                       <input id="username" name="username" type="text" placeholder="@usuario, #tema o URL de TikTok" required />
                       <button id="submit-button" type="submit">Rastrear</button>
                     </div>
                   </label>
                   <p class="helper-copy">
-                    Pega `@usuario`, `#tema` o una URL. Primero se trackea el contenido y despues eliges que piezas valen la pena.
+                    Consejo: usá <code>@usuario</code> para un perfil, <code>#tema</code> para hashtags o pegá una URL completa.
                   </p>
                 </form>
+              </article>
 
-                <div class="workflow-strip">
-                  <article id="summary-card" class="panel hidden compact-panel">
+              <div class="studio-grid tracking-layout">
+                <div class="workspace-main section-stack">
+                  <article class="panel">
+                    <div class="section-heading compact section-heading-with-actions">
+                      <div>
+                        <p class="eyebrow">Resultados</p>
+                        <h3>Videos encontrados</h3>
+                      </div>
+                      <div class="filters-row">
+                        <span id="track-results-meta" class="helper-inline hidden"></span>
+                        <button id="load-more-media-button" type="button" class="ghost-button hidden">Cargar más</button>
+                      </div>
+                    </div>
+
+                    <div class="selection-explainer">
+                      <div>
+                        <strong>¿Qué hace cada acción?</strong>
+                        <p><strong>Guardar en biblioteca</strong> conserva el video para reutilizarlo. <strong>Agregar a la cola</strong> ya lo deja listo para subir a un canal.</p>
+                      </div>
+                    </div>
+
+                    <div id="selection-bar" class="selection-bar hidden">
+                      <div class="selection-primary">
+                        <span id="selected-count">0 seleccionados</span>
+                        <select id="queue-account-select" class="compact-select">
+                          <option value="">Elegir cuenta de YouTube</option>
+                        </select>
+                      </div>
+                      <div class="secondary-actions-row">
+                        <button id="save-library-button" type="button">Guardar en biblioteca</button>
+                        <button id="queue-selected-button" type="button" class="ghost-button">Agregar a la cola</button>
+                        <button id="download-selected-button" type="button" class="ghost-button">Descargar ZIP</button>
+                        <button id="select-all-button" type="button" class="ghost-button">Seleccionar todo</button>
+                        <button id="clear-selection-button" type="button" class="ghost-button">Limpiar</button>
+                      </div>
+                    </div>
+
+                    <div id="media-grid" class="media-grid"></div>
+                  </article>
+                </div>
+
+                <aside class="workspace-rail section-stack">
+                  <article id="summary-card" class="panel compact-panel hidden">
                     <div class="section-heading compact">
                       <div>
                         <p id="tracked-kind" class="eyebrow">Perfil rastreado</p>
@@ -260,102 +183,76 @@
                     </div>
                   </article>
 
-                  <article class="panel compact-panel">
+                  <article class="panel panel-muted">
                     <div class="section-heading compact">
                       <div>
-                        <p class="eyebrow">Paso 2 y 3</p>
-                        <h3>Guardar y mandar a cola</h3>
+                        <p class="eyebrow">Cómo leer esta pantalla</p>
+                        <h3>Antes de pasar a biblioteca</h3>
                       </div>
                     </div>
-                    <p class="helper-copy">
-                      Usa `Guardar en biblioteca` como accion principal. `Mandar a cola` sirve cuando ya sabes exactamente a que
-                      canal debe ir cada video.
-                    </p>
-                    <div id="selection-bar" class="selection-bar hidden workflow-selection">
-                      <div class="selection-primary">
-                        <span id="selected-count">0 seleccionados</span>
-                        <select id="queue-account-select" class="compact-select">
-                          <option value="">Elegir cuenta de YouTube</option>
-                        </select>
-                        <button id="save-library-button" type="button">Guardar en biblioteca</button>
-                        <button id="queue-selected-button" type="button" class="ghost-button">Mandar a cola</button>
-                      </div>
-                      <details class="secondary-actions">
-                        <summary>Mas acciones</summary>
-                        <div class="secondary-actions-row">
-                          <button id="select-all-button" type="button" class="ghost-button">Seleccionar todo</button>
-                          <button id="clear-selection-button" type="button" class="ghost-button">Limpiar</button>
-                          <button id="download-selected-button" type="button" class="ghost-button">Descargar ZIP</button>
-                        </div>
-                      </details>
-                    </div>
-                    <div class="stack-list quick-flow-list">
-                      <article class="stack-card">
-                        <strong>Primero nube</strong>
-                        <p>La opción recomendada es guardar primero en biblioteca y después asignar canal.</p>
+                    <div class="legend-list">
+                      <article class="legend-item">
+                        <strong>1. Elegí videos</strong>
+                        <p>Marcá solo las piezas que de verdad quieras conservar o subir.</p>
                       </article>
-                      <article class="stack-card">
-                        <strong>Cola visible</strong>
-                        <p>Todo lo que mandas a YouTube queda visible en la pestaña Cola.</p>
+                      <article class="legend-item">
+                        <strong>2. Biblioteca</strong>
+                        <p>Usala cuando el video todavía no tiene un canal definido.</p>
+                      </article>
+                      <article class="legend-item">
+                        <strong>3. Cola directa</strong>
+                        <p>Usala cuando ya sabés exactamente a qué canal debe ir el video.</p>
                       </article>
                     </div>
                   </article>
-                </div>
-              </article>
-            </section>
-
-            <section class="section-block" id="catalog">
-              <div class="section-heading">
-                <div>
-                  <p class="eyebrow">Resultado</p>
-                  <h3>Videos encontrados</h3>
-                </div>
-                <div class="results-actions">
-                  <span id="track-results-meta" class="helper-inline hidden"></span>
-                  <button id="load-more-media-button" type="button" class="ghost-button hidden">Buscar 20 mas</button>
-                </div>
+                </aside>
               </div>
-              <div id="media-grid" class="media-grid"></div>
             </section>
           </section>
 
           <section class="view-section" data-view="accounts">
-            <section id="accounts" class="section-block studio-page">
-              <div class="studio-header">
-                <div>
+            <section id="accounts" class="section-block section-stack">
+              <article class="panel intro-panel">
+                <div class="intro-copy">
                   <p class="eyebrow">Paso 2 y 3</p>
-                  <h3>Biblioteca + canales en una vista de trabajo</h3>
+                  <h2>Biblioteca clara y canales bien conectados.</h2>
+                  <p class="helper-copy">
+                    Esta pantalla tiene dos roles: a la izquierda administrás la biblioteca, y a la derecha conectás
+                    canales, ves métricas y decidís qué se manda a la cola.
+                  </p>
                 </div>
-                <p class="helper-copy">
-                  La biblioteca queda al frente y el lateral derecho concentra canales, distribución y herramientas avanzadas.
-                </p>
-              </div>
+                <div class="flow-legend-grid">
+                  <article class="legend-tile">
+                    <strong>Biblioteca</strong>
+                    <p>Guardado, todavía sin publicar.</p>
+                  </article>
+                  <article class="legend-tile">
+                    <strong>Agregar a la cola</strong>
+                    <p>Ya queda pendiente de subida.</p>
+                  </article>
+                  <article class="legend-tile">
+                    <strong>Canales</strong>
+                    <p>OAuth, métricas y agenda.</p>
+                  </article>
+                </div>
+              </article>
 
-              <div class="studio-layout">
-                <div class="studio-main">
+              <div class="studio-grid ops-layout">
+                <div class="workspace-main section-stack">
                   <article class="panel library-panel">
-                    <div class="section-heading compact">
+                    <div class="section-heading section-heading-with-actions">
                       <div>
                         <p class="eyebrow">Biblioteca</p>
-                        <h3>Videos listos para publicar</h3>
+                        <h3>Videos guardados y listos para decidir</h3>
+                      </div>
+                      <div class="inline-toolbar">
+                        <select id="library-queue-account-select" class="compact-select">
+                          <option value="">Canal destino rápido</option>
+                        </select>
+                        <span class="helper-inline">Elegí un canal para usar el botón <strong>Agregar a la cola</strong> en cada video.</span>
                       </div>
                     </div>
-                    <div class="stack-list library-flow-notes compact-guide-list">
-                      <article class="stack-card guide-card">
-                        <strong>Flujo recomendado</strong>
-                        <p>Filtra, selecciona y manda a una cuenta solo cuando ya tengas claro el destino.</p>
-                      </article>
-                      <article class="stack-card guide-card">
-                        <strong>Distribución masiva</strong>
-                        <p>Cuando armes un lote, usa el lateral para repartir entre varios canales sin perder la biblioteca de vista.</p>
-                      </article>
-                    </div>
-                    <div class="inline-toolbar sticky-toolbar">
-                      <select id="library-queue-account-select" class="compact-select">
-                        <option value="">Elegir cuenta de YouTube</option>
-                      </select>
-                      <span class="helper-inline">Elige una cuenta para envíos puntuales desde la lista.</span>
-                    </div>
+
                     <div class="library-filters">
                       <label>
                         <span>Buscar en biblioteca</span>
@@ -365,7 +262,7 @@
                         <span>Estado</span>
                         <select id="library-status-filter" class="compact-select">
                           <option value="">Todos</option>
-                          <option value="ready">Listos</option>
+                          <option value="ready">Solo biblioteca</option>
                           <option value="queued">En cola</option>
                           <option value="scheduled">Programados</option>
                           <option value="published">Publicados</option>
@@ -381,6 +278,7 @@
                         </select>
                       </label>
                     </div>
+
                     <div class="results-actions library-results-actions">
                       <span id="library-results-meta" class="helper-inline hidden"></span>
                       <div class="pagination-actions">
@@ -388,79 +286,101 @@
                         <button id="library-next-page-button" type="button" class="ghost-button">Siguiente</button>
                       </div>
                     </div>
-                    <div id="library-selection-bar" class="selection-bar hidden sticky-selection-bar">
-                      <span id="library-selected-count">0 seleccionados</span>
-                      <button id="library-select-all-button" type="button" class="ghost-button">Seleccionar todo</button>
-                      <button id="library-clear-selection-button" type="button" class="ghost-button">Limpiar</button>
-                    </div>
-                    <div id="library-video-list" class="stack-list library-video-list"></div>
-                  </article>
 
-                  <article class="panel metrics-panel">
-                    <div class="section-heading">
-                      <div>
-                        <p class="eyebrow">Canal</p>
-                        <h3>Publicados, agenda y piezas listas</h3>
+                    <div id="library-selection-bar" class="selection-bar hidden">
+                      <div class="selection-primary">
+                        <span id="library-selected-count">0 seleccionados</span>
                       </div>
-                      <button id="refresh-channel-videos-button" type="button" class="ghost-button">Actualizar canal</button>
-                    </div>
-                    <div class="dual-grid studio-secondary-grid">
-                      <div>
-                        <p class="helper-inline section-microcopy">Últimos videos y métricas visibles del canal principal conectado.</p>
-                        <div id="channel-videos-list" class="stack-list scroll-stack"></div>
-                      </div>
-                      <div>
-                        <p class="helper-inline section-microcopy">Agenda de publicaciones listas, programadas o esperando acción.</p>
-                        <div id="account-schedule-list" class="stack-list scroll-stack"></div>
+                      <div class="secondary-actions-row">
+                        <button id="library-select-all-button" type="button" class="ghost-button">Seleccionar visibles</button>
+                        <button id="library-clear-selection-button" type="button" class="ghost-button">Limpiar</button>
                       </div>
                     </div>
+
+                    <div id="library-video-list" class="stack-list"></div>
                   </article>
                 </div>
 
-                <aside class="studio-rail">
-                  <article class="panel rail-panel">
+                <aside class="workspace-rail section-stack">
+                  <article class="panel channel-panel">
                     <div class="section-heading compact">
                       <div>
                         <p class="eyebrow">Canales</p>
-                        <h3>Conectar YouTube</h3>
+                        <h3>Conectar cuentas y resolver OAuth</h3>
                       </div>
                     </div>
-                    <form id="youtube-form" class="stack-form compact-form">
-                      <label>
-                        <span>Nombre del canal</span>
-                        <input id="channel-title" name="channelTitle" type="text" placeholder="Mi canal de Shorts" required />
-                      </label>
-                      <div class="mini-grid">
+                    <div id="youtube-oauth-box" class="notice-box"></div>
+                    <div class="section-subgroup">
+                      <h4>Canales cargados</h4>
+                      <div id="youtube-list" class="stack-list"></div>
+                    </div>
+                    <div class="section-subgroup">
+                      <h4>Agregar un canal</h4>
+                      <form id="youtube-form" class="stack-form">
                         <label>
-                          <span>Handle</span>
-                          <input id="channel-handle" name="channelHandle" type="text" placeholder="@micanal" />
+                          <span>Nombre del canal</span>
+                          <input id="channel-title" name="channelTitle" type="text" placeholder="Mi canal de Shorts" required />
                         </label>
+                        <div class="mini-grid">
+                          <label>
+                            <span>Handle</span>
+                            <input id="channel-handle" name="channelHandle" type="text" placeholder="@micanal" />
+                          </label>
+                          <label>
+                            <span>Channel ID</span>
+                            <input id="channel-id" name="channelId" type="text" placeholder="UC..." />
+                          </label>
+                        </div>
                         <label>
-                          <span>Channel ID</span>
-                          <input id="channel-id" name="channelId" type="text" placeholder="UC..." />
+                          <span>Email de contacto</span>
+                          <input id="contact-email" name="contactEmail" type="email" placeholder="ops@ejemplo.com" />
                         </label>
-                      </div>
-                      <label>
-                        <span>Email de contacto</span>
-                        <input id="contact-email" name="contactEmail" type="email" placeholder="ops@ejemplo.com" />
-                      </label>
-                      <button type="submit">Guardar canal</button>
-                    </form>
-                    <div id="youtube-oauth-box" class="notice-box hidden"></div>
-                    <div id="youtube-list" class="card-grid rail-card-grid"></div>
+                        <button type="submit">Guardar canal</button>
+                      </form>
+                    </div>
+                    <details class="tool-disclosure">
+                      <summary>Importar muchas cuentas de YouTube</summary>
+                      <form id="youtube-bulk-form" class="stack-form disclosure-body">
+                        <label>
+                          <span>Una cuenta por línea</span>
+                          <textarea
+                            id="youtube-bulk-input"
+                            name="accounts"
+                            rows="8"
+                            placeholder="Canal Uno|@canaluno|UC123|mail1@dominio.com&#10;Canal Dos|@canaldos|UC456|mail2@dominio.com"
+                          ></textarea>
+                        </label>
+                        <p class="helper-copy">Formato: <code>Título|Handle|ChannelId|Email</code>. El ChannelId y el email son opcionales.</p>
+                        <button id="youtube-bulk-button" type="submit">Importar cuentas</button>
+                      </form>
+                    </details>
                   </article>
 
-                  <article class="panel rail-panel">
+                  <article class="panel metrics-panel">
+                    <div class="section-heading compact section-heading-with-actions">
+                      <div>
+                        <p class="eyebrow">Canal activo</p>
+                        <h3>Métricas y agenda</h3>
+                      </div>
+                      <button id="refresh-channel-videos-button" type="button" class="ghost-button">Actualizar métricas</button>
+                    </div>
+                    <p class="helper-copy">Cuando conectás un canal, acá ves sus últimos videos y debajo la agenda de lo que está listo para publicar.</p>
+                    <div id="channel-videos-list" class="stack-list"></div>
+                    <div class="section-subgroup section-subgroup-tight">
+                      <h4>Cola de ese canal</h4>
+                      <div id="account-schedule-list" class="stack-list"></div>
+                    </div>
+                  </article>
+
+                  <article class="panel">
                     <div class="section-heading compact">
                       <div>
-                        <p class="eyebrow">Distribución</p>
-                        <h3>Repartir entre canales</h3>
+                        <p class="eyebrow">Paso 3</p>
+                        <h3>Crear cola desde biblioteca</h3>
                       </div>
                     </div>
-                    <p class="helper-copy rail-copy">
-                      Úsalo cuando ya seleccionaste varios videos y quieras crear la cola automática sin salir de esta pantalla.
-                    </p>
-                    <form id="distribution-form" class="stack-form compact-form">
+                    <p class="helper-copy">Seleccioná varios videos en biblioteca y elegí a qué cuentas se reparten. Esto ya crea publicaciones pendientes.</p>
+                    <form id="distribution-form" class="stack-form">
                       <label>
                         <span>Cuentas destino</span>
                         <div id="distribution-account-list" class="stack-list compact-stack"></div>
@@ -487,148 +407,300 @@
                     </form>
                   </article>
 
-                  <article class="panel rail-panel advanced-panel">
+                  <article class="panel panel-muted">
                     <div class="section-heading compact">
                       <div>
-                        <p class="eyebrow">Opcional</p>
-                        <h3>Herramientas avanzadas</h3>
+                        <p class="eyebrow">Herramientas</p>
+                        <h3>Cargas especiales</h3>
                       </div>
                     </div>
-                    <p class="helper-copy rail-copy">ZIP, URLs remotas e importación masiva quedan plegados para no tapar el flujo principal.</p>
-                    <div class="advanced-tools">
-                      <details class="tool-disclosure">
-                        <summary>Importar videos desde ZIP</summary>
-                        <form id="library-import-form" class="stack-form disclosure-body">
+                    <details class="tool-disclosure">
+                      <summary>Importar ZIP a biblioteca</summary>
+                      <form id="library-import-form" class="stack-form disclosure-body">
+                        <label>
+                          <span>Ruta del ZIP en el servidor</span>
+                          <input id="library-zip-path" name="zipPath" type="text" placeholder="/data/batch/shorts.zip" />
+                        </label>
+                        <label>
+                          <span>Etiqueta</span>
+                          <input id="library-label" name="label" type="text" placeholder="batch-abril" />
+                        </label>
+                        <div class="mini-grid">
                           <label>
-                            <span>Ruta del ZIP en el servidor</span>
-                            <input id="library-zip-path" name="zipPath" type="text" placeholder="ai-cinema021-media.zip" required />
+                            <span>Cuenta de YouTube</span>
+                            <select id="library-account-select" name="youtubeAccountId">
+                              <option value="">Elegir cuenta de YouTube</option>
+                            </select>
                           </label>
                           <label>
-                            <span>Etiqueta</span>
-                            <input id="library-label" name="label" type="text" placeholder="ai.cinema021" />
+                            <span>Privacidad</span>
+                            <select id="library-privacy-status" name="privacyStatus">
+                              <option value="private">Privado</option>
+                              <option value="unlisted">Oculto</option>
+                              <option value="public">Público</option>
+                            </select>
                           </label>
-                          <div class="mini-grid">
-                            <label>
-                              <span>Cuenta de YouTube</span>
-                              <select id="library-account-select" name="youtubeAccountId">
-                                <option value="">Elegir cuenta de YouTube</option>
-                              </select>
-                            </label>
-                            <label>
-                              <span>Privacidad</span>
-                              <select id="library-privacy-status" name="privacyStatus">
-                                <option value="private">Privado</option>
-                                <option value="unlisted">Oculto</option>
-                                <option value="public">Público</option>
-                              </select>
-                            </label>
-                          </div>
-                          <div class="mini-grid">
-                            <label>
-                              <span>Primera subida</span>
-                              <input id="library-start-at" name="startAt" type="datetime-local" />
-                            </label>
-                            <label>
-                              <span>Días entre subidas</span>
-                              <input id="library-interval-days" name="intervalDays" type="number" min="1" value="1" />
-                            </label>
-                          </div>
-                          <label class="checkbox-row">
-                            <input id="library-schedule-daily" name="scheduleDaily" type="checkbox" checked />
-                            <span>Crear programación diaria</span>
+                        </div>
+                        <div class="mini-grid">
+                          <label>
+                            <span>Empezar en</span>
+                            <input id="library-start-at" name="startAt" type="datetime-local" />
                           </label>
-                          <button id="library-import-button" type="submit">Subir ZIP a biblioteca</button>
-                        </form>
-                      </details>
+                          <label>
+                            <span>Días entre videos</span>
+                            <input id="library-interval-days" name="intervalDays" type="number" min="1" value="1" />
+                          </label>
+                        </div>
+                        <label class="checkbox-row">
+                          <input id="library-schedule-daily" name="scheduleDaily" type="checkbox" checked />
+                          <span>Crear agenda diaria</span>
+                        </label>
+                        <button id="library-import-button" type="submit">Importar ZIP</button>
+                      </form>
+                    </details>
 
-                      <details class="tool-disclosure">
-                        <summary>Registrar archivo local o URL remota</summary>
-                        <form id="library-video-form" class="stack-form disclosure-body">
+                    <details class="tool-disclosure">
+                      <summary>Agregar un video manualmente</summary>
+                      <form id="library-video-form" class="stack-form disclosure-body">
+                        <label>
+                          <span>Etiqueta</span>
+                          <input id="library-video-label" name="label" type="text" placeholder="import-manual" />
+                        </label>
+                        <label>
+                          <span>Título</span>
+                          <input id="library-video-title" name="title" type="text" placeholder="Short listo para publicar" />
+                        </label>
+                        <label>
+                          <span>Ruta local</span>
+                          <input id="library-video-path" name="filePath" type="text" placeholder=".storage/uploads/short-01.mp4" />
+                        </label>
+                        <label>
+                          <span>URL remota</span>
+                          <input id="library-video-url" name="sourceUrl" type="url" placeholder="https://bucket.example.com/short-01.mp4" />
+                        </label>
+                        <div class="mini-grid">
                           <label>
-                            <span>Etiqueta</span>
-                            <input id="library-video-label" name="label" type="text" placeholder="lote ai.cinema en nube" />
+                            <span>Proveedor</span>
+                            <select id="library-video-provider" name="storageProvider">
+                              <option value="local">Archivo local</option>
+                              <option value="remote_url">URL remota</option>
+                              <option value="s3-compatible">S3 / R2 / presigned</option>
+                            </select>
                           </label>
                           <label>
-                            <span>Título</span>
-                            <input id="library-video-title" name="title" type="text" placeholder="AI Cinema Short 01" />
+                            <span>Cuenta de YouTube</span>
+                            <select id="library-video-account-select" name="youtubeAccountId">
+                              <option value="">Elegir cuenta de YouTube</option>
+                            </select>
                           </label>
-                          <label>
-                            <span>Ruta local en servidor</span>
-                            <input id="library-video-path" name="filePath" type="text" placeholder=".storage/uploads/short-01.mp4" />
-                          </label>
-                          <label>
-                            <span>URL remota</span>
-                            <input id="library-video-url" name="sourceUrl" type="url" placeholder="https://bucket.example.com/short-01.mp4" />
-                          </label>
-                          <div class="mini-grid">
-                            <label>
-                              <span>Proveedor</span>
-                              <select id="library-video-provider" name="storageProvider">
-                                <option value="local">Archivo local</option>
-                                <option value="remote_url">URL remota</option>
-                                <option value="s3-compatible">S3 / R2 / presigned</option>
-                              </select>
-                            </label>
-                            <label>
-                              <span>Cuenta de YouTube</span>
-                              <select id="library-video-account-select" name="youtubeAccountId">
-                                <option value="">Elegir cuenta de YouTube</option>
-                              </select>
-                            </label>
-                          </div>
-                          <button id="library-video-button" type="submit">Guardar en nube</button>
-                        </form>
-                      </details>
+                        </div>
+                        <button id="library-video-button" type="submit">Guardar en biblioteca</button>
+                      </form>
+                    </details>
+                  </article>
+                </aside>
+              </div>
+            </section>
+          </section>
 
-                      <details class="tool-disclosure">
-                        <summary>Importar muchas cuentas de YouTube</summary>
-                        <form id="youtube-bulk-form" class="stack-form disclosure-body">
-                          <label>
-                            <span>Pega una cuenta por línea</span>
-                            <textarea
-                              id="youtube-bulk-input"
-                              name="accounts"
-                              rows="8"
-                              placeholder="Canal Uno|@canaluno|UC123|mail1@dominio.com&#10;Canal Dos|@canaldos|UC456|mail2@dominio.com"
-                            ></textarea>
-                          </label>
-                          <p class="helper-copy">Formato: `Título|Handle|ChannelId|Email`. El `ChannelId` y el `Email` son opcionales.</p>
-                          <button id="youtube-bulk-button" type="submit">Importar cuentas</button>
-                        </form>
-                      </details>
+          <section class="view-section" data-view="queue">
+            <section id="queue" class="section-block section-stack">
+              <article class="panel intro-panel">
+                <div class="intro-copy">
+                  <p class="eyebrow">Paso 4</p>
+                  <h2>La cola es donde ya existe intención de publicar.</h2>
+                  <p class="helper-copy">
+                    Todo lo que veas acá ya tiene canal asignado. Desde esta pantalla reintentás, sincronizás o publicás ahora.
+                  </p>
+                </div>
+                <div class="flow-legend-grid">
+                  <article class="legend-tile">
+                    <strong>Ready</strong>
+                    <p>Listo para publicarse.</p>
+                  </article>
+                  <article class="legend-tile">
+                    <strong>Scheduled</strong>
+                    <p>Ya tiene fecha.</p>
+                  </article>
+                  <article class="legend-tile">
+                    <strong>Published</strong>
+                    <p>Ya salió a YouTube.</p>
+                  </article>
+                </div>
+              </article>
+
+              <div class="studio-grid queue-layout">
+                <div class="workspace-main">
+                  <article class="panel">
+                    <div class="section-heading section-heading-with-actions">
+                      <div>
+                        <p class="eyebrow">Cola visible</p>
+                        <h3>Publicaciones pendientes, programadas y publicadas</h3>
+                      </div>
+                      <button id="refresh-publications-button" type="button" class="ghost-button">Actualizar cola</button>
+                    </div>
+                    <div id="publication-list" class="publication-list"></div>
+                  </article>
+                </div>
+
+                <aside class="workspace-rail section-stack">
+                  <article class="panel panel-muted">
+                    <div class="section-heading compact">
+                      <div>
+                        <p class="eyebrow">Cómo usarla</p>
+                        <h3>Lectura rápida de la cola</h3>
+                      </div>
+                    </div>
+                    <div class="legend-list">
+                      <article class="legend-item">
+                        <strong>Publicar ahora</strong>
+                        <p>Fuerza una subida manual del item seleccionado.</p>
+                      </article>
+                      <article class="legend-item">
+                        <strong>Sincronizar</strong>
+                        <p>Trae el estado real desde YouTube por si el video ya se procesó.</p>
+                      </article>
+                      <article class="legend-item">
+                        <strong>Si falla</strong>
+                        <p>Volvé acá, reintentá o ajustá el canal/OAuth en la pantalla Biblioteca y canales.</p>
+                      </article>
                     </div>
                   </article>
                 </aside>
               </div>
             </section>
           </section>
-          <section class="view-section" data-view="queue">
-            <section id="queue" class="section-block studio-page queue-page">
-              <div class="studio-header">
-                <div>
-                  <p class="eyebrow">Paso 4</p>
-                  <h3>Cola de Shorts clara y operativa</h3>
+
+          <section class="view-section" data-view="overview">
+            <section id="overview" class="section-block section-stack">
+              <section class="hero-panel">
+                <div class="hero-copy-block">
+                  <p class="eyebrow">Panel operativo</p>
+                  <h2>Todo el estado del sistema en una sola pantalla.</h2>
+                  <p class="hero-copy">Usá este panel para revisar salud, jobs, workers y actividad reciente sin salir del flujo.</p>
+                  <div class="actions">
+                    <button id="hero-track-button" type="button">Ir a rastrear</button>
+                    <button id="hero-queue-button" type="button" class="ghost-button">Ver cola</button>
+                  </div>
+                  <div id="hero-health-strip" class="hero-health-strip"></div>
                 </div>
-                <div class="filters-row">
-                  <p class="helper-copy">Revisa, publica, sincroniza y detecta fallos sin perderte en una lista infinita.</p>
-                  <button id="refresh-publications-button" type="button" class="ghost-button">Actualizar cola</button>
+                <div class="status-panel">
+                  <p class="status-label">Alertas del sistema</p>
+                  <div id="dashboard-alert" class="dashboard-alert hidden"></div>
+                  <p class="helper-copy">Si algo se trabó, mirá los scrapes fallidos, los jobs y los workers desde esta misma pantalla.</p>
                 </div>
-              </div>
-              <article class="panel queue-panel">
-                <div class="queue-toolbar">
-                  <span class="queue-toolbar-label">Vista de trabajo</span>
-                  <span class="helper-inline">Cada item debería llegar con canal, privacidad y fecha ya definidos.</span>
+              </section>
+
+              <section class="section-block">
+                <div class="section-heading">
+                  <div>
+                    <p class="eyebrow">Resumen</p>
+                    <h3>Pipeline</h3>
+                  </div>
                 </div>
-                <div id="publication-list" class="publication-list queue-list"></div>
-              </article>
+                <div id="summary-strip" class="summary-strip"></div>
+              </section>
+
+              <section class="section-block dual-grid">
+                <article class="panel">
+                  <div class="section-heading compact">
+                    <div>
+                      <p class="eyebrow">Actividad</p>
+                      <h3>Perfiles recientes</h3>
+                    </div>
+                  </div>
+                  <div id="recent-profiles-list" class="stack-list"></div>
+                </article>
+
+                <article class="panel">
+                  <div class="section-heading compact">
+                    <div>
+                      <p class="eyebrow">Actividad</p>
+                      <h3>Trabajos recientes</h3>
+                    </div>
+                  </div>
+                  <div id="recent-publications-list" class="stack-list"></div>
+                </article>
+              </section>
+
+              <section class="section-block dual-grid">
+                <article class="panel">
+                  <div class="section-heading compact">
+                    <div>
+                      <p class="eyebrow">Errores</p>
+                      <h3>Scrapes fallidos</h3>
+                    </div>
+                  </div>
+                  <div id="recent-errors-list" class="stack-list"></div>
+                </article>
+
+                <article class="panel panel-muted">
+                  <div class="section-heading compact">
+                    <div>
+                      <p class="eyebrow">Flujo</p>
+                      <h3>Camino recomendado</h3>
+                    </div>
+                  </div>
+                  <div class="stack-list">
+                    <article class="stack-card guide-card">
+                      <strong>1. Rastrear</strong>
+                      <p>Encontrá videos y evaluá qué material vale la pena conservar.</p>
+                    </article>
+                    <article class="stack-card guide-card">
+                      <strong>2. Biblioteca</strong>
+                      <p>Guardá el material bueno y conectá canales antes de crear la cola.</p>
+                    </article>
+                    <article class="stack-card guide-card">
+                      <strong>3. Cola visible</strong>
+                      <p>Publicá, sincronizá y controlá el resultado final desde un solo lugar.</p>
+                    </article>
+                  </div>
+                </article>
+              </section>
+
+              <section class="section-block">
+                <article class="panel">
+                  <div class="section-heading section-heading-with-actions">
+                    <div>
+                      <p class="eyebrow">Jobs</p>
+                      <h3>Cola de publicaciones</h3>
+                    </div>
+                    <button id="refresh-jobs-button" type="button" class="ghost-button">Actualizar jobs</button>
+                  </div>
+                  <div id="jobs-summary-strip" class="summary-strip"></div>
+                  <div id="jobs-list" class="stack-list"></div>
+                </article>
+              </section>
+
+              <section class="section-block">
+                <article class="panel">
+                  <div class="section-heading section-heading-with-actions">
+                    <div>
+                      <p class="eyebrow">Workers</p>
+                      <h3>Estado de workers</h3>
+                    </div>
+                    <button id="refresh-workers-button" type="button" class="ghost-button">Actualizar workers</button>
+                  </div>
+                  <div id="workers-summary-strip" class="summary-strip"></div>
+                  <div id="workers-list" class="stack-list"></div>
+                </article>
+              </section>
             </section>
           </section>
+
           <section class="view-section" data-view="candidates">
-            <section id="candidates" class="section-block">
+            <section id="candidates" class="section-block section-stack">
+              <article class="panel intro-panel compact-intro">
+                <div class="intro-copy">
+                  <p class="eyebrow">Revisión</p>
+                  <h2>Candidatos editoriales</h2>
+                  <p class="helper-copy">Usalo cuando quieras puntuar ideas, aprobarlas y mandarlas a cola desde una revisión más manual.</p>
+                </div>
+              </article>
               <div class="section-heading">
                 <div>
-                  <p class="eyebrow">Revisión</p>
-                  <h3>Candidatos editoriales</h3>
+                  <p class="eyebrow">Filtros</p>
+                  <h3>Estado y categoría</h3>
                 </div>
                 <div class="filters-row">
                   <select id="candidate-filter-status" class="compact-select">
@@ -652,13 +724,14 @@
           </section>
 
           <section class="view-section" data-view="discovery">
-            <section id="discovery" class="section-block">
-              <div class="section-heading">
-                <div>
+            <section id="discovery" class="section-block section-stack">
+              <article class="panel intro-panel compact-intro">
+                <div class="intro-copy">
                   <p class="eyebrow">Avanzado</p>
-                  <h3>Semillas y scouting</h3>
+                  <h2>Semillas y scouting</h2>
+                  <p class="helper-copy">Guardá perfiles, hashtags o keywords que el discovery worker tiene que seguir rastreando en segundo plano.</p>
                 </div>
-              </div>
+              </article>
               <div class="dual-grid">
                 <article class="panel">
                   <form id="seed-form" class="stack-form">

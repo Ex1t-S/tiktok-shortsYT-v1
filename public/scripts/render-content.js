@@ -141,7 +141,7 @@ export function renderYoutubeAccounts(accounts, oauth) {
     '<option value="">Elegir cuenta de YouTube</option>',
     ...accounts.map(
       (account) =>
-        `<option value="${account.id}">${account.channel_title} (${translateStatus(account.oauth_status)})</option>`
+        `<option value="${account.id}">${escapeHtml(account.channel_title)} (${translateStatus(account.oauth_status)})</option>`
     )
   ].join("");
 
@@ -174,29 +174,25 @@ export function renderYoutubeAccounts(accounts, oauth) {
 
   elements.youtubeOauthBox.classList.remove("hidden");
   if (oauth?.ready) {
-    const redirectHint = oauth.matchesExpectedLocalRedirectUri
-      ? `<p>La Redirect URI esta alineada con la prueba local: <code>${oauth.redirectUri}</code></p>`
-      : `<p>Redirect URI configurada: <code>${oauth.redirectUri || "faltante"}</code><br />Callback local esperado: <code>${
-          oauth.expectedLocalRedirectUri || "no disponible"
-        }</code></p>`;
     elements.youtubeOauthBox.innerHTML = `
-      <strong>OAuth listo</strong>
-      <p>Las credenciales de Google estan configuradas. Conecta cada canal antes de publicar en vivo.</p>
-      ${redirectHint}
+      <strong>OAuth listo para conectar</strong>
+      <p>La app ya tiene credenciales de Google. Si en producción falla, revisa en Google Cloud la sección <code>Authorized redirect URIs</code> y agrega exactamente este callback:</p>
+      <p><code>${escapeHtml(oauth.redirectUri || "faltante")}</code></p>
+      <p class="helper-copy">Después entra al canal y usa <strong>Conectar OAuth</strong>.</p>
     `;
   } else {
     const missingVars = Array.isArray(oauth?.missingVariables) ? oauth.missingVariables.join(", ") : "Desconocido";
     elements.youtubeOauthBox.innerHTML = `
-      <strong>OAuth sin configurar</strong>
-      <p>Variables faltantes: <code>${missingVars}</code></p>
-      <p>Para pruebas en localhost, usa este callback en Google Cloud: <code>${
+      <strong>OAuth incompleto</strong>
+      <p>Faltan variables: <code>${escapeHtml(missingVars)}</code></p>
+      <p>Google Cloud debe tener este callback autorizado para desarrollo: <code>${escapeHtml(
         oauth?.expectedLocalRedirectUri || "http://localhost:3000/api/youtube/oauth/callback"
-      }</code></p>
+      )}</code></p>
     `;
   }
 
   if (accounts.length === 0) {
-    elements.youtubeList.innerHTML = '<p class="empty-state">Todavia no hay canales de YouTube.</p>';
+    elements.youtubeList.innerHTML = '<p class="empty-state">Todavía no hay canales de YouTube cargados.</p>';
     syncSelectionBar();
     return;
   }
@@ -206,16 +202,18 @@ export function renderYoutubeAccounts(accounts, oauth) {
       (account) => `
         <article class="account-card">
           <div>
-            <h4>${account.channel_title}</h4>
-            <p>${account.channel_handle || account.channel_id || "Sin handle todavia"}</p>
+            <h4>${escapeHtml(account.channel_title)}</h4>
+            <p>${escapeHtml(account.channel_handle || account.channel_id || "Sin handle todavía")}</p>
           </div>
           <div class="inline-meta">
-            <span class="badge">${translateStatus(account.oauth_status)}</span>
-            <span>${account.contact_email || "Sin email"}</span>
+            <span class="badge ${account.oauth_status === "connected" ? "success" : ""}">${escapeHtml(
+              translateStatus(account.oauth_status)
+            )}</span>
+            <span>${escapeHtml(account.contact_email || "Sin email de contacto")}</span>
           </div>
           <div class="inline-meta">
-            <span>${account.accessTokenPreview || "Sin access token"}</span>
-            <span>${account.refreshTokenPreview || "Sin refresh token"}</span>
+            <span>${escapeHtml(account.accessTokenPreview || "Sin access token")}</span>
+            <span>${escapeHtml(account.refreshTokenPreview || "Sin refresh token")}</span>
           </div>
           <div class="account-actions">
             ${oauth?.ready ? `<a class="button-link" href="/api/youtube/accounts/${account.id}/connect">Conectar OAuth</a>` : ""}
@@ -248,10 +246,10 @@ export function renderAccountSchedule() {
   }
 
   const items = state.currentPublications.filter((item) => String(item.youtube_account_id) === String(account.id));
-  const relevant = items.filter((item) => ["scheduled", "ready", "publishing", "awaiting_oauth"].includes(item.status));
+  const relevant = items.filter((item) => ["scheduled", "ready", "publishing", "awaiting_oauth", "failed"].includes(item.status));
 
   if (relevant.length === 0) {
-    elements.accountScheduleList.innerHTML = '<p class="empty-state">No hay subidas proximas para este canal.</p>';
+    elements.accountScheduleList.innerHTML = '<p class="empty-state">Este canal todavía no tiene videos listos o programados.</p>';
     return;
   }
 
@@ -260,14 +258,18 @@ export function renderAccountSchedule() {
       (item) => `
         <article class="stack-card">
           <div>
-            <strong>${escapeHtml(item.title || item.original_filename || "Short sin titulo")}</strong>
+            <strong>${escapeHtml(item.title || item.original_filename || "Short sin título")}</strong>
             <p>${escapeHtml(translateStatusDetail(item.status_detail || item.status))}</p>
           </div>
           <div class="inline-meta">
             <span class="badge ${
-              item.status === "ready" ? "success" : item.status === "failed" ? "danger" : ""
+              item.status === "ready" || item.status === "scheduled"
+                ? "success"
+                : item.status === "failed"
+                  ? "danger"
+                  : ""
             }">${escapeHtml(translateStatus(item.status))}</span>
-            <span>${item.scheduled_for ? formatDate(item.scheduled_for) : "Listo ahora"}</span>
+            <span>${item.scheduled_for ? formatDate(item.scheduled_for) : "Sin fecha, listo para salir"}</span>
           </div>
           <div class="account-actions">
             ${
@@ -289,7 +291,7 @@ export function renderAccountSchedule() {
       try {
         await postJson(`/api/publications/${button.dataset.id}/publish`, {});
         await Promise.all([actions.loadPublications(), actions.loadDashboard(), actions.loadLibrary(), actions.loadAccounts()]);
-        setStatus(`La publicacion ${button.dataset.id} fue subida a YouTube.`);
+        setStatus(`La publicación ${button.dataset.id} fue subida a YouTube.`);
       } catch (error) {
         setStatus(error.message, true);
       } finally {
@@ -304,7 +306,7 @@ export function renderAccountSchedule() {
       try {
         await postJson(`/api/publications/${button.dataset.id}/sync`, {});
         await Promise.all([actions.loadPublications(), actions.loadDashboard(), actions.loadLibrary()]);
-        setStatus(`La publicacion ${button.dataset.id} fue sincronizada.`);
+        setStatus(`La publicación ${button.dataset.id} fue sincronizada.`);
       } catch (error) {
         setStatus(error.message, true);
       } finally {
@@ -345,16 +347,17 @@ export function renderLibraryVideos(items) {
   state.currentLibraryPage = Math.min(state.currentLibraryPage, totalPages);
   const pageStart = (state.currentLibraryPage - 1) * state.currentLibraryPageSize;
   const pagedItems = filteredItems.slice(pageStart, pageStart + state.currentLibraryPageSize);
+  const pageEnd = Math.min(pageStart + pagedItems.length, filteredItems.length);
 
   elements.libraryResultsMeta.classList.toggle("hidden", filteredItems.length === 0);
   elements.libraryResultsMeta.textContent = filteredItems.length
-    ? `Mostrando ${pageStart + 1}-${Math.min(pageStart + pagedItems.length, filteredItems.length)} de ${filteredItems.length}`
+    ? `Mostrando ${pageStart + 1}-${pageEnd} de ${filteredItems.length}`
     : "";
   elements.libraryPrevPageButton.disabled = state.currentLibraryPage <= 1;
   elements.libraryNextPageButton.disabled = state.currentLibraryPage >= totalPages;
 
   if (items.length === 0) {
-    elements.libraryVideoList.innerHTML = '<p class="empty-state">Todavia no hay videos en biblioteca.</p>';
+    elements.libraryVideoList.innerHTML = '<p class="empty-state">Todavía no hay videos en biblioteca.</p>';
     elements.libraryResultsMeta.classList.add("hidden");
     elements.libraryPrevPageButton.disabled = true;
     elements.libraryNextPageButton.disabled = true;
@@ -363,51 +366,55 @@ export function renderLibraryVideos(items) {
   }
 
   if (filteredItems.length === 0) {
-    elements.libraryVideoList.innerHTML =
-      '<p class="empty-state">No hay videos que coincidan con la busqueda o los filtros actuales.</p>';
+    elements.libraryVideoList.innerHTML = '<p class="empty-state">No hay videos que coincidan con la búsqueda o los filtros actuales.</p>';
     syncLibrarySelectionBar();
     return;
   }
 
   elements.libraryVideoList.innerHTML = pagedItems
-    .map(
-      (item) => `
-        <article class="stack-card">
-          <label class="checkbox-row">
-            <input
-              type="checkbox"
-              class="library-select-checkbox"
-              data-id="${item.id}"
-              ${state.selectedLibraryIds.has(String(item.id)) ? "checked" : ""}
-            />
-            <span>Seleccionar para distribucion</span>
-          </label>
+    .map((item) => {
+      const status = String(item.publication_status || item.status || "ready").toLowerCase();
+      const statusLabel = status === "ready" ? "En biblioteca" : translateStatus(status);
+      const statusClass = status === "published" ? "success" : status === "failed" ? "danger" : status === "ready" ? "" : "success";
+      const channelLabel = item.channel_title ? `Canal: ${escapeHtml(item.channel_title)}` : "Todavía sin canal asignado";
+      const storageLabel = item.storage_object_key
+        ? "Guardado en nube"
+        : item.source_url
+          ? "Fuente remota lista"
+          : translateStorageProvider(item.storage_provider || "local");
+
+      return `
+        <article class="stack-card library-card">
+          <div class="inline-meta">
+            <label class="checkbox-row">
+              <input
+                type="checkbox"
+                class="library-select-checkbox"
+                data-id="${item.id}"
+                ${state.selectedLibraryIds.has(String(item.id)) ? "checked" : ""}
+              />
+              <span>Seleccionar</span>
+            </label>
+            <span class="badge ${statusClass}">${escapeHtml(statusLabel)}</span>
+          </div>
           <div>
             <strong>${escapeHtml(item.title || item.original_filename || "Video importado")}</strong>
-            <p>${escapeHtml(item.source_label || pathFromArchive(item.source_archive_path))}</p>
+            <p>${escapeHtml(item.source_label || pathFromArchive(item.source_archive_path) || "Sin etiqueta")}</p>
           </div>
           <div class="inline-meta">
-            <span>${formatMetric(item.file_size_bytes || 0)} bytes</span>
-            <span class="badge ${
-              item.publication_status === "published"
-                ? "success"
-                : item.publication_status === "failed"
-                  ? "danger"
-                  : ""
-            }">${escapeHtml(translateStatus(item.publication_status || item.status || "ready"))}</span>
-            <span>${escapeHtml(translateStorageProvider(item.storage_provider || "local"))}</span>
+            <span>${channelLabel}</span>
+            ${item.scheduled_for ? `<span>Programado: ${formatDate(item.scheduled_for)}</span>` : ""}
           </div>
-          <p class="media-extra">
-            ${item.channel_title ? `Canal: ${escapeHtml(item.channel_title)}` : "Todavia no esta en cola de YouTube"}
-            ${item.scheduled_for ? ` | Programado: ${formatDate(item.scheduled_for)}` : ""}
-            ${item.storage_object_key ? " | Guardado en nube" : item.source_url ? " | Fuente remota lista" : ""}
-          </p>
+          <div class="inline-meta">
+            <span>${storageLabel}</span>
+            <span>${formatMetric(item.file_size_bytes || 0)} bytes</span>
+          </div>
           <div class="account-actions">
-            <button type="button" class="ghost-button library-queue-button" data-id="${item.id}">Enviar a una cuenta</button>
+            <button type="button" class="ghost-button library-queue-button" data-id="${item.id}">Agregar a la cola</button>
           </div>
         </article>
-      `
-    )
+      `;
+    })
     .join("");
 
   elements.libraryVideoList.querySelectorAll(".library-select-checkbox").forEach((checkbox) => {
@@ -427,7 +434,7 @@ export function renderLibraryVideos(items) {
     button.addEventListener("click", async () => {
       const youtubeAccountId = Number(elements.libraryQueueAccountSelect.value);
       if (!Number.isFinite(youtubeAccountId)) {
-        setStatus("Elige una cuenta de YouTube para reutilizar este video.", true);
+        setStatus("Elegí una cuenta de YouTube arriba para agregar este video a la cola.", true);
         return;
       }
 
@@ -438,7 +445,7 @@ export function renderLibraryVideos(items) {
           youtubeAccountId
         });
         await Promise.all([actions.loadLibrary(), actions.loadPublications(), actions.loadDashboard()]);
-        setStatus(`El video de biblioteca ${button.dataset.id} fue enviado a la cola.`);
+        setStatus(`El video de biblioteca ${button.dataset.id} fue agregado a la cola.`);
         setActiveView("queue");
       } catch (error) {
         setStatus(error.message, true);
@@ -542,7 +549,7 @@ export function renderCandidates(items) {
 
 export function renderPublications(items) {
   if (items.length === 0) {
-    elements.publicationList.innerHTML = '<p class="empty-state">Todavia no hay trabajos de publicacion.</p>';
+    elements.publicationList.innerHTML = '<p class="empty-state">Todavía no hay trabajos de publicación.</p>';
     return;
   }
 
@@ -554,26 +561,32 @@ export function renderPublications(items) {
           <div class="publication-body">
             <div class="publication-head">
               <div>
-                <strong>${item.title || "Publicacion sin titulo"}</strong>
+                <strong>${escapeHtml(item.title || "Publicación sin título")}</strong>
                 <p>${
                   item.source_kind === "library_video"
-                    ? `${item.original_filename || "Video de biblioteca"} a ${item.channel_title}`
-                    : `@${item.username} a ${item.channel_title}`
+                    ? `${escapeHtml(item.original_filename || "Video de biblioteca")} → ${escapeHtml(item.channel_title || "Sin canal")}`
+                    : `@${escapeHtml(item.username || "sin-usuario")} → ${escapeHtml(item.channel_title || "Sin canal")}`
                 }</p>
               </div>
               <span class="badge ${
-                item.status === "published" ? "success" : item.status === "failed" ? "danger" : ""
-              }">${translateStatus(item.status)}</span>
+                item.status === "published"
+                  ? "success"
+                  : item.status === "failed"
+                    ? "danger"
+                    : item.status === "scheduled" || item.status === "ready"
+                      ? "success"
+                      : ""
+              }">${escapeHtml(translateStatus(item.status))}</span>
             </div>
-            <p>${translateStatusDetail(item.status_detail || "Todavia no hay detalle.")}</p>
+            <p>${escapeHtml(translateStatusDetail(item.status_detail || "Todavía no hay detalle."))}</p>
             <div class="inline-meta">
-              <span>${translateStatus(item.privacy_status)}</span>
+              <span>${escapeHtml(translateStatus(item.privacy_status))}</span>
               <span>${formatDate(item.created_at)}</span>
-              <span>${translateSourceKind(item.source_kind)}</span>
+              <span>${escapeHtml(translateSourceKind(item.source_kind))}</span>
               ${item.scheduled_for ? `<span>Programado ${formatDate(item.scheduled_for)}</span>` : ""}
               ${
                 item.youtube_url
-                  ? `<a class="ghost-button" href="${item.youtube_url}" target="_blank" rel="noreferrer">Abrir video</a>`
+                  ? `<a class="ghost-button" href="${item.youtube_url}" target="_blank" rel="noreferrer">Abrir en YouTube</a>`
                   : ""
               }
             </div>
@@ -597,7 +610,7 @@ export function renderPublications(items) {
       try {
         await postJson(`/api/publications/${button.dataset.id}/sync`, {});
         await Promise.all([actions.loadPublications(), actions.loadDashboard(), actions.loadLibrary()]);
-        setStatus(`La publicacion ${button.dataset.id} fue sincronizada.`);
+        setStatus(`La publicación ${button.dataset.id} fue sincronizada.`);
       } catch (error) {
         setStatus(error.message, true);
       } finally {
@@ -613,7 +626,7 @@ export function renderPublications(items) {
       try {
         await postJson(`/api/publications/${button.dataset.id}/publish`, {});
         await Promise.all([actions.loadPublications(), actions.loadDashboard(), actions.loadLibrary(), actions.loadAccounts()]);
-        setStatus(`La publicacion ${button.dataset.id} fue subida a YouTube.`);
+        setStatus(`La publicación ${button.dataset.id} fue subida a YouTube.`);
       } catch (error) {
         setStatus(error.message, true);
       } finally {
@@ -622,3 +635,4 @@ export function renderPublications(items) {
     });
   });
 }
+
