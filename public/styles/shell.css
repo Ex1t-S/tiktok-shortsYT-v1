@@ -7,14 +7,6 @@
   align-items: start;
 }
 
-.app-shell.is-youtube-focus {
-  grid-template-columns: minmax(0, 1fr);
-}
-
-.app-shell.is-youtube-focus .sidebar {
-  display: none;
-}
-
 .sidebar {
   min-height: calc(100vh - 24px);
   padding: 18px;

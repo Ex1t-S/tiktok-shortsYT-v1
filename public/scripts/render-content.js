@@ -328,7 +328,7 @@ function renderYoutubeWorkspace() {
   if (!account) {
     renderEmpty(elements.youtubeProfileHeader, "Conecta o elegi una cuenta de YouTube.");
     renderEmpty(elements.youtubeProfileTabContent, "Todavia no hay una cuenta activa.");
-    renderEmpty(elements.youtubeSideActions, "Abri el panel de canales para elegir una cuenta.");
+    renderEmpty(elements.youtubeSideActions, "Usa el boton Canales para elegir una cuenta.");
     return;
   }
 

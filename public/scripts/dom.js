@@ -1,6 +1,5 @@
 export const elements = {
   appShell: document.querySelector(".app-shell"),
-  sidebar: document.querySelector(".sidebar"),
   navTabs: Array.from(document.querySelectorAll(".nav-tab")),
   viewSections: Array.from(document.querySelectorAll(".view-section")),
   headerEyebrow: document.getElementById("header-eyebrow"),
@@ -29,9 +28,7 @@ export const elements = {
   addYoutubeAccountButton: document.getElementById("add-youtube-account-button"),
   youtubeOauthBox: document.getElementById("youtube-oauth-box"),
   youtubeContextPanel: document.getElementById("youtube-context-panel"),
-  youtubeContextOverlay: document.getElementById("youtube-context-overlay"),
   toggleYoutubeContextButton: document.getElementById("toggle-youtube-context-button"),
-  closeYoutubeContextButton: document.getElementById("close-youtube-context-button"),
   youtubeProfilesList: document.getElementById("youtube-profiles-list"),
   youtubeProfilesPagerLabel: document.getElementById("youtube-profiles-pager-label"),
   youtubeProfilesPrevPage: document.getElementById("youtube-profiles-prev-page"),
@@ -113,7 +110,6 @@ const VIEW_META = {
 
 export function setActiveView(view) {
   state.currentView = view;
-  elements.appShell?.classList.toggle("is-youtube-focus", view === "youtube");
   if (view !== "youtube") {
     setYoutubeContextOpen(false);
   }
@@ -130,9 +126,9 @@ export function setActiveView(view) {
 
 export function setYoutubeContextOpen(isOpen) {
   state.youtubeContextOpen = Boolean(isOpen);
-  elements.appShell?.classList.toggle("youtube-context-open", state.youtubeContextOpen);
   elements.youtubeContextPanel?.classList.toggle("is-open", state.youtubeContextOpen);
-  elements.youtubeContextOverlay?.classList.toggle("is-visible", state.youtubeContextOpen);
+  elements.toggleYoutubeContextButton?.classList.toggle("is-active", state.youtubeContextOpen);
+  elements.toggleYoutubeContextButton?.setAttribute("aria-expanded", state.youtubeContextOpen ? "true" : "false");
 }
 
 export function setStatus(message, isError = false) {

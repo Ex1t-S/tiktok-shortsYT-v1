@@ -438,63 +438,10 @@ textarea {
   margin-bottom: 0;
 }
 
-.youtube-context-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(11, 15, 23, 0.42);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 180ms ease;
-  z-index: 30;
-}
-
-.youtube-context-overlay.is-visible {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-.youtube-context-panel {
-  position: fixed;
-  top: 16px;
-  left: 16px;
-  bottom: 16px;
-  width: min(360px, calc(100vw - 32px));
-  max-height: calc(100vh - 32px);
-  overflow: hidden;
-  display: grid;
-  grid-template-rows: auto auto auto minmax(0, 1fr) auto;
-  gap: 14px;
-  align-self: start;
-  transform: translateX(calc(-100% - 28px));
-  transition: transform 220ms ease;
-  z-index: 40;
-}
-
-.youtube-context-panel.is-open {
-  transform: translateX(0);
-}
-
-.youtube-context-panel-head {
+.youtube-main-toolbar {
+  position: relative;
   display: flex;
   align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.youtube-context-close {
-  flex: 0 0 auto;
-}
-
-.youtube-context-panel .profiles-list {
-  max-height: none;
-  min-height: 0;
-  overflow: auto;
-  padding-right: 4px;
-}
-
-.youtube-main-toolbar {
-  display: flex;
-  align-items: center;
   justify-content: space-between;
   gap: 14px;
   border: 1px solid var(--line);
@@ -516,6 +463,53 @@ textarea {
 
 .youtube-main-toolbar-copy p {
   margin-bottom: 4px;
+}
+
+.youtube-toolbar-actions {
+  position: relative;
+  display: flex;
+  justify-content: flex-end;
+  flex: 0 0 auto;
+}
+
+.youtube-toolbar-actions > .ghost-button.is-active {
+  border-color: rgba(255, 0, 51, 0.24);
+  background: rgba(255, 0, 51, 0.06);
+}
+
+.youtube-context-panel {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  width: min(420px, calc(100vw - 120px));
+  max-height: min(72vh, 760px);
+  overflow: hidden;
+  display: grid;
+  grid-template-rows: auto auto auto minmax(0, 1fr) auto;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.995);
+  box-shadow: 0 24px 48px rgba(11, 15, 23, 0.14);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-8px);
+  transition: opacity 180ms ease, transform 180ms ease;
+  z-index: 20;
+}
+
+.youtube-context-panel.is-open {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.youtube-context-panel .profiles-list {
+  max-height: min(38vh, 320px);
+  min-height: 0;
+  overflow: auto;
+  padding-right: 4px;
 }
 
 .youtube-main-panel {

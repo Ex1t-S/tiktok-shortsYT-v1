@@ -334,8 +334,19 @@ function bindStaticEvents() {
     setYoutubeContextOpen(!state.youtubeContextOpen);
   });
 
-  elements.closeYoutubeContextButton?.addEventListener("click", () => setYoutubeContextOpen(false));
-  elements.youtubeContextOverlay?.addEventListener("click", () => setYoutubeContextOpen(false));
+  document.addEventListener("click", (event) => {
+    if (state.currentView !== "youtube" || !state.youtubeContextOpen) return;
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+    if (target.closest(".youtube-toolbar-actions")) return;
+    setYoutubeContextOpen(false);
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && state.youtubeContextOpen) {
+      setYoutubeContextOpen(false);
+    }
+  });
 
   elements.trackForm.addEventListener("submit", async (event) => {
     event.preventDefault();

@@ -32,7 +32,7 @@
 
         <div class="sidebar-note">
           <span>OAuth directo para cuentas de YouTube.</span>
-          <span>Clonación por perfil TikTok con límite diario.</span>
+          <span>Clonacion por perfil TikTok con limite diario.</span>
         </div>
       </aside>
 
@@ -44,8 +44,8 @@
           </div>
           <div id="global-status" class="status-banner">Cargando workspace...</div>
           <div class="header-chips">
-            <span class="header-chip">TikTok scrapeado → biblioteca</span>
-            <span class="header-chip muted">YouTube OAuth → publicar o clonar</span>
+            <span class="header-chip">TikTok scrapeado -> biblioteca</span>
+            <span class="header-chip muted">YouTube OAuth -> publicar o clonar</span>
           </div>
         </header>
 
@@ -56,7 +56,7 @@
                 <p class="eyebrow">Scanner</p>
                 <h3>Escanear perfil o hashtag</h3>
                 <p class="helper-copy">
-                  Cargá un perfil nuevo, actualizá uno existente y después entrá al detalle para revisar sus videos scrapeados.
+                  Carga un perfil nuevo, actualiza uno existente y despues entra al detalle para revisar sus videos scrapeados.
                 </p>
               </div>
               <form id="track-form" class="toolbar-form">
@@ -79,7 +79,7 @@
                 <div id="scraped-profiles-list" class="profiles-list"></div>
 
                 <div class="pager-row tight">
-                  <span id="scraped-profiles-pager-label" class="pager-label">Página 1</span>
+                  <span id="scraped-profiles-pager-label" class="pager-label">Pagina 1</span>
                   <div class="pager-controls">
                     <button id="scraped-profiles-prev-page" type="button" class="ghost-button">Anterior</button>
                     <button id="scraped-profiles-next-page" type="button" class="ghost-button">Siguiente</button>
@@ -103,11 +103,11 @@
                 <div id="scraped-videos-grid" class="video-grid compact"></div>
 
                 <div class="pager-row">
-                  <span id="scraped-videos-pager-label" class="pager-label">Página 1</span>
+                  <span id="scraped-videos-pager-label" class="pager-label">Pagina 1</span>
                   <div class="pager-controls">
                     <button id="scraped-videos-prev-page" type="button" class="ghost-button">Anterior</button>
                     <button id="scraped-videos-next-page" type="button" class="ghost-button">Siguiente</button>
-                    <button id="load-more-media-button" type="button" class="ghost-button hidden">Traer más</button>
+                    <button id="load-more-media-button" type="button" class="ghost-button hidden">Traer mas</button>
                   </div>
                 </div>
               </section>
@@ -117,49 +117,55 @@
 
         <section class="view-section" data-view="youtube">
           <div class="youtube-workspace-layout">
-            <div id="youtube-context-overlay" class="youtube-context-overlay"></div>
-
-            <aside id="youtube-context-panel" class="panel youtube-context-panel">
-              <div class="youtube-context-panel-head">
-                <div class="section-heading compact no-margin">
-                  <div>
-                    <p class="eyebrow">YouTube</p>
-                    <h3>Cuentas conectadas</h3>
-                  </div>
-                  <button id="refresh-accounts-button" type="button" class="ghost-button">Actualizar</button>
-                </div>
-                <button id="close-youtube-context-button" type="button" class="ghost-button youtube-context-close">Cerrar</button>
-              </div>
-
-              <div id="youtube-oauth-box" class="oauth-box"></div>
-              <div class="stack-list">
-                <a id="add-youtube-account-button" class="button-link" href="/api/youtube/oauth/start">Agregar cuenta</a>
-              </div>
-              <div id="youtube-profiles-list" class="profiles-list"></div>
-
-              <div class="pager-row tight">
-                <span id="youtube-profiles-pager-label" class="pager-label">Página 1</span>
-                <div class="pager-controls">
-                  <button id="youtube-profiles-prev-page" type="button" class="ghost-button">Anterior</button>
-                  <button id="youtube-profiles-next-page" type="button" class="ghost-button">Siguiente</button>
-                </div>
-              </div>
-            </aside>
-
             <section class="panel youtube-main-panel">
               <div class="youtube-main-toolbar">
                 <div class="youtube-main-toolbar-copy">
                   <p class="eyebrow">Canal activo</p>
-                  <strong>Elegí un canal y trabajá todo desde una sola vista.</strong>
+                  <strong>Elegi un canal y trabaja todo desde una sola vista.</strong>
                 </div>
-                <button id="toggle-youtube-context-button" type="button" class="ghost-button">Canales</button>
+
+                <div class="youtube-toolbar-actions">
+                  <button
+                    id="toggle-youtube-context-button"
+                    type="button"
+                    class="ghost-button"
+                    aria-expanded="false"
+                    aria-controls="youtube-context-panel"
+                  >
+                    Canales
+                  </button>
+
+                  <aside id="youtube-context-panel" class="youtube-context-panel">
+                    <div class="section-heading compact no-margin">
+                      <div>
+                        <p class="eyebrow">YouTube</p>
+                        <h3>Cuentas conectadas</h3>
+                      </div>
+                      <button id="refresh-accounts-button" type="button" class="ghost-button">Actualizar</button>
+                    </div>
+
+                    <div id="youtube-oauth-box" class="oauth-box"></div>
+                    <div class="stack-list">
+                      <a id="add-youtube-account-button" class="button-link" href="/api/youtube/oauth/start">Agregar cuenta</a>
+                    </div>
+                    <div id="youtube-profiles-list" class="profiles-list"></div>
+
+                    <div class="pager-row tight">
+                      <span id="youtube-profiles-pager-label" class="pager-label">Pagina 1</span>
+                      <div class="pager-controls">
+                        <button id="youtube-profiles-prev-page" type="button" class="ghost-button">Anterior</button>
+                        <button id="youtube-profiles-next-page" type="button" class="ghost-button">Siguiente</button>
+                      </div>
+                    </div>
+                  </aside>
+                </div>
               </div>
 
               <div id="youtube-profile-header" class="profile-header"></div>
 
               <div class="profile-tab-bar youtube-section-nav" id="youtube-profile-tab-bar">
                 <button type="button" class="profile-tab active" data-tab="videos">Videos</button>
-                <button type="button" class="profile-tab" data-tab="stats">Estadísticas</button>
+                <button type="button" class="profile-tab" data-tab="stats">Estadisticas</button>
                 <button type="button" class="profile-tab" data-tab="publish">Publicar</button>
                 <button type="button" class="profile-tab" data-tab="clone">Clonar</button>
               </div>
@@ -194,7 +200,7 @@
             <div id="publication-list" class="queue-list"></div>
 
             <div class="pager-row">
-              <span id="queue-pager-label" class="pager-label">Página 1</span>
+              <span id="queue-pager-label" class="pager-label">Pagina 1</span>
               <div class="pager-controls">
                 <button id="queue-prev-page" type="button" class="ghost-button">Anterior</button>
                 <button id="queue-next-page" type="button" class="ghost-button">Siguiente</button>
@@ -217,14 +223,14 @@
             <div class="two-column-panel top-gap">
               <section class="subpanel">
                 <div class="subpanel-head">
-                  <strong>Últimos perfiles scrapeados</strong>
+                  <strong>Ultimos perfiles scrapeados</strong>
                 </div>
                 <div id="overview-scraped-list" class="stack-list"></div>
               </section>
 
               <section class="subpanel">
                 <div class="subpanel-head">
-                  <strong>Últimas publicaciones</strong>
+                  <strong>Ultimas publicaciones</strong>
                 </div>
                 <div id="overview-publications-list" class="stack-list"></div>
               </section>

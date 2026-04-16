@@ -22,19 +22,27 @@
 }
 
 @media (max-width: 1180px) {
-
   .youtube-main-toolbar {
     flex-direction: column;
     align-items: stretch;
   }
 
-  .youtube-context-panel {
-    width: min(360px, calc(100vw - 24px));
-    top: 12px;
-    left: 12px;
-    bottom: 12px;
-    max-height: calc(100vh - 24px);
+  .youtube-toolbar-actions {
+    width: 100%;
+    justify-content: stretch;
   }
+
+  .youtube-toolbar-actions > .ghost-button {
+    width: 100%;
+  }
+
+  .youtube-context-panel {
+    left: 0;
+    right: auto;
+    width: min(100%, 520px);
+    max-height: min(68vh, 720px);
+  }
+
   .app-shell {
     grid-template-columns: 1fr;
   }
@@ -57,15 +65,11 @@
 }
 
 @media (max-width: 840px) {
-
   .youtube-context-panel {
-    width: calc(100vw - 12px);
-    left: 6px;
-    right: 6px;
-    top: 6px;
-    bottom: 6px;
-    max-height: calc(100vh - 12px);
+    width: 100%;
+    max-height: none;
   }
+
   .app-shell {
     width: min(100%, calc(100% - 12px));
     margin: 6px auto;
