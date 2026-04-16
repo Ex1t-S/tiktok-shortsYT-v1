@@ -123,3 +123,26 @@
     justify-content: center;
   }
 }
+
+@media (max-width: 1180px) {
+  .workspace-heading {
+    padding-left: 2px;
+  }
+
+  .sidebar {
+    position: relative;
+    top: 0;
+    min-height: auto;
+  }
+}
+
+@media (max-width: 840px) {
+  .workspace-heading h2 {
+    font-size: 1.4rem;
+  }
+
+  .status-toast {
+    right: 12px;
+    bottom: 12px;
+  }
+}

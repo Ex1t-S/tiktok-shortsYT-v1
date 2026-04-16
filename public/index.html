@@ -17,10 +17,8 @@
       <aside class="sidebar">
         <div class="brand-block">
           <p class="eyebrow">Shorts Studio</p>
-          <h1>Workspace</h1>
-          <p class="sidebar-copy">
-            Separado por origen: perfiles TikTok scrapeados por un lado, perfiles YouTube conectados por otro.
-          </p>
+          <h1>Studio</h1>
+          <span class="brand-pill">Control hub</span>
         </div>
 
         <nav class="sidebar-nav">
@@ -30,24 +28,13 @@
           <button type="button" class="nav-tab secondary" data-view="overview">Resumen</button>
         </nav>
 
-        <div class="sidebar-note">
-          <span>OAuth directo para cuentas de YouTube.</span>
-          <span>Clonacion por perfil TikTok con limite diario.</span>
-        </div>
       </aside>
 
       <main class="workspace-shell">
-        <header class="workspace-header">
-          <div>
-            <p class="eyebrow" id="header-eyebrow">Perfiles</p>
-            <h2 id="page-title">Perfiles scrapeados</h2>
-          </div>
-          <div id="global-status" class="status-banner">Cargando workspace...</div>
-          <div class="header-chips">
-            <span class="header-chip">TikTok scrapeado -> biblioteca</span>
-            <span class="header-chip muted">YouTube OAuth -> publicar o clonar</span>
-          </div>
-        </header>
+        <div class="workspace-heading">
+          <p class="eyebrow" id="header-eyebrow">Perfiles</p>
+          <h2 id="page-title">Perfiles scrapeados</h2>
+        </div>
 
         <section class="view-section active" data-view="scraped">
           <div class="page-grid">
@@ -121,7 +108,6 @@
               <div class="youtube-main-toolbar">
                 <div class="youtube-main-toolbar-copy">
                   <p class="eyebrow">Canal activo</p>
-                  <strong>Elegi un canal y trabaja todo desde una sola vista.</strong>
                 </div>
 
                 <div class="youtube-toolbar-actions">
@@ -239,6 +225,8 @@
         </section>
       </main>
     </div>
+
+    <div id="global-status" class="status-toast hidden" aria-live="polite"></div>
 
     <script type="module" src="/app.js"></script>
   </body>

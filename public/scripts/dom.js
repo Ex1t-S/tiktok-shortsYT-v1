@@ -131,10 +131,30 @@ export function setYoutubeContextOpen(isOpen) {
   elements.toggleYoutubeContextButton?.setAttribute("aria-expanded", state.youtubeContextOpen ? "true" : "false");
 }
 
+let statusHideTimer = null;
+
 export function setStatus(message, isError = false) {
   if (!elements.globalStatus) return;
+  window.clearTimeout(statusHideTimer);
+
+  if (!message) {
+    elements.globalStatus.textContent = "";
+    elements.globalStatus.classList.add("hidden");
+    elements.globalStatus.classList.remove("is-error", "is-visible");
+    return;
+  }
+
   elements.globalStatus.textContent = message;
   elements.globalStatus.classList.toggle("is-error", Boolean(isError));
+  elements.globalStatus.classList.remove("hidden");
+  elements.globalStatus.classList.add("is-visible");
+
+  if (!isError) {
+    statusHideTimer = window.setTimeout(() => {
+      elements.globalStatus.classList.remove("is-visible");
+      window.setTimeout(() => elements.globalStatus.classList.add("hidden"), 180);
+    }, 2200);
+  }
 }
 
 export function setButtonBusy(button, busyText, isBusy) {

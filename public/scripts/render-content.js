@@ -339,11 +339,6 @@ function renderYoutubeWorkspace() {
   const queued = publications.filter((item) => isQueueLikeStatus(item.status));
   const latestVideoTitle = videos[0]?.title || "Todavia no hay videos sincronizados.";
 
-  const toolbarCopy = document.querySelector(".youtube-main-toolbar-copy strong");
-  if (toolbarCopy) {
-    toolbarCopy.textContent = `Canal activo: ${account.channel_handle || account.channel_title || account.channel_id || "YouTube"}`;
-  }
-
   elements.youtubeProfileHeader.innerHTML = `
     <div class="profile-summary-head youtube-workspace-hero">
       <div class="youtube-hero-copy">
@@ -373,22 +368,9 @@ function renderYoutubeWorkspace() {
 
   renderYoutubeTabContent(account, channel, videos, publications, clones);
 
-  elements.youtubeSideActions.innerHTML = `
-    <article class="compact-info-card compact-info-card-inline">
-      <strong>Estado</strong>
-      <p>${escapeHtml(
-        account.oauth_status === "connected" ? "Listo para publicar, clonar y mover cola." : "Falta reconectar OAuth para publicar."
-      )}</p>
-    </article>
-    <article class="compact-info-card compact-info-card-inline">
-      <strong>Ultimo video</strong>
-      <p class="truncate-2">${escapeHtml(latestVideoTitle)}</p>
-    </article>
-    <article class="compact-info-card compact-info-card-inline">
-      <strong>Seccion activa</strong>
-      <p>${escapeHtml(describeYoutubeTab(state.currentYoutubeTab))}</p>
-    </article>
-  `;
+  elements.youtubeSideActions.innerHTML = latestVideoTitle
+    ? `<div class="workspace-inline-kicker">Ultimo upload: <span class="truncate-2">${escapeHtml(latestVideoTitle)}</span></div>`
+    : "";
 }
 
 function renderYoutubeTabContent(account, channel, videos, publications, clones) {

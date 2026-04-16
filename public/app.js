@@ -566,7 +566,7 @@ async function init() {
     }
     renderYoutubeAccounts();
     renderQueue();
-    setStatus("Workspace listo. Flujo activo: perfiles scrapeados → perfiles YouTube → publicar o clonar.");
+    setStatus("Workspace listo.");
   } catch (error) {
     setStatus(error.message, true);
   }

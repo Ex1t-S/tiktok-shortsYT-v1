@@ -126,3 +126,72 @@
 .youtube-main-panel {
   min-width: 0;
 }
+
+.app-shell {
+  width: min(1920px, calc(100% - 28px));
+  margin: 14px auto;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 18px;
+}
+
+.sidebar {
+  position: sticky;
+  top: 14px;
+  min-height: calc(100vh - 28px);
+  padding: 18px 14px 14px;
+  border-radius: 28px;
+  background:
+    linear-gradient(180deg, rgba(10, 14, 24, 0.98) 0%, rgba(8, 12, 20, 0.96) 100%),
+    linear-gradient(135deg, rgba(255, 39, 70, 0.08), rgba(79, 70, 229, 0.04));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: var(--shadow-strong), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(18px);
+}
+
+.workspace-shell {
+  gap: 14px;
+}
+
+.workspace-heading {
+  padding: 6px 4px 2px;
+}
+
+.workspace-heading h2 {
+  margin: 0;
+  color: rgba(241, 245, 249, 0.98);
+  font-size: clamp(1.55rem, 2vw, 2.1rem);
+  letter-spacing: -0.03em;
+}
+
+.workspace-heading .eyebrow {
+  color: rgba(255, 118, 138, 0.92);
+}
+
+.status-toast {
+  position: fixed;
+  right: 22px;
+  bottom: 22px;
+  z-index: 60;
+  max-width: min(420px, calc(100vw - 32px));
+  padding: 12px 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(9, 14, 23, 0.92);
+  color: #f8fafc;
+  box-shadow: var(--shadow-strong);
+  backdrop-filter: blur(14px);
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.status-toast.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.status-toast.is-error {
+  background: rgba(76, 15, 20, 0.94);
+  border-color: rgba(255, 122, 122, 0.24);
+  color: #ffe3e3;
+}
