@@ -1,5 +1,9 @@
 export const elements = {
   appShell: document.querySelector(".app-shell"),
+  sidebar: document.querySelector(".sidebar"),
+  sidebarToggleButton: document.getElementById("sidebar-toggle-button"),
+  sidebarDrawerButton: document.getElementById("sidebar-drawer-button"),
+  sidebarDrawerBackdrop: document.getElementById("sidebar-drawer-backdrop"),
   navTabs: Array.from(document.querySelectorAll(".nav-tab")),
   viewSections: Array.from(document.querySelectorAll(".view-section")),
   headerEyebrow: document.getElementById("header-eyebrow"),
@@ -53,6 +57,8 @@ export const elements = {
 
 export const state = {
   currentView: "scraped",
+  sidebarCollapsed: false,
+  sidebarDrawerOpen: false,
   dashboardSummary: null,
   oauth: null,
 
@@ -108,10 +114,15 @@ const VIEW_META = {
   overview: ["Resumen", "Resumen"]
 };
 
+const SIDEBAR_STORAGE_KEY = "studio.sidebar.collapsed";
+
 export function setActiveView(view) {
   state.currentView = view;
   if (view !== "youtube") {
     setYoutubeContextOpen(false);
+  }
+  if (state.sidebarCollapsed && state.sidebarDrawerOpen) {
+    setSidebarDrawerOpen(false);
   }
   elements.navTabs.forEach((button) => {
     button.classList.toggle("active", button.dataset.view === view);
@@ -122,6 +133,48 @@ export function setActiveView(view) {
   const [eyebrow, title] = VIEW_META[view] || ["Workspace", "Workspace"];
   if (elements.headerEyebrow) elements.headerEyebrow.textContent = eyebrow;
   if (elements.pageTitle) elements.pageTitle.textContent = title;
+}
+
+function syncSidebarButtons() {
+  elements.sidebarToggleButton?.setAttribute("aria-expanded", state.sidebarCollapsed ? "false" : "true");
+  elements.sidebarToggleButton?.setAttribute("title", state.sidebarCollapsed ? "Expandir barra" : "Colapsar barra");
+  const toggleIcon = elements.sidebarToggleButton?.querySelector(".sidebar-button-icon");
+  const toggleLabel = elements.sidebarToggleButton?.querySelector(".sidebar-button-label");
+  if (toggleIcon) toggleIcon.textContent = state.sidebarCollapsed ? ">>" : "<<";
+  if (toggleLabel) toggleLabel.textContent = state.sidebarCollapsed ? "Expandir" : "Colapsar";
+
+  elements.sidebarDrawerButton?.classList.toggle("hidden", !state.sidebarCollapsed);
+  elements.sidebarDrawerButton?.setAttribute("aria-expanded", state.sidebarDrawerOpen ? "true" : "false");
+}
+
+export function initializeSidebarChrome() {
+  try {
+    state.sidebarCollapsed = window.localStorage.getItem(SIDEBAR_STORAGE_KEY) === "true";
+  } catch {
+    state.sidebarCollapsed = false;
+  }
+  elements.appShell?.classList.toggle("is-sidebar-collapsed", state.sidebarCollapsed);
+  syncSidebarButtons();
+}
+
+export function setSidebarCollapsed(isCollapsed) {
+  state.sidebarCollapsed = Boolean(isCollapsed);
+  elements.appShell?.classList.toggle("is-sidebar-collapsed", state.sidebarCollapsed);
+  if (!state.sidebarCollapsed) {
+    setSidebarDrawerOpen(false);
+  }
+  try {
+    window.localStorage.setItem(SIDEBAR_STORAGE_KEY, state.sidebarCollapsed ? "true" : "false");
+  } catch {}
+  syncSidebarButtons();
+}
+
+export function setSidebarDrawerOpen(isOpen) {
+  state.sidebarDrawerOpen = Boolean(isOpen) && state.sidebarCollapsed;
+  elements.sidebar?.classList.toggle("is-drawer-open", state.sidebarDrawerOpen);
+  elements.sidebarDrawerBackdrop?.classList.toggle("hidden", !state.sidebarDrawerOpen);
+  elements.sidebarDrawerBackdrop?.classList.toggle("is-visible", state.sidebarDrawerOpen);
+  syncSidebarButtons();
 }
 
 export function setYoutubeContextOpen(isOpen) {

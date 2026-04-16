@@ -129,6 +129,40 @@
     padding-left: 2px;
   }
 
+  .app-shell.is-sidebar-collapsed {
+    grid-template-columns: 1fr;
+  }
+
+  .app-shell.is-sidebar-collapsed .sidebar,
+  .app-shell.is-sidebar-collapsed .sidebar.is-drawer-open {
+    width: auto;
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .app-shell.is-sidebar-collapsed .brand-block .eyebrow,
+  .app-shell.is-sidebar-collapsed .brand-block h1,
+  .app-shell.is-sidebar-collapsed .brand-pill,
+  .app-shell.is-sidebar-collapsed .nav-tab-label,
+  .app-shell.is-sidebar-collapsed .sidebar-button-label {
+    display: initial;
+  }
+
+  .app-shell.is-sidebar-collapsed .sidebar-nav {
+    align-items: stretch;
+  }
+
+  .app-shell.is-sidebar-collapsed .nav-tab,
+  .app-shell.is-sidebar-collapsed .sidebar-chrome-button {
+    width: 100%;
+    justify-content: flex-start;
+    padding: 14px 16px;
+  }
+
+  .app-shell.is-sidebar-collapsed .nav-tab::after {
+    display: none;
+  }
+
   .sidebar {
     position: relative;
     top: 0;

@@ -195,3 +195,18 @@
   border-color: rgba(255, 122, 122, 0.24);
   color: #ffe3e3;
 }
+
+.app-shell.is-sidebar-collapsed {
+  grid-template-columns: 84px minmax(0, 1fr);
+}
+
+.app-shell.is-sidebar-collapsed .sidebar {
+  width: 84px;
+  padding-left: 12px;
+  padding-right: 12px;
+}
+
+.app-shell.is-sidebar-collapsed .sidebar.is-drawer-open {
+  width: 272px;
+  z-index: 45;
+}

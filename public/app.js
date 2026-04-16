@@ -1,8 +1,11 @@
 import {
   elements,
+  initializeSidebarChrome,
   runWithBusyButton,
   setActiveView,
   setButtonBusy,
+  setSidebarCollapsed,
+  setSidebarDrawerOpen,
   setStatus,
   setTrackingPollTimer,
   setYoutubeContextOpen,
@@ -324,7 +327,22 @@ async function createClone() {
 
 function bindStaticEvents() {
   elements.navTabs.forEach((button) => {
-    button.addEventListener("click", () => setActiveView(button.dataset.view));
+    button.addEventListener("click", () => {
+      setActiveView(button.dataset.view);
+      setSidebarDrawerOpen(false);
+    });
+  });
+
+  elements.sidebarToggleButton?.addEventListener("click", () => {
+    if (state.sidebarCollapsed) {
+      setSidebarCollapsed(false);
+      return;
+    }
+    setSidebarCollapsed(true);
+  });
+
+  elements.sidebarDrawerButton?.addEventListener("click", () => {
+    setSidebarDrawerOpen(!state.sidebarDrawerOpen);
   });
 
   elements.toggleYoutubeContextButton?.addEventListener("click", () => {
@@ -335,18 +353,28 @@ function bindStaticEvents() {
   });
 
   document.addEventListener("click", (event) => {
-    if (state.currentView !== "youtube" || !state.youtubeContextOpen) return;
     const target = event.target;
     if (!(target instanceof Element)) return;
+
+    if (state.sidebarCollapsed && state.sidebarDrawerOpen && !target.closest(".sidebar")) {
+      setSidebarDrawerOpen(false);
+    }
+
+    if (state.currentView !== "youtube" || !state.youtubeContextOpen) return;
     if (target.closest(".youtube-toolbar-actions")) return;
     setYoutubeContextOpen(false);
   });
 
   document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && state.sidebarDrawerOpen) {
+      setSidebarDrawerOpen(false);
+    }
     if (event.key === "Escape" && state.youtubeContextOpen) {
       setYoutubeContextOpen(false);
     }
   });
+
+  elements.sidebarDrawerBackdrop?.addEventListener("click", () => setSidebarDrawerOpen(false));
 
   elements.trackForm.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -429,6 +457,7 @@ function bindStaticEvents() {
     state.currentYoutubeTab = "videos";
     state.youtubeVideosPage = 1;
     state.profilePublishPage = 1;
+    setSidebarDrawerOpen(false);
     setYoutubeContextOpen(false);
     Promise.all([ensureSelectedAccountVideos(), ensureSelectedAccountClones()])
       .then(() => renderYoutubeAccounts())
@@ -553,6 +582,7 @@ function bindStaticEvents() {
 async function init() {
   handleOauthFeedback();
   bindGlobalImageFallback();
+  initializeSidebarChrome();
   bindStaticEvents();
   setActiveView("scraped");
   setStatus("Cargando workspace...");
