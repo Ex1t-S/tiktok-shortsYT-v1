@@ -11,7 +11,6 @@
     grid-template-columns: 250px minmax(0, 1fr);
   }
 
-
   .profiles-layout {
     grid-template-columns: 250px minmax(0, 1fr) 280px;
   }
@@ -48,11 +47,9 @@
   }
 
   .sidebar {
+    position: relative;
+    top: 0;
     min-height: auto;
-  }
-
-  .workspace-header {
-    grid-template-columns: 1fr;
   }
 
   .scraped-layout,
@@ -76,11 +73,18 @@
     gap: 10px;
   }
 
-  .workspace-header,
   .panel,
   .sidebar {
-    border-radius: 18px;
+    border-radius: 16px;
     padding: 14px;
+  }
+
+  .workspace-heading {
+    padding-inline: 2px;
+  }
+
+  .workspace-heading h2 {
+    font-size: 1.45rem;
   }
 
   .video-grid.compact,
@@ -122,61 +126,11 @@
     width: auto;
     justify-content: center;
   }
-}
-
-@media (max-width: 1180px) {
-  .workspace-heading {
-    padding-left: 2px;
-  }
-
-  .app-shell.is-sidebar-collapsed {
-    grid-template-columns: 1fr;
-  }
-
-  .app-shell.is-sidebar-collapsed .sidebar,
-  .app-shell.is-sidebar-collapsed .sidebar.is-drawer-open {
-    width: auto;
-    padding-left: 14px;
-    padding-right: 14px;
-  }
-
-  .app-shell.is-sidebar-collapsed .brand-block .eyebrow,
-  .app-shell.is-sidebar-collapsed .brand-block h1,
-  .app-shell.is-sidebar-collapsed .brand-pill,
-  .app-shell.is-sidebar-collapsed .nav-tab-label,
-  .app-shell.is-sidebar-collapsed .sidebar-button-label {
-    display: initial;
-  }
-
-  .app-shell.is-sidebar-collapsed .sidebar-nav {
-    align-items: stretch;
-  }
-
-  .app-shell.is-sidebar-collapsed .nav-tab,
-  .app-shell.is-sidebar-collapsed .sidebar-chrome-button {
-    width: 100%;
-    justify-content: flex-start;
-    padding: 14px 16px;
-  }
-
-  .app-shell.is-sidebar-collapsed .nav-tab::after {
-    display: none;
-  }
-
-  .sidebar {
-    position: relative;
-    top: 0;
-    min-height: auto;
-  }
-}
-
-@media (max-width: 840px) {
-  .workspace-heading h2 {
-    font-size: 1.4rem;
-  }
 
   .status-toast {
+    left: 12px;
     right: 12px;
     bottom: 12px;
+    max-width: none;
   }
 }
