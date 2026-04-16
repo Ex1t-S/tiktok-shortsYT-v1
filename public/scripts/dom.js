@@ -28,6 +28,10 @@ export const elements = {
   refreshAccountsButton: document.getElementById("refresh-accounts-button"),
   addYoutubeAccountButton: document.getElementById("add-youtube-account-button"),
   youtubeOauthBox: document.getElementById("youtube-oauth-box"),
+  youtubeContextPanel: document.getElementById("youtube-context-panel"),
+  youtubeContextOverlay: document.getElementById("youtube-context-overlay"),
+  toggleYoutubeContextButton: document.getElementById("toggle-youtube-context-button"),
+  closeYoutubeContextButton: document.getElementById("close-youtube-context-button"),
   youtubeProfilesList: document.getElementById("youtube-profiles-list"),
   youtubeProfilesPagerLabel: document.getElementById("youtube-profiles-pager-label"),
   youtubeProfilesPrevPage: document.getElementById("youtube-profiles-prev-page"),
@@ -79,6 +83,7 @@ export const state = {
   youtubeListPage: 1,
   youtubeListPageSize: 5,
   currentYoutubeTab: "videos",
+  youtubeContextOpen: false,
   youtubeVideosPage: 1,
   youtubeTabPageSize: 5,
   profilePublishPage: 1,
@@ -109,6 +114,9 @@ const VIEW_META = {
 export function setActiveView(view) {
   state.currentView = view;
   elements.appShell?.classList.toggle("is-youtube-focus", view === "youtube");
+  if (view !== "youtube") {
+    setYoutubeContextOpen(false);
+  }
   elements.navTabs.forEach((button) => {
     button.classList.toggle("active", button.dataset.view === view);
   });
@@ -118,6 +126,13 @@ export function setActiveView(view) {
   const [eyebrow, title] = VIEW_META[view] || ["Workspace", "Workspace"];
   if (elements.headerEyebrow) elements.headerEyebrow.textContent = eyebrow;
   if (elements.pageTitle) elements.pageTitle.textContent = title;
+}
+
+export function setYoutubeContextOpen(isOpen) {
+  state.youtubeContextOpen = Boolean(isOpen);
+  elements.appShell?.classList.toggle("youtube-context-open", state.youtubeContextOpen);
+  elements.youtubeContextPanel?.classList.toggle("is-open", state.youtubeContextOpen);
+  elements.youtubeContextOverlay?.classList.toggle("is-visible", state.youtubeContextOpen);
 }
 
 export function setStatus(message, isError = false) {

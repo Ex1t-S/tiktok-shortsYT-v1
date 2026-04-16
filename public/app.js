@@ -5,6 +5,7 @@ import {
   setButtonBusy,
   setStatus,
   setTrackingPollTimer,
+  setYoutubeContextOpen,
   state,
   stopTrackingPolling
 } from "./scripts/dom.js";
@@ -326,6 +327,16 @@ function bindStaticEvents() {
     button.addEventListener("click", () => setActiveView(button.dataset.view));
   });
 
+  elements.toggleYoutubeContextButton?.addEventListener("click", () => {
+    if (state.currentView !== "youtube") {
+      setActiveView("youtube");
+    }
+    setYoutubeContextOpen(!state.youtubeContextOpen);
+  });
+
+  elements.closeYoutubeContextButton?.addEventListener("click", () => setYoutubeContextOpen(false));
+  elements.youtubeContextOverlay?.addEventListener("click", () => setYoutubeContextOpen(false));
+
   elements.trackForm.addEventListener("submit", async (event) => {
     event.preventDefault();
     await trackUsername(elements.username.value);
@@ -407,6 +418,7 @@ function bindStaticEvents() {
     state.currentYoutubeTab = "videos";
     state.youtubeVideosPage = 1;
     state.profilePublishPage = 1;
+    setYoutubeContextOpen(false);
     Promise.all([ensureSelectedAccountVideos(), ensureSelectedAccountClones()])
       .then(() => renderYoutubeAccounts())
       .catch((error) => setStatus(error.message, true));

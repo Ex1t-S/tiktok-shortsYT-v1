@@ -328,7 +328,7 @@ function renderYoutubeWorkspace() {
   if (!account) {
     renderEmpty(elements.youtubeProfileHeader, "Conecta o elegi una cuenta de YouTube.");
     renderEmpty(elements.youtubeProfileTabContent, "Todavia no hay una cuenta activa.");
-    renderEmpty(elements.youtubeSideActions, "Elegi una cuenta para abrir su workspace.");
+    renderEmpty(elements.youtubeSideActions, "Abri el panel de canales para elegir una cuenta.");
     return;
   }
 
@@ -339,9 +339,14 @@ function renderYoutubeWorkspace() {
   const queued = publications.filter((item) => isQueueLikeStatus(item.status));
   const latestVideoTitle = videos[0]?.title || "Todavia no hay videos sincronizados.";
 
+  const toolbarCopy = document.querySelector(".youtube-main-toolbar-copy strong");
+  if (toolbarCopy) {
+    toolbarCopy.textContent = `Canal activo: ${account.channel_handle || account.channel_title || account.channel_id || "YouTube"}`;
+  }
+
   elements.youtubeProfileHeader.innerHTML = `
     <div class="profile-summary-head youtube-workspace-hero">
-      <div>
+      <div class="youtube-hero-copy">
         <p class="eyebrow">Perfil YouTube</p>
         <h3>${accountLabel(account)}</h3>
         <p class="helper-copy">${escapeHtml(account.channel_handle || account.channel_id || account.contact_email || "")}</p>
@@ -353,12 +358,12 @@ function renderYoutubeWorkspace() {
         <a class="button-link" href="/api/youtube/accounts/${account.id}/connect">Reconectar OAuth</a>
       </div>
     </div>
-    <div class="mini-stats-grid">
+    <div class="mini-stats-grid mini-stats-grid-compact">
       <article class="mini-stat"><span>Videos</span><strong>${Number(channel?.statistics?.videoCount || videos.length || 0)}</strong></article>
       <article class="mini-stat"><span>Suscriptores</span><strong>${formatMetric(channel?.statistics?.subscriberCount || 0)}</strong></article>
+      <article class="mini-stat"><span>Vistas canal</span><strong>${formatMetric(channel?.statistics?.viewCount || 0)}</strong></article>
       <article class="mini-stat"><span>En cola</span><strong>${queued.length}</strong></article>
       <article class="mini-stat"><span>Clonaciones</span><strong>${clones.length}</strong></article>
-      <article class="mini-stat"><span>Vistas canal</span><strong>${formatMetric(channel?.statistics?.viewCount || 0)}</strong></article>
     </div>
   `;
 
@@ -369,27 +374,19 @@ function renderYoutubeWorkspace() {
   renderYoutubeTabContent(account, channel, videos, publications, clones);
 
   elements.youtubeSideActions.innerHTML = `
-    <article class="compact-info-card">
+    <article class="compact-info-card compact-info-card-inline">
       <strong>Estado</strong>
       <p>${escapeHtml(
-        account.oauth_status === "connected" ? "Listo para publicar y clonar." : "Conecta OAuth antes de publicar."
+        account.oauth_status === "connected" ? "Listo para publicar, clonar y mover cola." : "Falta reconectar OAuth para publicar."
       )}</p>
     </article>
-    <article class="compact-info-card">
+    <article class="compact-info-card compact-info-card-inline">
+      <strong>Ultimo video</strong>
+      <p class="truncate-2">${escapeHtml(latestVideoTitle)}</p>
+    </article>
+    <article class="compact-info-card compact-info-card-inline">
       <strong>Seccion activa</strong>
       <p>${escapeHtml(describeYoutubeTab(state.currentYoutubeTab))}</p>
-    </article>
-    <article class="compact-info-card">
-      <strong>Actividad</strong>
-      <p>${escapeHtml(
-        clones.length
-          ? `${clones.length} clonaciones y ${queued.length} piezas en curso.`
-          : `${queued.length} piezas en curso en este canal.`
-      )}</p>
-    </article>
-    <article class="compact-info-card">
-      <strong>Ultimo video</strong>
-      <p>${escapeHtml(latestVideoTitle)}</p>
     </article>
   `;
 }
@@ -414,10 +411,6 @@ function renderYoutubeTabContent(account, channel, videos, publications, clones)
             <button type="button" class="ghost-button" data-action="youtube-videos-next">Siguiente</button>
           </div>
         </div>
-        <article class="compact-info-card soft-card">
-          <strong>Lectura rapida</strong>
-          <p>Esta vista muestra solo uploads reales del canal activo para revisar linea editorial, frecuencia y nivel de respuesta.</p>
-        </article>
         ${renderChannelVideoCards(pageItems)}
       </section>
     `;
@@ -432,11 +425,7 @@ function renderYoutubeTabContent(account, channel, videos, publications, clones)
     const published = publications.filter((item) => String(item.status).toLowerCase() === "published").length;
     elements.youtubeProfileTabContent.innerHTML = `
       <section class="subpanel youtube-section-shell">
-        <article class="compact-info-card soft-card">
-          <strong>Panel de metricas</strong>
-          <p>Combina lo que devuelve YouTube con la actividad local para entender si el canal esta creciendo o solo acumulando cola.</p>
-        </article>
-        <div class="mini-stats-grid">
+        <div class="mini-stats-grid mini-stats-grid-compact">
           <article class="mini-stat"><span>Suscriptores</span><strong>${formatMetric(channel?.statistics?.subscriberCount || 0)}</strong></article>
           <article class="mini-stat"><span>Vistas recientes</span><strong>${formatMetric(totalViews)}</strong></article>
           <article class="mini-stat"><span>Likes recientes</span><strong>${formatMetric(totalLikes)}</strong></article>
@@ -494,10 +483,6 @@ function renderYoutubeTabContent(account, channel, videos, publications, clones)
             </select>
           </div>
         </div>
-        <article class="compact-info-card soft-card">
-          <strong>Uso recomendado</strong>
-          <p>Esta seccion sirve para publicacion manual. Filtra, revisa disponibilidad y manda solo lo necesario a la cola de este canal.</p>
-        </article>
         ${renderPublishRows(pageItems, account.id)}
         <div class="pager-row tight top-gap">
           <span class="pager-label">Pagina ${currentPage} de ${totalPages}</span>
@@ -522,10 +507,6 @@ function renderYoutubeTabContent(account, channel, videos, publications, clones)
           <span class="helper-inline">Programa todos los videos del perfil elegido con un limite diario.</span>
         </div>
       </div>
-      <article class="compact-info-card soft-card">
-        <strong>Como funciona</strong>
-        <p>Elegis un perfil TikTok ya scrapeado, definis cuantos videos por dia queres subir y el sistema reparte la cola automaticamente.</p>
-      </article>
       <div class="youtube-clone-layout">
         <section class="subpanel youtube-clone-form-panel">
           <div class="subpanel-head"><strong>Nueva clonacion</strong></div>

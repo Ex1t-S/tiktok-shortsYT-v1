@@ -117,13 +117,18 @@
 
         <section class="view-section" data-view="youtube">
           <div class="youtube-workspace-layout">
-            <aside class="panel youtube-context-panel">
-              <div class="section-heading compact">
-                <div>
-                  <p class="eyebrow">YouTube</p>
-                  <h3>Cuentas conectadas</h3>
+            <div id="youtube-context-overlay" class="youtube-context-overlay"></div>
+
+            <aside id="youtube-context-panel" class="panel youtube-context-panel">
+              <div class="youtube-context-panel-head">
+                <div class="section-heading compact no-margin">
+                  <div>
+                    <p class="eyebrow">YouTube</p>
+                    <h3>Cuentas conectadas</h3>
+                  </div>
+                  <button id="refresh-accounts-button" type="button" class="ghost-button">Actualizar</button>
                 </div>
-                <button id="refresh-accounts-button" type="button" class="ghost-button">Actualizar</button>
+                <button id="close-youtube-context-button" type="button" class="ghost-button youtube-context-close">Cerrar</button>
               </div>
 
               <div id="youtube-oauth-box" class="oauth-box"></div>
@@ -139,23 +144,26 @@
                   <button id="youtube-profiles-next-page" type="button" class="ghost-button">Siguiente</button>
                 </div>
               </div>
+            </aside>
 
-              <div class="section-heading compact top-gap">
-                <div>
-                  <p class="eyebrow">Workspace</p>
-                  <h3>Secciones del canal</h3>
+            <section class="panel youtube-main-panel">
+              <div class="youtube-main-toolbar">
+                <div class="youtube-main-toolbar-copy">
+                  <p class="eyebrow">Canal activo</p>
+                  <strong>Elegí un canal y trabajá todo desde una sola vista.</strong>
                 </div>
+                <button id="toggle-youtube-context-button" type="button" class="ghost-button">Canales</button>
               </div>
+
+              <div id="youtube-profile-header" class="profile-header"></div>
+
               <div class="profile-tab-bar youtube-section-nav" id="youtube-profile-tab-bar">
                 <button type="button" class="profile-tab active" data-tab="videos">Videos</button>
                 <button type="button" class="profile-tab" data-tab="stats">Estadísticas</button>
                 <button type="button" class="profile-tab" data-tab="publish">Publicar</button>
                 <button type="button" class="profile-tab" data-tab="clone">Clonar</button>
               </div>
-            </aside>
 
-            <section class="panel youtube-main-panel">
-              <div id="youtube-profile-header" class="profile-header"></div>
               <div id="youtube-side-actions" class="youtube-inline-summary"></div>
               <div id="youtube-profile-tab-content" class="profile-tab-content"></div>
             </section>
