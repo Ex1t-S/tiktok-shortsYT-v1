@@ -94,6 +94,13 @@
   gap: 14px;
 }
 
+.scraped-layout {
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
 .profiles-layout {
   display: grid;
   grid-template-columns: 280px minmax(0, 1fr) 300px;

@@ -2,6 +2,7 @@ const express = require("express");
 const {
   startTrackingJob,
   getTrackingStatus,
+  listTrackedProfiles,
   getProfileByUsername,
   listMediaByUsername
 } = require("../services/profileService");
@@ -22,9 +23,11 @@ const {
   canUseYoutubeOAuth,
   getYoutubeOauthDiagnostics,
   startYoutubeOAuth,
+  startYoutubeDirectOAuth,
   handleYoutubeOAuthCallback,
   listYoutubeChannelVideos
 } = require("../services/youtubeService");
+const { listProfileClones, createProfileClone } = require("../services/cloneService");
 const {
   queuePublications,
   autoDistributeLibraryVideos,
@@ -76,6 +79,40 @@ router.get("/dashboard/summary", async (req, res, next) => {
   try {
     const summary = await getDashboardSummary();
     res.json({ summary });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get("/scraped-profiles", async (req, res, next) => {
+  try {
+    const items = await listTrackedProfiles({ limit: req.query.limit });
+    res.json({ items });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get("/scraped-profiles/:username", async (req, res, next) => {
+  try {
+    const profile = await getProfileByUsername(req.params.username);
+    if (!profile) {
+      return res.status(404).json({ error: "profile not found" });
+    }
+
+    const tracking = await getTrackingStatus(req.params.username, req.query.limit);
+    res.json(tracking);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get("/scraped-profiles/:username/videos", async (req, res, next) => {
+  try {
+    const items = await listMediaByUsername(req.params.username, {
+      limit: req.query.limit
+    });
+    res.json({ items });
   } catch (error) {
     next(error);
   }
@@ -203,6 +240,15 @@ router.get("/youtube/accounts", async (req, res, next) => {
       accounts,
       oauth: getYoutubeOauthDiagnostics()
     });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get("/youtube/oauth/start", async (req, res, next) => {
+  try {
+    const connectUrl = await startYoutubeDirectOAuth();
+    res.redirect(connectUrl);
   } catch (error) {
     next(error);
   }
@@ -340,6 +386,24 @@ router.get("/youtube/accounts/:id/videos", async (req, res, next) => {
       limit: req.query.limit
     });
     res.json(result);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get("/youtube/accounts/:id/clones", async (req, res, next) => {
+  try {
+    const items = await listProfileClones(req.params.id);
+    res.json({ items });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post("/youtube/accounts/:id/clones", async (req, res, next) => {
+  try {
+    const result = await createProfileClone(req.params.id, req.body);
+    res.status(201).json(result);
   } catch (error) {
     next(error);
   }

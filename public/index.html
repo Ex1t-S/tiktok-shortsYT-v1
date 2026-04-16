@@ -19,197 +19,147 @@
           <p class="eyebrow">Shorts Studio</p>
           <h1>Workspace</h1>
           <p class="sidebar-copy">
-            Flujo claro para rastrear, guardar, elegir perfil y mover videos a una cola entendible.
+            Separado por origen: perfiles TikTok scrapeados por un lado, perfiles YouTube conectados por otro.
           </p>
         </div>
 
         <nav class="sidebar-nav">
-          <button type="button" class="nav-tab active" data-view="tracking">1. Rastrear</button>
-          <button type="button" class="nav-tab" data-view="library">2. Biblioteca</button>
-          <button type="button" class="nav-tab" data-view="profiles">3. Perfiles</button>
-          <button type="button" class="nav-tab" data-view="queue">4. Cola</button>
+          <button type="button" class="nav-tab active" data-view="scraped">Perfiles scrapeados</button>
+          <button type="button" class="nav-tab" data-view="youtube">Perfiles YouTube</button>
+          <button type="button" class="nav-tab" data-view="queue">Cola</button>
           <button type="button" class="nav-tab secondary" data-view="overview">Resumen</button>
         </nav>
 
         <div class="sidebar-note">
-          <span>Sin scroll infinito: todo paginado.</span>
-          <span>Primero biblioteca, después cola.</span>
+          <span>OAuth directo para cuentas de YouTube.</span>
+          <span>Clonación por perfil TikTok con límite diario.</span>
         </div>
       </aside>
 
       <main class="workspace-shell">
         <header class="workspace-header">
           <div>
-            <p class="eyebrow" id="header-eyebrow">Operación</p>
-            <h2 id="page-title">Rastrear</h2>
+            <p class="eyebrow" id="header-eyebrow">Perfiles</p>
+            <h2 id="page-title">Perfiles scrapeados</h2>
           </div>
-          <div id="global-status" class="status-banner">
-            Cargando panel...
-          </div>
+          <div id="global-status" class="status-banner">Cargando workspace...</div>
           <div class="header-chips">
-            <span class="header-chip">TikTok → Biblioteca</span>
-            <span class="header-chip muted">Biblioteca → Cola → YouTube</span>
+            <span class="header-chip">TikTok scrapeado → biblioteca</span>
+            <span class="header-chip muted">YouTube OAuth → publicar o clonar</span>
           </div>
         </header>
 
-        <section class="view-section active" data-view="tracking">
+        <section class="view-section active" data-view="scraped">
           <div class="page-grid">
             <section class="panel hero-panel">
               <div>
-                <p class="eyebrow">Paso 1</p>
-                <h3>Rastrear TikTok</h3>
+                <p class="eyebrow">Scanner</p>
+                <h3>Escanear perfil o hashtag</h3>
                 <p class="helper-copy">
-                  Buscá un perfil, hashtag o URL. Después elegís qué videos guardar en biblioteca o mandar directo a la cola.
+                  Cargá un perfil nuevo, actualizá uno existente y después entrá al detalle para revisar sus videos scrapeados.
                 </p>
               </div>
               <form id="track-form" class="toolbar-form">
                 <input id="username" name="username" type="text" placeholder="@usuario, #tema o URL" required />
-                <button id="submit-button" type="submit">Rastrear</button>
-                <button id="refresh-button" type="button" class="ghost-button">Actualizar</button>
+                <button id="submit-button" type="submit">Escanear</button>
+                <button id="refresh-button" type="button" class="ghost-button">Reescanear actual</button>
               </form>
             </section>
 
-            <section class="panel tracking-layout">
-              <div class="tracking-summary" id="tracking-summary">
-                <div class="empty-state">Todavía no hay un perfil cargado.</div>
-              </div>
-
-              <div class="compact-action-bar">
-                <div class="compact-action-copy">
-                  <strong>Videos encontrados</strong>
-                  <span id="track-results-meta">Sin resultados todavía.</span>
+            <div class="scraped-layout">
+              <aside class="panel profile-list-panel">
+                <div class="section-heading compact">
+                  <div>
+                    <p class="eyebrow">TikTok</p>
+                    <h3>Perfiles scrapeados</h3>
+                  </div>
+                  <button id="refresh-scraped-button" type="button" class="ghost-button">Actualizar</button>
                 </div>
-                <div class="compact-action-controls">
-                  <select id="queue-account-select">
-                    <option value="">Elegir perfil destino</option>
-                  </select>
-                  <button id="save-library-button" type="button" class="ghost-button" disabled>Guardar en biblioteca</button>
-                  <button id="queue-selected-button" type="button" disabled>Agregar a cola</button>
-                </div>
-              </div>
 
-              <div id="media-grid" class="video-grid compact"></div>
+                <div id="scraped-profiles-list" class="profiles-list"></div>
 
-              <div class="pager-row">
-                <span id="tracking-pager-label" class="pager-label">Página 1</span>
-                <div class="pager-controls">
-                  <button id="track-prev-page" type="button" class="ghost-button">Anterior</button>
-                  <button id="track-next-page" type="button" class="ghost-button">Siguiente</button>
-                  <button id="load-more-media-button" type="button" class="ghost-button hidden">Traer más</button>
+                <div class="pager-row tight">
+                  <span id="scraped-profiles-pager-label" class="pager-label">Página 1</span>
+                  <div class="pager-controls">
+                    <button id="scraped-profiles-prev-page" type="button" class="ghost-button">Anterior</button>
+                    <button id="scraped-profiles-next-page" type="button" class="ghost-button">Siguiente</button>
+                  </div>
                 </div>
-              </div>
-            </section>
+              </aside>
+
+              <section class="panel profile-main-panel">
+                <div id="scraped-profile-header" class="profile-header"></div>
+
+                <div class="compact-action-bar">
+                  <div class="compact-action-copy">
+                    <strong>Videos scrapeados</strong>
+                    <span id="scraped-results-meta">Sin perfil activo.</span>
+                  </div>
+                  <div class="compact-action-controls">
+                    <button id="save-library-button" type="button" class="ghost-button" disabled>Guardar en biblioteca</button>
+                  </div>
+                </div>
+
+                <div id="scraped-videos-grid" class="video-grid compact"></div>
+
+                <div class="pager-row">
+                  <span id="scraped-videos-pager-label" class="pager-label">Página 1</span>
+                  <div class="pager-controls">
+                    <button id="scraped-videos-prev-page" type="button" class="ghost-button">Anterior</button>
+                    <button id="scraped-videos-next-page" type="button" class="ghost-button">Siguiente</button>
+                    <button id="load-more-media-button" type="button" class="ghost-button hidden">Traer más</button>
+                  </div>
+                </div>
+              </section>
+            </div>
           </div>
         </section>
 
-        <section class="view-section" data-view="library">
-          <section class="panel">
-            <div class="section-heading">
-              <div>
-                <p class="eyebrow">Paso 2</p>
-                <h3>Biblioteca disponible</h3>
-              </div>
-              <p class="helper-copy compact-copy">
-                Acá ves solo material guardado. Desde acá decidís si lo mandás a la cola de un perfil.
-              </p>
-            </div>
-
-            <div class="toolbar-row wrap">
-              <input id="library-search-input" type="search" placeholder="Buscar por título, origen o archivo" />
-              <select id="library-status-filter">
-                <option value="">Todos los estados</option>
-                <option value="ready">Listos</option>
-                <option value="published">Publicados</option>
-                <option value="failed">Fallidos</option>
-              </select>
-              <select id="library-source-filter">
-                <option value="">Todos los orígenes</option>
-                <option value="tracked_media">Trackeados</option>
-                <option value="zip_import">ZIP</option>
-                <option value="remote_url">URL remota</option>
-                <option value="s3-compatible">Cloud</option>
-              </select>
-              <select id="library-target-account-select">
-                <option value="">Perfil destino para mandar a cola</option>
-              </select>
-            </div>
-
-            <div class="toolbar-row compact between">
-              <span id="library-results-meta" class="helper-inline">0 videos</span>
-              <div class="pager-controls">
-                <button id="library-prev-page-button" type="button" class="ghost-button">Anterior</button>
-                <button id="library-next-page-button" type="button" class="ghost-button">Siguiente</button>
-              </div>
-            </div>
-
-            <div id="library-video-list" class="video-list"></div>
-          </section>
-        </section>
-
-        <section class="view-section" data-view="profiles">
+        <section class="view-section" data-view="youtube">
           <div class="profiles-layout">
             <aside class="panel profile-list-panel">
               <div class="section-heading compact">
                 <div>
-                  <p class="eyebrow">Perfiles</p>
-                  <h3>Canales conectados</h3>
+                  <p class="eyebrow">YouTube</p>
+                  <h3>Cuentas conectadas</h3>
                 </div>
                 <button id="refresh-accounts-button" type="button" class="ghost-button">Actualizar</button>
               </div>
 
               <div id="youtube-oauth-box" class="oauth-box"></div>
-              <div id="profiles-list" class="profiles-list"></div>
+              <div class="stack-list">
+                <a id="add-youtube-account-button" class="button-link" href="/api/youtube/oauth/start">Agregar cuenta</a>
+              </div>
+              <div id="youtube-profiles-list" class="profiles-list"></div>
 
               <div class="pager-row tight">
-                <span id="profiles-pager-label" class="pager-label">Página 1</span>
+                <span id="youtube-profiles-pager-label" class="pager-label">Página 1</span>
                 <div class="pager-controls">
-                  <button id="profiles-prev-page" type="button" class="ghost-button">Anterior</button>
-                  <button id="profiles-next-page" type="button" class="ghost-button">Siguiente</button>
+                  <button id="youtube-profiles-prev-page" type="button" class="ghost-button">Anterior</button>
+                  <button id="youtube-profiles-next-page" type="button" class="ghost-button">Siguiente</button>
                 </div>
               </div>
             </aside>
 
             <section class="panel profile-main-panel">
-              <div id="profile-header" class="profile-header"></div>
-              <div class="profile-tab-bar" id="profile-tab-bar">
-                <button type="button" class="profile-tab active" data-tab="summary">Resumen</button>
-                <button type="button" class="profile-tab" data-tab="uploads">Subidos</button>
-                <button type="button" class="profile-tab" data-tab="queue">En cola</button>
+              <div id="youtube-profile-header" class="profile-header"></div>
+              <div class="profile-tab-bar" id="youtube-profile-tab-bar">
+                <button type="button" class="profile-tab active" data-tab="videos">Videos</button>
+                <button type="button" class="profile-tab" data-tab="stats">Estadísticas</button>
                 <button type="button" class="profile-tab" data-tab="publish">Publicar</button>
+                <button type="button" class="profile-tab" data-tab="clone">Clonar</button>
               </div>
-              <div id="profile-tab-content" class="profile-tab-content"></div>
+              <div id="youtube-profile-tab-content" class="profile-tab-content"></div>
             </section>
 
             <aside class="panel profile-side-panel">
               <div class="section-heading compact">
                 <div>
-                  <p class="eyebrow">Acciones</p>
-                  <h3>Canal activo</h3>
+                  <p class="eyebrow">Canal activo</p>
+                  <h3>Resumen rápido</h3>
                 </div>
               </div>
-
-              <div id="profile-side-actions" class="stack-list"></div>
-
-              <details class="settings-block" open>
-                <summary>Agregar canal</summary>
-                <form id="youtube-form" class="stack-form compact-form">
-                  <input id="channel-title" type="text" placeholder="Nombre del canal" required />
-                  <div class="field-row two-up">
-                    <input id="channel-handle" type="text" placeholder="@handle" />
-                    <input id="channel-id" type="text" placeholder="Channel ID" />
-                  </div>
-                  <input id="contact-email" type="email" placeholder="Email de contacto" />
-                  <button type="submit">Guardar canal</button>
-                </form>
-              </details>
-
-              <details class="settings-block">
-                <summary>Importar varios canales</summary>
-                <form id="youtube-bulk-form" class="stack-form compact-form">
-                  <textarea id="youtube-bulk-input" rows="5" placeholder="Titulo|@handle|UC...|mail@canal.com"></textarea>
-                  <button id="youtube-bulk-button" type="submit" class="ghost-button">Importar</button>
-                </form>
-              </details>
+              <div id="youtube-side-actions" class="stack-list"></div>
             </aside>
           </div>
         </section>
@@ -218,7 +168,7 @@
           <section class="panel">
             <div class="section-heading">
               <div>
-                <p class="eyebrow">Paso 4</p>
+                <p class="eyebrow">Publicaciones</p>
                 <h3>Cola general</h3>
               </div>
               <button id="refresh-publications-button" type="button" class="ghost-button">Actualizar cola</button>
@@ -255,20 +205,23 @@
                 <h3>Estado del sistema</h3>
               </div>
             </div>
+
             <div id="summary-strip" class="summary-strip"></div>
-            <div class="overview-grid">
-              <article class="compact-info-card">
-                <strong>Flujo recomendado</strong>
-                <p>Rastrear → guardar en biblioteca → elegir perfil → mover a cola → publicar.</p>
-              </article>
-              <article class="compact-info-card">
-                <strong>Regla visual</strong>
-                <p>Pocas filas por página. Nada de listas eternas ni cajas superpuestas.</p>
-              </article>
-              <article class="compact-info-card">
-                <strong>OAuth</strong>
-                <p>Conectá el canal desde Perfiles. Si falla, revisá el redirect URI de Railway en Google Cloud.</p>
-              </article>
+
+            <div class="two-column-panel top-gap">
+              <section class="subpanel">
+                <div class="subpanel-head">
+                  <strong>Últimos perfiles scrapeados</strong>
+                </div>
+                <div id="overview-scraped-list" class="stack-list"></div>
+              </section>
+
+              <section class="subpanel">
+                <div class="subpanel-head">
+                  <strong>Últimas publicaciones</strong>
+                </div>
+                <div id="overview-publications-list" class="stack-list"></div>
+              </section>
             </div>
           </section>
         </section>

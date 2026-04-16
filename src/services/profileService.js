@@ -48,6 +48,44 @@ async function getProfileByUsername(usernameInput) {
   return result.rows[0] || null;
 }
 
+async function listTrackedProfiles(options = {}) {
+  const limit = Math.min(Math.max(Number(options.limit || 200), 1), 500);
+  const result = await query(
+    `
+      SELECT
+        tp.*,
+        (
+          SELECT COUNT(*)
+          FROM media_items mi
+          WHERE mi.tracked_profile_id = tp.id
+            AND mi.media_type = 'video'
+        )::int AS stored_video_count,
+        (
+          SELECT COUNT(*)
+          FROM media_items mi
+          WHERE mi.tracked_profile_id = tp.id
+        )::int AS stored_items_count,
+        sr.status AS latest_run_status,
+        sr.progress_message AS latest_run_message,
+        sr.started_at AS latest_run_started_at,
+        sr.finished_at AS latest_run_finished_at
+      FROM tracked_profiles tp
+      LEFT JOIN LATERAL (
+        SELECT status, progress_message, started_at, finished_at
+        FROM scrape_runs
+        WHERE tracked_profile_id = tp.id
+        ORDER BY started_at DESC, id DESC
+        LIMIT 1
+      ) sr ON TRUE
+      ORDER BY COALESCE(tp.last_scraped_at, tp.updated_at, tp.created_at) DESC, tp.id DESC
+      LIMIT $1
+    `,
+    [limit]
+  );
+
+  return result.rows;
+}
+
 async function listMediaByUsername(usernameInput, options = {}) {
   const username = normalizeTrackingKey(
     usernameInput,
@@ -618,6 +656,7 @@ async function startTrackingJob(usernameInput, options = {}) {
 module.exports = {
   startTrackingJob,
   getTrackingStatus,
+  listTrackedProfiles,
   getProfileByUsername,
   listMediaByUsername,
   getMediaById

@@ -7,47 +7,56 @@ import {
   setTrackingPollTimer,
   state,
   stopTrackingPolling
-} from './scripts/dom.js';
-import {
-  fetchJson,
-  formatIsoDuration,
-  isHashtagQuery,
-  parseBulkYoutubeAccounts,
-  postJson,
-  summarizeTrackingRun,
-  translateStatus
-} from './scripts/utils.js';
-import {
-  fillAccountSelect,
-  renderLibrary,
-  renderOauthBox,
-  renderOverview,
-  renderProfiles,
-  renderQueue,
-  renderTracking
-} from './scripts/render-content.js';
+} from "./scripts/dom.js";
+import { fetchJson, isHashtagQuery, postJson, summarizeTrackingRun } from "./scripts/utils.js";
+import { renderOverview, renderQueue, renderScrapedProfiles, renderYoutubeAccounts } from "./scripts/render-content.js";
+
+function bindGlobalImageFallback() {
+  document.addEventListener(
+    "error",
+    (event) => {
+      const target = event.target;
+      if (!(target instanceof HTMLImageElement) || target.dataset.fallbackThumb !== "true") {
+        return;
+      }
+      target.parentElement?.classList.add("is-fallback");
+    },
+    true
+  );
+}
+
+function formatUsernameForInput(username) {
+  if (!username) return "";
+  return String(username).startsWith("tag-") ? `#${String(username).replace(/^tag-/, "")}` : `@${username}`;
+}
 
 function handleOauthFeedback() {
   const params = new URLSearchParams(window.location.search);
-  const oauthStatus = params.get('youtube_oauth');
+  const oauthStatus = params.get("youtube_oauth");
   if (!oauthStatus) return;
 
-  if (oauthStatus === 'success') {
-    setStatus(`La cuenta ${params.get('account_id') || ''} quedó conectada.`);
+  const accountId = params.get("account_id");
+  if (accountId) {
+    state.selectedAccountId = accountId;
+  }
+
+  if (oauthStatus === "success") {
+    setStatus(`La cuenta ${accountId || ""} quedó conectada.`);
+    setActiveView("youtube");
   } else {
-    setStatus(params.get('message') || 'Falló Google OAuth.', true);
+    setStatus(params.get("message") || "Falló Google OAuth.", true);
   }
 
   const cleanUrl = new URL(window.location.href);
-  cleanUrl.searchParams.delete('youtube_oauth');
-  cleanUrl.searchParams.delete('account_id');
-  cleanUrl.searchParams.delete('message');
-  window.history.replaceState({}, '', cleanUrl);
+  cleanUrl.searchParams.delete("youtube_oauth");
+  cleanUrl.searchParams.delete("account_id");
+  cleanUrl.searchParams.delete("message");
+  window.history.replaceState({}, "", cleanUrl);
 }
 
 async function loadDashboard() {
   try {
-    const { summary } = await fetchJson('/api/dashboard/summary');
+    const { summary } = await fetchJson("/api/dashboard/summary");
     state.dashboardSummary = summary;
   } catch {
     state.dashboardSummary = null;
@@ -55,79 +64,53 @@ async function loadDashboard() {
   renderOverview();
 }
 
-async function loadAccounts() {
-  const { accounts, oauth } = await fetchJson('/api/youtube/accounts');
-  state.accounts = Array.isArray(accounts) ? accounts : [];
-  state.oauth = oauth || null;
+async function loadScrapedProfiles() {
+  const { items } = await fetchJson("/api/scraped-profiles");
+  state.scrapedProfiles = Array.isArray(items) ? items : [];
 
-  if (!state.selectedAccountId && state.accounts.length) {
-    state.selectedAccountId = state.accounts.find((item) => item.oauth_status === 'connected')?.id || state.accounts[0].id;
+  if (!state.selectedScrapedUsername && state.scrapedProfiles.length) {
+    state.selectedScrapedUsername = state.scrapedProfiles[0].username;
   }
-  if (state.selectedAccountId && !state.accounts.some((item) => String(item.id) === String(state.selectedAccountId))) {
-    state.selectedAccountId = state.accounts[0]?.id || null;
+  if (
+    state.selectedScrapedUsername &&
+    !state.scrapedProfiles.some((item) => String(item.username) === String(state.selectedScrapedUsername))
+  ) {
+    state.selectedScrapedUsername = state.scrapedProfiles[0]?.username || null;
   }
 
-  fillAccountSelect(elements.queueAccountSelect, 'Elegir perfil destino');
-  fillAccountSelect(elements.libraryTargetAccountSelect, 'Perfil destino para mandar a cola');
-  renderOauthBox();
-  await ensureSelectedAccountVideos();
-  renderProfiles();
-}
-
-async function ensureSelectedAccountVideos(force = false) {
-  if (!state.selectedAccountId) return;
-  const accountId = String(state.selectedAccountId);
-  if (!force && state.accountVideosById[accountId]) return;
-  try {
-    const payload = await fetchJson(`/api/youtube/accounts/${accountId}/videos?limit=10`);
-    state.accountVideosById[accountId] = Array.isArray(payload.items) ? payload.items : [];
-  } catch {
-    state.accountVideosById[accountId] = [];
+  if (!state.cloneForm.trackedProfileId && state.scrapedProfiles.length) {
+    state.cloneForm.trackedProfileId = String(state.scrapedProfiles[0].id);
   }
+
+  renderScrapedProfiles();
+  renderYoutubeAccounts();
 }
 
-async function loadLibrary() {
-  const { items } = await fetchJson('/api/library/videos');
-  state.libraryItems = Array.isArray(items) ? items : [];
-  renderLibrary();
-  renderProfiles();
-}
-
-async function loadPublications() {
-  const { items } = await fetchJson('/api/publications');
-  state.publications = Array.isArray(items) ? items : [];
-  renderQueue();
-  renderProfiles();
-}
-
-async function loadProfile(username) {
+async function loadScrapedProfile(username) {
+  if (!username) return;
   const payload = await fetchJson(
-    `/api/profiles/${encodeURIComponent(username)}/tracking-status?limit=${encodeURIComponent(state.currentTrackLimit)}`
-  ).catch(async () => {
-    const profileData = await fetchJson(`/api/profiles/${encodeURIComponent(username)}`);
-    const mediaData = await fetchJson(`/api/profiles/${encodeURIComponent(username)}/media?limit=${state.currentTrackLimit}`);
-    return { profile: profileData.profile, scrape: null, items: mediaData.items };
-  });
-
+    `/api/scraped-profiles/${encodeURIComponent(username)}?limit=${encodeURIComponent(state.currentTrackLimit)}`
+  );
+  state.selectedScrapedUsername = payload.profile?.username || username;
   state.currentTrackingProfile = payload.profile || null;
   state.currentTrackingRun = payload.scrape || null;
   state.currentItems = Array.isArray(payload.items) ? payload.items : [];
   state.currentTrackTotalAvailable = Number(payload.profile?.total_media_count || state.currentItems.length || 0);
+  state.currentTrackQuery = formatUsernameForInput(state.selectedScrapedUsername);
+  state.scrapedVideosPage = 1;
   state.selectedTrackIds.clear();
-  state.currentTrackPage = 1;
-  renderTracking();
+  renderScrapedProfiles();
 }
 
 async function loadTrackingStatus(username) {
   const payload = await fetchJson(
-    `/api/profiles/${encodeURIComponent(username)}/tracking-status?limit=${encodeURIComponent(state.currentTrackLimit)}`
+    `/api/scraped-profiles/${encodeURIComponent(username)}?limit=${encodeURIComponent(state.currentTrackLimit)}`
   );
-
   state.currentTrackingProfile = payload.profile || null;
   state.currentTrackingRun = payload.scrape || null;
   state.currentItems = Array.isArray(payload.items) ? payload.items : [];
   state.currentTrackTotalAvailable = Number(payload.profile?.total_media_count || state.currentItems.length || 0);
-  renderTracking();
+  renderScrapedProfiles();
   return payload;
 }
 
@@ -137,27 +120,27 @@ function scheduleTrackingPolling(username) {
     window.setTimeout(async () => {
       try {
         const payload = await loadTrackingStatus(username);
-        const status = String(payload?.scrape?.status || '').toLowerCase();
+        const status = String(payload?.scrape?.status || "").toLowerCase();
 
-        if (status === 'running') {
+        if (status === "running") {
           const progress = summarizeTrackingRun(payload.scrape);
-          setStatus([payload.scrape?.progress_message || `Rastreando ${username}...`, progress].filter(Boolean).join(' · '));
+          setStatus([payload.scrape?.progress_message || `Escaneando ${username}...`, progress].filter(Boolean).join(" · "));
           scheduleTrackingPolling(username);
           return;
         }
 
-        setButtonBusy(elements.submitButton, 'Rastrear', false);
-        setButtonBusy(elements.refreshButton, 'Actualizar', false);
+        setButtonBusy(elements.submitButton, "Escanear", false);
+        setButtonBusy(elements.refreshButton, "Reescanear actual", false);
+        await Promise.all([loadScrapedProfiles(), loadDashboard(), loadPublications()]);
 
-        if (status === 'success') {
-          setStatus(`Tracking terminado para ${username}.`);
-          await Promise.all([loadDashboard(), loadPublications()]);
-        } else if (status === 'failed') {
-          setStatus(payload.scrape?.progress_message || 'El tracking falló.', true);
+        if (status === "success") {
+          setStatus(`Escaneo terminado para ${username}.`);
+        } else if (status === "failed") {
+          setStatus(payload.scrape?.progress_message || "El escaneo falló.", true);
         }
       } catch (error) {
-        setButtonBusy(elements.submitButton, 'Rastrear', false);
-        setButtonBusy(elements.refreshButton, 'Actualizar', false);
+        setButtonBusy(elements.submitButton, "Escanear", false);
+        setButtonBusy(elements.refreshButton, "Reescanear actual", false);
         setStatus(error.message, true);
       }
     }, 1500)
@@ -165,120 +148,148 @@ function scheduleTrackingPolling(username) {
 }
 
 async function trackUsername(rawValue) {
-  const input = rawValue.trim();
+  const input = String(rawValue || "").trim();
   if (!input) {
-    setStatus('La búsqueda es obligatoria.', true);
+    setStatus("La búsqueda es obligatoria.", true);
     return;
   }
 
-  const label = isHashtagQuery(input) ? input : input.replace(/^@+/, '@');
+  const label = isHashtagQuery(input) ? input : input.replace(/^@+/, "@");
   state.currentTrackQuery = input;
   state.currentTrackLimit = state.currentTrackBatchSize;
-  state.currentTrackPage = 1;
-  state.currentTrackTotalAvailable = 0;
-  state.currentItems = [];
-  state.currentTrackingRun = null;
   state.currentTrackingProfile = null;
+  state.currentTrackingRun = null;
+  state.currentItems = [];
+  state.currentTrackTotalAvailable = 0;
   state.selectedTrackIds.clear();
-  setActiveView('tracking');
-  setButtonBusy(elements.submitButton, 'Rastreando...', true);
-  setButtonBusy(elements.refreshButton, 'Actualizando...', true);
+  state.scrapedVideosPage = 1;
+  setActiveView("scraped");
+  setButtonBusy(elements.submitButton, "Escaneando...", true);
+  setButtonBusy(elements.refreshButton, "Actualizando...", true);
   setStatus(`Leyendo ${label}... esto puede tardar unos minutos.`);
 
   try {
-    const result = await postJson('/api/profiles/track', { username: input, limit: state.currentTrackLimit });
-    state.currentUsername = result.profile?.username || input.replace(/^@+/, '').trim();
-    state.currentTrackingRun = result.scrape || null;
-    await loadTrackingStatus(state.currentUsername);
-    if (String(state.currentTrackingRun?.status || '').toLowerCase() === 'running') {
-      scheduleTrackingPolling(state.currentUsername);
+    const result = await postJson("/api/profiles/track", { username: input, limit: state.currentTrackLimit });
+    state.selectedScrapedUsername = result.profile?.username || input.replace(/^@+/, "").trim();
+    await Promise.all([loadScrapedProfiles(), loadTrackingStatus(state.selectedScrapedUsername)]);
+    if (String(state.currentTrackingRun?.status || "").toLowerCase() === "running") {
+      scheduleTrackingPolling(state.selectedScrapedUsername);
     } else {
-      setButtonBusy(elements.submitButton, 'Rastrear', false);
-      setButtonBusy(elements.refreshButton, 'Actualizar', false);
+      setButtonBusy(elements.submitButton, "Escanear", false);
+      setButtonBusy(elements.refreshButton, "Reescanear actual", false);
     }
     setStatus(
       result.alreadyRunning
-        ? `Ya había un tracking corriendo para ${label}. Estoy mostrando el progreso.`
-        : `Tracking iniciado para ${label}.`
+        ? `Ya había un escaneo corriendo para ${label}. Estoy mostrando el progreso.`
+        : `Escaneo iniciado para ${label}.`
     );
   } catch (error) {
     setStatus(error.message, true);
-    setButtonBusy(elements.submitButton, 'Rastrear', false);
-    setButtonBusy(elements.refreshButton, 'Actualizar', false);
+    setButtonBusy(elements.submitButton, "Escanear", false);
+    setButtonBusy(elements.refreshButton, "Reescanear actual", false);
   }
 }
 
 async function expandTrackingResults() {
   if (!state.currentTrackQuery) {
-    setStatus('Primero rastreá un perfil o hashtag.', true);
+    setStatus("Primero escaneá un perfil o hashtag.", true);
     return;
   }
   const previousLimit = state.currentTrackLimit;
   state.currentTrackLimit += state.currentTrackBatchSize;
   try {
-    await postJson('/api/profiles/track', { username: state.currentTrackQuery, limit: state.currentTrackLimit });
-    await loadTrackingStatus(state.currentUsername || state.currentTrackQuery.replace(/^@+/, '').trim());
-    setStatus('Se amplió la cantidad de resultados disponibles.');
+    await postJson("/api/profiles/track", { username: state.currentTrackQuery, limit: state.currentTrackLimit });
+    await loadTrackingStatus(state.selectedScrapedUsername || state.currentTrackQuery.replace(/^@+/, "").trim());
+    setStatus("Se amplió la cantidad de resultados disponibles.");
   } catch (error) {
     state.currentTrackLimit = previousLimit;
     setStatus(error.message, true);
   }
 }
 
-async function queueTrackingSelection({ publishNow = false } = {}) {
-  const mediaIds = Array.from(state.selectedTrackIds);
-  const youtubeAccountId = Number(elements.queueAccountSelect.value || state.selectedAccountId);
-  if (!mediaIds.length) {
-    setStatus('Seleccioná al menos un video.', true);
-    return;
-  }
-  if (!Number.isFinite(youtubeAccountId)) {
-    setStatus('Elegí un perfil destino antes de mandar a cola.', true);
-    return;
-  }
-  const response = await postJson('/api/publications', { mediaIds, youtubeAccountId });
-  if (publishNow) {
-    await Promise.all((response.items || []).map((item) => postJson(`/api/publications/${item.id}/publish`, {})));
-  }
-  state.selectedTrackIds.clear();
-  await Promise.all([loadPublications(), loadLibrary(), loadAccounts(), loadDashboard()]);
-  setStatus(publishNow ? 'Los videos se mandaron a la cola y se intentó publicar.' : 'Los videos fueron enviados a la cola.');
-  setActiveView('queue');
-}
-
 async function saveTrackingSelectionToLibrary() {
   const mediaIds = Array.from(state.selectedTrackIds);
   if (!mediaIds.length) {
-    setStatus('Seleccioná al menos un video para guardarlo.', true);
+    setStatus("Seleccioná al menos un video para guardarlo.", true);
     return;
   }
-  await postJson('/api/library/capture-media', {
+  await postJson("/api/library/capture-media", {
     mediaIds,
-    label: state.currentUsername ? `captura-${state.currentUsername}` : 'captura-manual'
+    label: state.selectedScrapedUsername ? `captura-${state.selectedScrapedUsername}` : "captura-manual"
   });
   state.selectedTrackIds.clear();
   await Promise.all([loadLibrary(), loadDashboard()]);
-  setStatus('Los videos quedaron guardados en biblioteca.');
-  setActiveView('library');
+  renderScrapedProfiles();
+  setStatus("Los videos quedaron guardados en biblioteca.");
+}
+
+async function loadAccounts(forceSelected = false) {
+  const { accounts, oauth } = await fetchJson("/api/youtube/accounts");
+  state.accounts = Array.isArray(accounts) ? accounts : [];
+  state.oauth = oauth || null;
+
+  if (!state.selectedAccountId && state.accounts.length) {
+    state.selectedAccountId = String(
+      state.accounts.find((item) => item.oauth_status === "connected")?.id || state.accounts[0].id
+    );
+  }
+  if (state.selectedAccountId && !state.accounts.some((item) => String(item.id) === String(state.selectedAccountId))) {
+    state.selectedAccountId = state.accounts[0] ? String(state.accounts[0].id) : null;
+  }
+
+  await Promise.all([ensureSelectedAccountVideos(forceSelected), ensureSelectedAccountClones(forceSelected)]);
+  renderYoutubeAccounts();
+}
+
+async function ensureSelectedAccountVideos(force = false) {
+  if (!state.selectedAccountId) return;
+  const accountId = String(state.selectedAccountId);
+  if (!force && state.accountVideosById[accountId]) return;
+  try {
+    const payload = await fetchJson(`/api/youtube/accounts/${accountId}/videos?limit=12`);
+    state.accountVideosById[accountId] = Array.isArray(payload.items) ? payload.items : [];
+    state.accountChannelById[accountId] = payload.channel || null;
+  } catch {
+    state.accountVideosById[accountId] = [];
+    state.accountChannelById[accountId] = null;
+  }
+}
+
+async function ensureSelectedAccountClones(force = false) {
+  if (!state.selectedAccountId) return;
+  const accountId = String(state.selectedAccountId);
+  if (!force && state.accountClonesById[accountId]) return;
+  try {
+    const payload = await fetchJson(`/api/youtube/accounts/${accountId}/clones`);
+    state.accountClonesById[accountId] = Array.isArray(payload.items) ? payload.items : [];
+  } catch {
+    state.accountClonesById[accountId] = [];
+  }
+}
+
+async function loadLibrary() {
+  const { items } = await fetchJson("/api/library/videos");
+  state.libraryItems = Array.isArray(items) ? items : [];
+  renderYoutubeAccounts();
+}
+
+async function loadPublications() {
+  const { items } = await fetchJson("/api/publications");
+  state.publications = Array.isArray(items) ? items : [];
+  renderQueue();
+  renderYoutubeAccounts();
 }
 
 async function sendLibraryVideoToQueue(libraryVideoId, youtubeAccountId, publishNow = false) {
-  if (!Number.isFinite(Number(youtubeAccountId))) {
-    setStatus('Elegí un perfil destino primero.', true);
-    return;
-  }
-  const response = await postJson('/api/publications', {
-    libraryVideoIds: [libraryVideoId],
+  const response = await postJson("/api/publications", {
+    libraryVideoIds: [Number(libraryVideoId)],
     youtubeAccountId: Number(youtubeAccountId)
   });
   if (publishNow) {
     await Promise.all((response.items || []).map((item) => postJson(`/api/publications/${item.id}/publish`, {})));
   }
   await Promise.all([loadPublications(), loadLibrary(), loadAccounts(), loadDashboard()]);
-  setStatus(publishNow ? 'Se creó la publicación y se intentó subir ahora.' : 'El video se agregó a la cola del perfil.');
-  if (publishNow) {
-    setActiveView('queue');
-  }
+  setStatus(publishNow ? "Se creó la publicación y se intentó subir ahora." : "El video se agregó a la cola del perfil.");
 }
 
 async function publishExistingPublication(publicationId) {
@@ -293,251 +304,224 @@ async function syncExistingPublication(publicationId) {
   setStatus(`La publicación ${publicationId} fue sincronizada.`);
 }
 
+async function createClone() {
+  if (!state.selectedAccountId) {
+    setStatus("Elegí una cuenta de YouTube primero.", true);
+    return;
+  }
+  if (!state.cloneForm.trackedProfileId) {
+    setStatus("Elegí un perfil scrapeado para clonar.", true);
+    return;
+  }
+  await postJson(`/api/youtube/accounts/${state.selectedAccountId}/clones`, {
+    trackedProfileId: Number(state.cloneForm.trackedProfileId),
+    dailyLimit: Number(state.cloneForm.dailyLimit || 1)
+  });
+  await Promise.all([ensureSelectedAccountClones(true), loadPublications(), loadDashboard(), loadAccounts()]);
+  setStatus("La clonación quedó creada y sus publicaciones fueron programadas.");
+}
+
 function bindStaticEvents() {
   elements.navTabs.forEach((button) => {
-    button.addEventListener('click', () => setActiveView(button.dataset.view));
+    button.addEventListener("click", () => setActiveView(button.dataset.view));
   });
 
-  elements.trackForm.addEventListener('submit', async (event) => {
+  elements.trackForm.addEventListener("submit", async (event) => {
     event.preventDefault();
     await trackUsername(elements.username.value);
   });
 
-  elements.refreshButton.addEventListener('click', async () => {
-    if (!state.currentTrackQuery) {
-      setStatus('Primero rastreá un perfil o hashtag.', true);
+  elements.refreshButton.addEventListener("click", async () => {
+    if (!state.selectedScrapedUsername && !state.currentTrackQuery) {
+      setStatus("Primero elegí o escaneá un perfil.", true);
       return;
     }
-    await trackUsername(state.currentTrackQuery);
+    await trackUsername(state.currentTrackQuery || formatUsernameForInput(state.selectedScrapedUsername));
   });
 
-  elements.queueAccountSelect.addEventListener('change', () => renderTracking());
-  elements.saveLibraryButton.addEventListener('click', () => saveTrackingSelectionToLibrary().catch((error) => setStatus(error.message, true)));
-  elements.queueSelectedButton.addEventListener('click', () => queueTrackingSelection().catch((error) => setStatus(error.message, true)));
-  elements.trackPrevPage.addEventListener('click', () => {
-    state.currentTrackPage = Math.max(1, state.currentTrackPage - 1);
-    renderTracking();
-  });
-  elements.trackNextPage.addEventListener('click', () => {
-    state.currentTrackPage += 1;
-    renderTracking();
-  });
-  elements.loadMoreMediaButton.addEventListener('click', () => expandTrackingResults().catch((error) => setStatus(error.message, true)));
+  elements.refreshScrapedButton.addEventListener("click", () =>
+    loadScrapedProfiles()
+      .then(() => (state.selectedScrapedUsername ? loadScrapedProfile(state.selectedScrapedUsername) : null))
+      .catch((error) => setStatus(error.message, true))
+  );
 
-  elements.mediaGrid.addEventListener('change', (event) => {
+  elements.scrapedProfilesPrevPage.addEventListener("click", () => {
+    state.scrapedProfilesPage = Math.max(1, state.scrapedProfilesPage - 1);
+    renderScrapedProfiles();
+  });
+  elements.scrapedProfilesNextPage.addEventListener("click", () => {
+    state.scrapedProfilesPage += 1;
+    renderScrapedProfiles();
+  });
+  elements.scrapedVideosPrevPage.addEventListener("click", () => {
+    state.scrapedVideosPage = Math.max(1, state.scrapedVideosPage - 1);
+    renderScrapedProfiles();
+  });
+  elements.scrapedVideosNextPage.addEventListener("click", () => {
+    state.scrapedVideosPage += 1;
+    renderScrapedProfiles();
+  });
+  elements.loadMoreMediaButton.addEventListener("click", () => expandTrackingResults().catch((error) => setStatus(error.message, true)));
+  elements.saveLibraryButton.addEventListener("click", () => saveTrackingSelectionToLibrary().catch((error) => setStatus(error.message, true)));
+
+  elements.scrapedProfilesList.addEventListener("click", (event) => {
+    const button = event.target.closest('[data-action="select-scraped-profile"]');
+    if (!button) return;
+    loadScrapedProfile(button.dataset.username).catch((error) => setStatus(error.message, true));
+  });
+
+  elements.scrapedProfileHeader.addEventListener("click", (event) => {
+    const button = event.target.closest('[data-action="rescan-scraped-profile"]');
+    if (!button || !state.selectedScrapedUsername) return;
+    trackUsername(formatUsernameForInput(state.selectedScrapedUsername)).catch((error) => setStatus(error.message, true));
+  });
+
+  elements.scrapedVideosGrid.addEventListener("change", (event) => {
     const target = event.target;
-    if (!(target instanceof HTMLInputElement)) return;
-    if (target.dataset.action !== 'toggle-track') return;
+    if (!(target instanceof HTMLInputElement) || target.dataset.action !== "toggle-track") return;
     const id = String(target.dataset.id);
     if (target.checked) state.selectedTrackIds.add(id);
     else state.selectedTrackIds.delete(id);
-    renderTracking();
+    renderScrapedProfiles();
   });
 
-  elements.librarySearchInput.addEventListener('input', () => {
-    state.libraryFilters.search = elements.librarySearchInput.value;
-    state.libraryPage = 1;
-    renderLibrary();
+  elements.refreshAccountsButton.addEventListener("click", () => loadAccounts(true).catch((error) => setStatus(error.message, true)));
+  elements.addYoutubeAccountButton.addEventListener("click", (event) => {
+    if (elements.addYoutubeAccountButton.getAttribute("aria-disabled") === "true") {
+      event.preventDefault();
+      setStatus("Google OAuth no está configurado todavía.", true);
+    }
   });
-  elements.libraryStatusFilter.addEventListener('change', () => {
-    state.libraryFilters.status = elements.libraryStatusFilter.value;
-    state.libraryPage = 1;
-    renderLibrary();
+  elements.youtubeProfilesPrevPage.addEventListener("click", () => {
+    state.youtubeListPage = Math.max(1, state.youtubeListPage - 1);
+    renderYoutubeAccounts();
   });
-  elements.librarySourceFilter.addEventListener('change', () => {
-    state.libraryFilters.source = elements.librarySourceFilter.value;
-    state.libraryPage = 1;
-    renderLibrary();
+  elements.youtubeProfilesNextPage.addEventListener("click", () => {
+    state.youtubeListPage += 1;
+    renderYoutubeAccounts();
   });
-  elements.libraryPrevPageButton.addEventListener('click', () => {
-    state.libraryPage = Math.max(1, state.libraryPage - 1);
-    renderLibrary();
-  });
-  elements.libraryNextPageButton.addEventListener('click', () => {
-    state.libraryPage += 1;
-    renderLibrary();
-  });
-  elements.libraryVideoList.addEventListener('click', (event) => {
-    const button = event.target.closest('[data-action="library-queue"]');
+  elements.youtubeProfilesList.addEventListener("click", (event) => {
+    const button = event.target.closest('[data-action="select-youtube-profile"]');
     if (!button) return;
-    const accountId = Number(elements.libraryTargetAccountSelect.value || state.selectedAccountId);
-    sendLibraryVideoToQueue(button.dataset.id, accountId).catch((error) => setStatus(error.message, true));
-  });
-
-  elements.refreshAccountsButton.addEventListener('click', () => loadAccounts().catch((error) => setStatus(error.message, true)));
-  elements.profilesPrevPage.addEventListener('click', () => {
-    state.profileListPage = Math.max(1, state.profileListPage - 1);
-    renderProfiles();
-  });
-  elements.profilesNextPage.addEventListener('click', () => {
-    state.profileListPage += 1;
-    renderProfiles();
-  });
-
-  elements.profilesList.addEventListener('click', (event) => {
-    const button = event.target.closest('[data-action="select-profile"]');
-    if (!button) return;
-    state.selectedAccountId = button.dataset.id;
-    state.currentProfileTab = 'summary';
-    state.profileUploadsPage = 1;
-    state.profileQueuePage = 1;
+    state.selectedAccountId = String(button.dataset.id);
+    state.currentYoutubeTab = "videos";
+    state.youtubeVideosPage = 1;
     state.profilePublishPage = 1;
-    ensureSelectedAccountVideos().then(() => renderProfiles());
+    Promise.all([ensureSelectedAccountVideos(), ensureSelectedAccountClones()])
+      .then(() => renderYoutubeAccounts())
+      .catch((error) => setStatus(error.message, true));
   });
 
-  elements.profileTabBar.addEventListener('click', (event) => {
-    const button = event.target.closest('.profile-tab');
+  elements.youtubeProfileTabBar.addEventListener("click", (event) => {
+    const button = event.target.closest(".profile-tab");
     if (!button) return;
-    state.currentProfileTab = button.dataset.tab;
-    renderProfiles();
+    state.currentYoutubeTab = button.dataset.tab;
+    renderYoutubeAccounts();
   });
 
-  elements.profileTabContent.addEventListener('click', (event) => {
-    const actionTarget = event.target.closest('[data-action]');
+  elements.youtubeProfileTabContent.addEventListener("click", (event) => {
+    const actionTarget = event.target.closest("[data-action]");
     if (!actionTarget) return;
     const action = actionTarget.dataset.action;
-    if (action === 'profile-uploads-prev') {
-      state.profileUploadsPage = Math.max(1, state.profileUploadsPage - 1);
-      renderProfiles();
+    if (action === "youtube-videos-prev") {
+      state.youtubeVideosPage = Math.max(1, state.youtubeVideosPage - 1);
+      renderYoutubeAccounts();
       return;
     }
-    if (action === 'profile-uploads-next') {
-      state.profileUploadsPage += 1;
-      renderProfiles();
+    if (action === "youtube-videos-next") {
+      state.youtubeVideosPage += 1;
+      renderYoutubeAccounts();
       return;
     }
-    if (action === 'profile-queue-prev') {
-      state.profileQueuePage = Math.max(1, state.profileQueuePage - 1);
-      renderProfiles();
-      return;
-    }
-    if (action === 'profile-queue-next') {
-      state.profileQueuePage += 1;
-      renderProfiles();
-      return;
-    }
-    if (action === 'profile-publish-prev') {
+    if (action === "profile-publish-prev") {
       state.profilePublishPage = Math.max(1, state.profilePublishPage - 1);
-      renderProfiles();
+      renderYoutubeAccounts();
       return;
     }
-    if (action === 'profile-publish-next') {
+    if (action === "profile-publish-next") {
       state.profilePublishPage += 1;
-      renderProfiles();
+      renderYoutubeAccounts();
       return;
     }
-    if (action === 'publish-add-to-queue') {
+    if (action === "publish-add-to-queue") {
       sendLibraryVideoToQueue(actionTarget.dataset.id, actionTarget.dataset.accountId).catch((error) => setStatus(error.message, true));
       return;
     }
-    if (action === 'publish-now-from-library') {
+    if (action === "publish-now-from-library") {
       sendLibraryVideoToQueue(actionTarget.dataset.id, actionTarget.dataset.accountId, true).catch((error) => setStatus(error.message, true));
       return;
     }
-    if (action === 'publication-publish') {
-      publishExistingPublication(actionTarget.dataset.id).catch((error) => setStatus(error.message, true));
-      return;
-    }
-    if (action === 'publication-sync') {
-      syncExistingPublication(actionTarget.dataset.id).catch((error) => setStatus(error.message, true));
-    }
   });
 
-  elements.profileTabContent.addEventListener('input', (event) => {
+  elements.youtubeProfileTabContent.addEventListener("input", (event) => {
     const target = event.target;
     if (!(target instanceof HTMLInputElement || target instanceof HTMLSelectElement)) return;
-    if (target.id === 'profile-publish-search') {
+    if (target.id === "profile-publish-search") {
       state.profilePublishFilters.search = target.value;
       state.profilePublishPage = 1;
-      renderProfiles();
+      renderYoutubeAccounts();
+      return;
+    }
+    if (target.id === "clone-daily-limit-input") {
+      state.cloneForm.dailyLimit = Math.max(1, Number(target.value || 1));
+      renderYoutubeAccounts();
     }
   });
-  elements.profileTabContent.addEventListener('change', (event) => {
+
+  elements.youtubeProfileTabContent.addEventListener("change", (event) => {
     const target = event.target;
     if (!(target instanceof HTMLInputElement || target instanceof HTMLSelectElement)) return;
-    if (target.id === 'profile-publish-source') {
+    if (target.id === "profile-publish-source") {
       state.profilePublishFilters.source = target.value;
       state.profilePublishPage = 1;
-      renderProfiles();
+      renderYoutubeAccounts();
       return;
     }
-    if (target.id === 'profile-publish-availability') {
+    if (target.id === "profile-publish-availability") {
       state.profilePublishFilters.availability = target.value;
       state.profilePublishPage = 1;
-      renderProfiles();
-    }
-  });
-
-  elements.profileSideActions.addEventListener('click', (event) => {
-    const actionTarget = event.target.closest('[data-action]');
-    if (!actionTarget) return;
-    const action = actionTarget.dataset.action;
-    if (action === 'refresh-profile-videos') {
-      ensureSelectedAccountVideos(true).then(() => {
-        renderProfiles();
-        setStatus('Se refrescaron los videos del perfil activo.');
-      });
+      renderYoutubeAccounts();
       return;
     }
-    if (action === 'open-queue-view') {
-      setActiveView('queue');
+    if (target.id === "clone-tracked-profile-select") {
+      state.cloneForm.trackedProfileId = target.value;
+      renderYoutubeAccounts();
     }
   });
 
-  elements.youtubeForm.addEventListener('submit', async (event) => {
+  elements.youtubeProfileTabContent.addEventListener("submit", (event) => {
+    const form = event.target;
+    if (!(form instanceof HTMLFormElement) || form.id !== "clone-form") return;
     event.preventDefault();
-    await runWithBusyButton(elements.youtubeForm.querySelector('button[type="submit"]'), 'Guardando...', async () => {
-      await postJson('/api/youtube/accounts', {
-        channelTitle: elements.channelTitle.value,
-        channelHandle: elements.channelHandle.value,
-        channelId: elements.channelId.value,
-        contactEmail: elements.contactEmail.value
-      });
-      elements.youtubeForm.reset();
-      await Promise.all([loadAccounts(), loadDashboard()]);
-      setStatus('El canal fue agregado.');
-    }).catch((error) => setStatus(error.message, true));
+    runWithBusyButton(form.querySelector('button[type="submit"]'), "Creando...", createClone).catch((error) =>
+      setStatus(error.message, true)
+    );
   });
 
-  elements.youtubeBulkForm.addEventListener('submit', async (event) => {
-    event.preventDefault();
-    const accounts = parseBulkYoutubeAccounts(elements.youtubeBulkInput.value);
-    if (!accounts.length) {
-      setStatus('Pegá al menos una cuenta válida para importar.', true);
-      return;
-    }
-    await runWithBusyButton(elements.youtubeBulkButton, 'Importando...', async () => {
-      await postJson('/api/youtube/accounts/bulk', { accounts });
-      elements.youtubeBulkForm.reset();
-      await Promise.all([loadAccounts(), loadDashboard()]);
-      setStatus(`Se importaron ${accounts.length} canales.`);
-    }).catch((error) => setStatus(error.message, true));
-  });
-
-  elements.queueTabBar.addEventListener('click', (event) => {
-    const button = event.target.closest('.queue-tab');
+  elements.queueTabBar.addEventListener("click", (event) => {
+    const button = event.target.closest(".queue-tab");
     if (!button) return;
     state.queueTab = button.dataset.queueTab;
     state.queuePage = 1;
     renderQueue();
   });
-  elements.queuePrevPage.addEventListener('click', () => {
+  elements.queuePrevPage.addEventListener("click", () => {
     state.queuePage = Math.max(1, state.queuePage - 1);
     renderQueue();
   });
-  elements.queueNextPage.addEventListener('click', () => {
+  elements.queueNextPage.addEventListener("click", () => {
     state.queuePage += 1;
     renderQueue();
   });
-  elements.refreshPublicationsButton.addEventListener('click', () => loadPublications().catch((error) => setStatus(error.message, true)));
-  elements.publicationList.addEventListener('click', (event) => {
-    const actionTarget = event.target.closest('[data-action]');
+  elements.refreshPublicationsButton.addEventListener("click", () => loadPublications().catch((error) => setStatus(error.message, true)));
+  elements.publicationList.addEventListener("click", (event) => {
+    const actionTarget = event.target.closest("[data-action]");
     if (!actionTarget) return;
-    if (actionTarget.dataset.action === 'publication-publish') {
+    if (actionTarget.dataset.action === "publication-publish") {
       publishExistingPublication(actionTarget.dataset.id).catch((error) => setStatus(error.message, true));
       return;
     }
-    if (actionTarget.dataset.action === 'publication-sync') {
+    if (actionTarget.dataset.action === "publication-sync") {
       syncExistingPublication(actionTarget.dataset.id).catch((error) => setStatus(error.message, true));
     }
   });
@@ -545,14 +529,21 @@ function bindStaticEvents() {
 
 async function init() {
   handleOauthFeedback();
+  bindGlobalImageFallback();
   bindStaticEvents();
-  setActiveView('tracking');
-  setStatus('Cargando workspace...');
+  setActiveView("scraped");
+  setStatus("Cargando workspace...");
 
   try {
-    await Promise.all([loadDashboard(), loadAccounts(), loadLibrary(), loadPublications()]);
-    renderTracking();
-    setStatus('Workspace listo. El flujo ahora es: rastrear → biblioteca → perfil → cola.');
+    await Promise.all([loadDashboard(), loadScrapedProfiles(), loadAccounts(), loadLibrary(), loadPublications()]);
+    if (state.selectedScrapedUsername) {
+      await loadScrapedProfile(state.selectedScrapedUsername);
+    } else {
+      renderScrapedProfiles();
+    }
+    renderYoutubeAccounts();
+    renderQueue();
+    setStatus("Workspace listo. Flujo activo: perfiles scrapeados → perfiles YouTube → publicar o clonar.");
   } catch (error) {
     setStatus(error.message, true);
   }

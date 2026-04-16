@@ -294,6 +294,35 @@ textarea {
   background: #eef2f7;
 }
 
+.media-thumb-shell {
+  position: relative;
+  width: 100%;
+}
+
+.media-thumb-fallback {
+  display: none;
+  width: 100%;
+  min-height: 100%;
+  border-radius: 16px;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 14px;
+  background:
+    linear-gradient(135deg, rgba(255, 0, 51, 0.08), rgba(17, 19, 24, 0.04)),
+    #eef2f7;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.media-thumb-shell.is-fallback img {
+  display: none;
+}
+
+.media-thumb-shell.is-fallback .media-thumb-fallback {
+  display: flex;
+}
+
 .video-thumb {
   aspect-ratio: 9 / 16;
 }
@@ -346,6 +375,22 @@ textarea {
   width: 76px;
   aspect-ratio: 9 / 16;
   flex: 0 0 76px;
+}
+
+.video-row-thumb-shell,
+.channel-video-thumb-shell {
+  width: 76px;
+  flex: 0 0 76px;
+}
+
+.video-row-thumb-shell .media-thumb-fallback,
+.channel-video-thumb-shell .media-thumb-fallback {
+  aspect-ratio: 9 / 16;
+  font-size: 0.78rem;
+}
+
+.video-thumb-shell .media-thumb-fallback {
+  aspect-ratio: 9 / 16;
 }
 
 .video-row-main,

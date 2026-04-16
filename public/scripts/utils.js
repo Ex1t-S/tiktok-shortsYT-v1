@@ -15,6 +15,8 @@ export function translateStatus(value) {
     manual: "manual",
     connected: "conectado",
     ready_for_oauth: "listo para oauth",
+    oauth_pending: "oauth pendiente",
+    active: "activo",
     private: "privado",
     public: "publico",
     unlisted: "oculto"
@@ -36,7 +38,8 @@ export function translateSeedType(value) {
 export function translateSourceKind(value) {
   const labels = {
     tracked_media: "video encontrado",
-    library_video: "video de biblioteca"
+    library_video: "video de biblioteca",
+    clone: "clonación"
   };
 
   return labels[String(value || "").toLowerCase()] || String(value || "-");
@@ -47,7 +50,10 @@ export function translateStorageProvider(value) {
     local: "local",
     remote_url: "url remota",
     "s3-compatible": "s3 / r2",
-    zip_import: "zip"
+    zip_import: "zip",
+    tracked_capture: "captura",
+    direct_upload: "archivo local",
+    cloud_reference: "cloud"
   };
 
   return labels[String(value || "").toLowerCase()] || String(value || "-");

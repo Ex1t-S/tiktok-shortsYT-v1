@@ -1,4 +1,4 @@
-import { elements, state } from './dom.js';
+import { elements, state } from "./dom.js";
 import {
   escapeHtml,
   formatDate,
@@ -10,7 +10,7 @@ import {
   translateStatus,
   translateStatusDetail,
   translateStorageProvider
-} from './utils.js';
+} from "./utils.js";
 
 function paginate(items, page, pageSize) {
   const safePageSize = Math.max(1, pageSize);
@@ -30,249 +30,260 @@ function renderEmpty(target, message) {
   target.innerHTML = `<div class="empty-state">${escapeHtml(message)}</div>`;
 }
 
+function renderThumb(src, alt, imgClass, placeholder = "Sin preview") {
+  return `
+    <div class="media-thumb-shell ${imgClass}-shell">
+      <img class="${imgClass}" src="${src || ""}" alt="${escapeHtml(alt || "")}" loading="lazy" data-fallback-thumb="true" />
+      <span class="media-thumb-fallback">${escapeHtml(placeholder)}</span>
+    </div>
+  `;
+}
+
 function accountLabel(account) {
-  return escapeHtml(account?.channel_title || account?.channel_handle || account?.channel_id || 'Canal');
+  return escapeHtml(account?.channel_title || account?.channel_handle || account?.channel_id || "Canal");
 }
 
 function getSelectedAccount() {
   return state.accounts.find((item) => String(item.id) === String(state.selectedAccountId)) || null;
 }
 
-function getProfileVideos(accountId) {
-  return Array.isArray(state.accountVideosById[accountId]) ? state.accountVideosById[accountId] : [];
+function getSelectedAccountVideos() {
+  return Array.isArray(state.accountVideosById[state.selectedAccountId]) ? state.accountVideosById[state.selectedAccountId] : [];
 }
 
-function getProfilePublications(accountId) {
-  return state.publications.filter((item) => String(item.youtube_account_id) === String(accountId));
+function getSelectedAccountChannel() {
+  return state.accountChannelById[state.selectedAccountId] || null;
 }
 
-function isQueueLikeStatus(status) {
-  return ['queued', 'ready', 'awaiting_oauth', 'publishing', 'scheduled'].includes(String(status || '').toLowerCase());
+function getSelectedAccountClones() {
+  return Array.isArray(state.accountClonesById[state.selectedAccountId]) ? state.accountClonesById[state.selectedAccountId] : [];
+}
+
+function getSelectedAccountPublications() {
+  return state.publications.filter((item) => String(item.youtube_account_id) === String(state.selectedAccountId));
 }
 
 function getLibraryTitle(item) {
-  return item.title || item.original_filename || pathFromArchive(item.source_archive_path) || 'Video sin título';
+  return item.title || item.original_filename || pathFromArchive(item.source_archive_path) || "Video sin título";
 }
 
 function getLibraryOrigin(item) {
-  return (
-    item.source_label ||
-    item.username ||
-    pathFromArchive(item.source_archive_path) ||
-    translateStorageProvider(item.storage_provider || item.source_provider || 'local')
-  );
+  return item.source_label || pathFromArchive(item.source_archive_path) || translateStorageProvider(item.storage_provider || "local");
 }
 
 function getLibraryStatus(item) {
-  return String(item.publication_status || item.status || 'ready').toLowerCase();
+  return String(item.publication_status || item.status || "ready").toLowerCase();
 }
 
 function getLibrarySource(item) {
-  return String(item.source_kind || item.storage_provider || '').toLowerCase();
+  return String(item.source_kind || item.storage_provider || "").toLowerCase();
 }
 
-export function fillAccountSelect(select, placeholder = 'Elegir perfil destino') {
-  if (!select) return;
-  const currentValue = select.value;
-  select.innerHTML = [
-    `<option value="">${escapeHtml(placeholder)}</option>`,
-    ...state.accounts.map(
-      (account) =>
-        `<option value="${account.id}">${accountLabel(account)} · ${escapeHtml(translateStatus(account.oauth_status))}</option>`
-    )
-  ].join('');
-  if (state.accounts.some((account) => String(account.id) === currentValue)) {
-    select.value = currentValue;
-  } else if (state.selectedAccountId) {
-    select.value = String(state.selectedAccountId);
+function isQueueLikeStatus(status) {
+  return ["queued", "ready", "awaiting_oauth", "publishing", "scheduled"].includes(String(status || "").toLowerCase());
+}
+
+function buildClonePreview(profileId, dailyLimit) {
+  const profile = state.scrapedProfiles.find((item) => String(item.id) === String(profileId));
+  const totalVideos = Number(profile?.stored_video_count || profile?.video_count || 0);
+  const safeDailyLimit = Math.max(1, Number(dailyLimit || 1));
+  const previewDates = Array.from({ length: Math.min(totalVideos, 6) }, (_, index) => {
+    const dayOffset = Math.floor(index / safeDailyLimit);
+    const date = new Date(Date.now() + dayOffset * 24 * 60 * 60 * 1000);
+    return date.toISOString();
+  });
+  return {
+    profile,
+    totalVideos,
+    totalDays: totalVideos ? Math.ceil(totalVideos / safeDailyLimit) : 0,
+    previewDates
+  };
+}
+
+export function renderScrapedProfiles() {
+  renderScrapedProfilesList();
+  renderScrapedWorkspace();
+}
+
+function renderScrapedProfilesList() {
+  if (!state.scrapedProfiles.length) {
+    renderEmpty(elements.scrapedProfilesList, "Todavía no hay perfiles scrapeados.");
+    elements.scrapedProfilesPagerLabel.textContent = "Página 1";
+    elements.scrapedProfilesPrevPage.disabled = true;
+    elements.scrapedProfilesNextPage.disabled = true;
+    return;
   }
+
+  const { pageItems, currentPage, totalPages, start, end } = paginate(
+    state.scrapedProfiles,
+    state.scrapedProfilesPage,
+    state.scrapedProfilesPageSize
+  );
+  state.scrapedProfilesPage = currentPage;
+  elements.scrapedProfilesPagerLabel.textContent = `${start}-${end} de ${state.scrapedProfiles.length}`;
+  elements.scrapedProfilesPrevPage.disabled = currentPage <= 1;
+  elements.scrapedProfilesNextPage.disabled = currentPage >= totalPages;
+
+  elements.scrapedProfilesList.innerHTML = pageItems
+    .map((profile) => {
+      const active = String(profile.username) === String(state.selectedScrapedUsername);
+      const status = profile.latest_run_status || profile.last_scrape_status || "idle";
+      const label = profile.username?.startsWith("tag-")
+        ? `#${String(profile.username).replace(/^tag-/, "")}`
+        : `@${profile.username}`;
+      return `
+        <button type="button" class="profile-list-item ${active ? "active" : ""}" data-action="select-scraped-profile" data-username="${escapeHtml(
+          profile.username
+        )}">
+          <span class="profile-list-name">${escapeHtml(profile.display_name || label)}</span>
+          <span class="profile-list-sub">${escapeHtml(translateStatus(status))} · ${Number(
+            profile.stored_video_count || profile.video_count || 0
+          )} videos</span>
+        </button>
+      `;
+    })
+    .join("");
 }
 
-export function renderTracking() {
+function renderScrapedWorkspace() {
   const profile = state.currentTrackingProfile;
   const scrape = state.currentTrackingRun;
   if (!profile) {
-    renderEmpty(elements.trackingSummary, 'Todavía no elegiste un perfil o hashtag para rastrear.');
-  } else {
-    const summaryBits = [
-      `${Number(profile.total_media_count || state.currentTrackTotalAvailable || state.currentItems.length || 0)} detectados`,
-      `${Number(profile.video_count || 0)} videos`,
-      `${Number(profile.image_count || 0)} imágenes`,
-      profile.last_scraped_at ? `último scrape ${formatDate(profile.last_scraped_at)}` : ''
-    ]
-      .filter(Boolean)
-      .join(' · ');
-
-    elements.trackingSummary.innerHTML = `
-      <article class="summary-card tracking-profile-card">
-        <div class="summary-card-main">
-          <div>
-            <p class="eyebrow">Perfil rastreado</p>
-            <h3>${escapeHtml(profile.display_name || `@${profile.username || state.currentUsername}`)}</h3>
-            <p class="helper-copy">@${escapeHtml(profile.username || state.currentUsername || '-')}</p>
-          </div>
-          <span class="badge ${scrape?.status === 'failed' ? 'danger' : scrape?.status === 'success' ? 'success' : ''}">${escapeHtml(
-            translateStatus(scrape?.status || profile.last_scrape_status || 'idle')
-          )}</span>
-        </div>
-        <p class="helper-copy">${escapeHtml(summaryBits)}</p>
-        ${
-          scrape?.progress_message
-            ? `<p class="helper-inline"><strong>Tracking:</strong> ${escapeHtml(scrape.progress_message)}</p>`
-            : ''
-        }
-      </article>
-    `;
+    renderEmpty(elements.scrapedProfileHeader, "Elegí un perfil scrapeado o ejecutá un escaneo nuevo.");
+    renderEmpty(elements.scrapedVideosGrid, "Todavía no hay videos para mostrar.");
+    elements.scrapedResultsMeta.textContent = "Sin perfil activo.";
+    elements.saveLibraryButton.disabled = true;
+    elements.scrapedVideosPrevPage.disabled = true;
+    elements.scrapedVideosNextPage.disabled = true;
+    elements.scrapedVideosPagerLabel.textContent = "Página 1";
+    return;
   }
+
+  const label = profile.username?.startsWith("tag-")
+    ? `#${String(profile.username).replace(/^tag-/, "")}`
+    : `@${profile.username}`;
+  const badgeClass = scrape?.status === "failed" ? "danger" : scrape?.status === "success" ? "success" : "";
+  elements.scrapedProfileHeader.innerHTML = `
+    <div class="profile-summary-head">
+      <div>
+        <p class="eyebrow">Perfil scrapeado</p>
+        <h3>${escapeHtml(profile.display_name || label)}</h3>
+        <p class="helper-copy">${escapeHtml(label)} · ${Number(profile.total_media_count || 0)} items</p>
+      </div>
+      <div class="profile-header-actions">
+        <span class="badge ${badgeClass}">${escapeHtml(translateStatus(scrape?.status || profile.last_scrape_status || "idle"))}</span>
+        <button type="button" class="ghost-button" data-action="rescan-scraped-profile">Reescanear</button>
+      </div>
+    </div>
+    <div class="mini-stats-grid">
+      <article class="mini-stat"><span>Videos</span><strong>${Number(profile.video_count || 0)}</strong></article>
+      <article class="mini-stat"><span>Imágenes</span><strong>${Number(profile.image_count || 0)}</strong></article>
+      <article class="mini-stat"><span>Nuevos</span><strong>${Number(scrape?.new_items_count || 0)}</strong></article>
+      <article class="mini-stat"><span>Guardados</span><strong>${Number(scrape?.saved_count || state.currentItems.length || 0)}</strong></article>
+      <article class="mini-stat"><span>Último scrape</span><strong>${escapeHtml(formatDate(profile.last_scraped_at))}</strong></article>
+    </div>
+    ${
+      scrape?.progress_message
+        ? `<article class="compact-info-card soft-card"><strong>Tracking</strong><p>${escapeHtml(scrape.progress_message)}</p></article>`
+        : ""
+    }
+  `;
 
   const total = state.currentItems.length;
   elements.saveLibraryButton.disabled = state.selectedTrackIds.size === 0;
-  elements.queueSelectedButton.disabled = state.selectedTrackIds.size === 0 || !elements.queueAccountSelect.value;
-  elements.trackResultsMeta.textContent = total
+  elements.scrapedResultsMeta.textContent = total
     ? `${state.selectedTrackIds.size} seleccionados · ${total} videos cargados`
-    : 'Sin resultados todavía.';
+    : "Sin videos todavía.";
 
   const canLoadMore = Number(state.currentTrackTotalAvailable || 0) > total || total >= state.currentTrackLimit;
-  elements.loadMoreMediaButton.classList.toggle('hidden', !canLoadMore);
+  elements.loadMoreMediaButton.classList.toggle("hidden", !canLoadMore);
 
   if (!total) {
-    renderEmpty(elements.mediaGrid, 'Todavía no hay videos rastreados.');
-    elements.trackPrevPage.disabled = true;
-    elements.trackNextPage.disabled = true;
-    elements.trackingPagerLabel.textContent = 'Página 1';
+    renderEmpty(elements.scrapedVideosGrid, "Todavía no hay videos scrapeados para este perfil.");
+    elements.scrapedVideosPrevPage.disabled = true;
+    elements.scrapedVideosNextPage.disabled = true;
+    elements.scrapedVideosPagerLabel.textContent = "Página 1";
     return;
   }
 
   const { pageItems, currentPage, totalPages, start, end } = paginate(
     state.currentItems,
-    state.currentTrackPage,
-    state.currentTrackPageSize
+    state.scrapedVideosPage,
+    state.scrapedVideosPageSize
   );
-  state.currentTrackPage = currentPage;
-  elements.trackingPagerLabel.textContent = `${start}-${end} de ${total}`;
-  elements.trackPrevPage.disabled = currentPage <= 1;
-  elements.trackNextPage.disabled = currentPage >= totalPages;
+  state.scrapedVideosPage = currentPage;
+  elements.scrapedVideosPagerLabel.textContent = `${start}-${end} de ${total}`;
+  elements.scrapedVideosPrevPage.disabled = currentPage <= 1;
+  elements.scrapedVideosNextPage.disabled = currentPage >= totalPages;
 
-  elements.mediaGrid.innerHTML = pageItems
+  elements.scrapedVideosGrid.innerHTML = pageItems
     .map((item) => {
       const id = String(item.id);
       const selected = state.selectedTrackIds.has(id);
       return `
-        <article class="video-card ${selected ? 'is-selected' : ''}">
+        <article class="video-card ${selected ? "is-selected" : ""}">
           <label class="select-chip">
-            <input type="checkbox" data-action="toggle-track" data-id="${id}" ${selected ? 'checked' : ''} />
+            <input type="checkbox" data-action="toggle-track" data-id="${id}" ${selected ? "checked" : ""} />
             <span>Seleccionar</span>
           </label>
-          <img class="video-thumb" src="${item.thumbnail_url || ''}" alt="${escapeHtml(item.caption || getLibraryTitle(item))}" />
+          ${renderThumb(item.thumbnail_url, item.caption || "Video", "video-thumb", "TikTok")}
           <div class="video-card-body">
-            <strong>${escapeHtml(item.caption || 'Video sin título')}</strong>
-            <p class="video-meta">${escapeHtml(
-              [formatDuration(item.duration_seconds), formatMetric(item.view_count) + ' vistas', formatDate(item.published_at)]
+            <strong>${escapeHtml(item.caption || "Video sin título")}</strong>
+            <p>${escapeHtml(
+              [formatDuration(item.duration_seconds), `${formatMetric(item.view_count)} vistas`, formatDate(item.published_at)]
                 .filter(Boolean)
-                .join(' · ')
+                .join(" · ")
             )}</p>
           </div>
           <div class="video-card-actions compact-actions">
-            <a class="ghost-button" href="${item.post_url || '#'}" target="_blank" rel="noreferrer">Abrir</a>
+            <a class="ghost-button" href="${item.post_url || "#"}" target="_blank" rel="noreferrer">Abrir</a>
             <a class="ghost-button" href="/api/media/${item.id}/download">Descargar</a>
           </div>
         </article>
       `;
     })
-    .join('');
+    .join("");
 }
 
-function filterLibraryItems(filters) {
-  const search = String(filters.search || '').trim().toLowerCase();
-  const status = String(filters.status || '').toLowerCase();
-  const source = String(filters.source || '').toLowerCase();
-  return state.libraryItems.filter((item) => {
-    const haystack = [getLibraryTitle(item), getLibraryOrigin(item), item.channel_title, item.source_archive_path]
-      .filter(Boolean)
-      .join(' ')
-      .toLowerCase();
-    const itemStatus = getLibraryStatus(item);
-    const itemSource = getLibrarySource(item);
-    const matchesSearch = !search || haystack.includes(search);
-    const matchesStatus = !status || itemStatus === status;
-    const matchesSource = !source || itemSource === source;
-    return matchesSearch && matchesStatus && matchesSource;
-  });
+export function renderYoutubeAccounts() {
+  renderOauthBox();
+  renderYoutubeAccountsList();
+  renderYoutubeWorkspace();
 }
 
-export function renderLibrary() {
-  const filtered = filterLibraryItems(state.libraryFilters);
-  const { pageItems, currentPage, totalPages, start, end } = paginate(filtered, state.libraryPage, state.libraryPageSize);
-  state.libraryPage = currentPage;
-
-  elements.libraryResultsMeta.textContent = filtered.length ? `${start}-${end} de ${filtered.length} videos` : '0 videos';
-  elements.libraryPrevPageButton.disabled = currentPage <= 1;
-  elements.libraryNextPageButton.disabled = currentPage >= totalPages;
-
-  if (!filtered.length) {
-    renderEmpty(elements.libraryVideoList, 'No hay videos que coincidan con los filtros actuales.');
-    return;
-  }
-
-  elements.libraryVideoList.innerHTML = pageItems
-    .map((item) => {
-      const alreadyAssigned = item.channel_title || item.youtube_account_id;
-      return `
-        <article class="video-row">
-          <img class="video-row-thumb" src="${item.thumbnail_url || item.poster_url || ''}" alt="${escapeHtml(getLibraryTitle(item))}" />
-          <div class="video-row-main">
-            <strong>${escapeHtml(getLibraryTitle(item))}</strong>
-            <p>${escapeHtml(getLibraryOrigin(item))}</p>
-          </div>
-          <div class="video-row-meta">
-            <span>${escapeHtml(translateStatus(getLibraryStatus(item)))}</span>
-            <span>${escapeHtml(translateStorageProvider(item.storage_provider || 'local'))}</span>
-            ${alreadyAssigned ? `<span>${escapeHtml(item.channel_title || 'asignado')}</span>` : '<span>sin perfil</span>'}
-          </div>
-          <div class="video-row-actions">
-            <button type="button" class="ghost-button" data-action="library-queue" data-id="${item.id}">Agregar a cola</button>
-          </div>
-        </article>
-      `;
-    })
-    .join('');
-}
-
-export function renderProfiles() {
-  renderProfilesList();
-  renderProfileWorkspace();
-}
-
-export function renderProfilesList() {
+function renderYoutubeAccountsList() {
   if (!state.accounts.length) {
-    renderEmpty(elements.profilesList, 'Todavía no agregaste canales de YouTube.');
-    elements.profilesPagerLabel.textContent = 'Página 1';
-    elements.profilesPrevPage.disabled = true;
-    elements.profilesNextPage.disabled = true;
+    renderEmpty(elements.youtubeProfilesList, "Todavía no conectaste cuentas de YouTube.");
+    elements.youtubeProfilesPagerLabel.textContent = "Página 1";
+    elements.youtubeProfilesPrevPage.disabled = true;
+    elements.youtubeProfilesNextPage.disabled = true;
     return;
   }
 
   const { pageItems, currentPage, totalPages, start, end } = paginate(
     state.accounts,
-    state.profileListPage,
-    state.profileListPageSize
+    state.youtubeListPage,
+    state.youtubeListPageSize
   );
-  state.profileListPage = currentPage;
-  elements.profilesPagerLabel.textContent = `${start}-${end} de ${state.accounts.length}`;
-  elements.profilesPrevPage.disabled = currentPage <= 1;
-  elements.profilesNextPage.disabled = currentPage >= totalPages;
+  state.youtubeListPage = currentPage;
+  elements.youtubeProfilesPagerLabel.textContent = `${start}-${end} de ${state.accounts.length}`;
+  elements.youtubeProfilesPrevPage.disabled = currentPage <= 1;
+  elements.youtubeProfilesNextPage.disabled = currentPage >= totalPages;
 
-  elements.profilesList.innerHTML = pageItems
+  elements.youtubeProfilesList.innerHTML = pageItems
     .map((account) => {
-      const queueCount = getProfilePublications(account.id).filter((item) => isQueueLikeStatus(item.status)).length;
+      const active = String(account.id) === String(state.selectedAccountId);
+      const queueCount = state.publications.filter(
+        (item) => String(item.youtube_account_id) === String(account.id) && isQueueLikeStatus(item.status)
+      ).length;
       return `
-        <button type="button" class="profile-list-item ${String(account.id) === String(state.selectedAccountId) ? 'active' : ''}" data-action="select-profile" data-id="${account.id}">
+        <button type="button" class="profile-list-item ${active ? "active" : ""}" data-action="select-youtube-profile" data-id="${account.id}">
           <span class="profile-list-name">${accountLabel(account)}</span>
           <span class="profile-list-sub">${escapeHtml(translateStatus(account.oauth_status))} · ${queueCount} en cola</span>
         </button>
       `;
     })
-    .join('');
+    .join("");
 }
 
 export function renderOauthBox() {
@@ -281,284 +292,302 @@ export function renderOauthBox() {
     elements.youtubeOauthBox.innerHTML = '<div class="compact-info-card">Cargando OAuth...</div>';
     return;
   }
+
+  elements.addYoutubeAccountButton.setAttribute("href", oauth.ready ? "/api/youtube/oauth/start" : "#");
+  elements.addYoutubeAccountButton.setAttribute("aria-disabled", oauth.ready ? "false" : "true");
+
   if (oauth.ready) {
     elements.youtubeOauthBox.innerHTML = `
       <article class="compact-info-card soft-card">
-        <strong>OAuth disponible</strong>
-        <p>${oauth.redirectUri ? `Redirect activo: ${escapeHtml(oauth.redirectUri)}` : 'Revisá las variables de Google.'}</p>
+        <strong>OAuth listo</strong>
+        <p>${escapeHtml(oauth.redirectUri || "Google OAuth configurado.")}</p>
       </article>
     `;
   } else {
     elements.youtubeOauthBox.innerHTML = `
       <article class="compact-info-card danger-soft-card">
         <strong>OAuth incompleto</strong>
-        <p>${escapeHtml((oauth.missingVariables || []).join(', ') || 'Faltan variables')}</p>
+        <p>${escapeHtml((oauth.missingVariables || []).join(", ") || "Faltan variables de Google")}</p>
       </article>
     `;
   }
 }
 
-export function renderProfileWorkspace() {
+function renderYoutubeWorkspace() {
   const account = getSelectedAccount();
   if (!account) {
-    renderEmpty(elements.profileHeader, 'Elegí un perfil para ver el workspace del canal.');
-    renderEmpty(elements.profileTabContent, 'Todavía no hay un perfil activo.');
-    renderEmpty(elements.profileSideActions, 'Las acciones del perfil aparecerán acá.');
+    renderEmpty(elements.youtubeProfileHeader, "Conectá o elegí una cuenta de YouTube.");
+    renderEmpty(elements.youtubeProfileTabContent, "Todavía no hay una cuenta activa.");
+    renderEmpty(elements.youtubeSideActions, "El resumen del canal aparece acá.");
     return;
   }
 
-  const videos = getProfileVideos(account.id);
-  const publications = getProfilePublications(account.id);
+  const videos = getSelectedAccountVideos();
+  const channel = getSelectedAccountChannel();
+  const publications = getSelectedAccountPublications();
+  const clones = getSelectedAccountClones();
   const queued = publications.filter((item) => isQueueLikeStatus(item.status));
-  const published = publications.filter((item) => String(item.status).toLowerCase() === 'published');
-  const totalViews = videos.reduce((sum, item) => sum + Number(item.viewCount || 0), 0);
-  const totalLikes = videos.reduce((sum, item) => sum + Number(item.likeCount || 0), 0);
 
-  elements.profileHeader.innerHTML = `
+  elements.youtubeProfileHeader.innerHTML = `
     <div class="profile-summary-head">
       <div>
-        <p class="eyebrow">Perfil activo</p>
+        <p class="eyebrow">Perfil YouTube</p>
         <h3>${accountLabel(account)}</h3>
-        <p class="helper-copy">${escapeHtml(account.channel_handle || account.contact_email || account.channel_id || '')}</p>
+        <p class="helper-copy">${escapeHtml(account.channel_handle || account.channel_id || account.contact_email || "")}</p>
       </div>
       <div class="profile-header-actions">
-        <span class="badge ${account.oauth_status === 'connected' ? 'success' : 'warning'}">${escapeHtml(
+        <span class="badge ${account.oauth_status === "connected" ? "success" : "warning"}">${escapeHtml(
           translateStatus(account.oauth_status)
         )}</span>
-        <a class="button-link" href="/api/youtube/accounts/${account.id}/connect">Conectar OAuth</a>
+        <a class="button-link" href="/api/youtube/accounts/${account.id}/connect">Reconectar OAuth</a>
       </div>
     </div>
     <div class="mini-stats-grid">
-      <article class="mini-stat"><span>Subidos</span><strong>${videos.length}</strong></article>
-      <article class="mini-stat"><span>Vistas recientes</span><strong>${formatMetric(totalViews)}</strong></article>
-      <article class="mini-stat"><span>Likes recientes</span><strong>${formatMetric(totalLikes)}</strong></article>
+      <article class="mini-stat"><span>Videos</span><strong>${Number(channel?.statistics?.videoCount || videos.length || 0)}</strong></article>
+      <article class="mini-stat"><span>Suscriptores</span><strong>${formatMetric(channel?.statistics?.subscriberCount || 0)}</strong></article>
+      <article class="mini-stat"><span>Vistas canal</span><strong>${formatMetric(channel?.statistics?.viewCount || 0)}</strong></article>
       <article class="mini-stat"><span>En cola</span><strong>${queued.length}</strong></article>
-      <article class="mini-stat"><span>Publicados</span><strong>${published.length}</strong></article>
+      <article class="mini-stat"><span>Clonaciones</span><strong>${clones.length}</strong></article>
     </div>
   `;
 
-  elements.profileTabBar.querySelectorAll('.profile-tab').forEach((button) => {
-    button.classList.toggle('active', button.dataset.tab === state.currentProfileTab);
+  elements.youtubeProfileTabBar.querySelectorAll(".profile-tab").forEach((button) => {
+    button.classList.toggle("active", button.dataset.tab === state.currentYoutubeTab);
   });
 
-  renderProfileTabContent(account, videos, publications);
+  renderYoutubeTabContent(account, channel, videos, publications, clones);
 
-  elements.profileSideActions.innerHTML = `
+  elements.youtubeSideActions.innerHTML = `
     <article class="compact-info-card">
-      <strong>Estado del perfil</strong>
-      <p>${escapeHtml(account.oauth_status === 'connected' ? 'Listo para publicar.' : 'Conectá OAuth antes de publicar.')}</p>
+      <strong>Estado</strong>
+      <p>${escapeHtml(
+        account.oauth_status === "connected" ? "Listo para publicar y clonar." : "Conectá OAuth antes de publicar."
+      )}</p>
     </article>
     <article class="compact-info-card">
-      <strong>Subidos recientes</strong>
-      <p>${videos.length ? `Último video: ${escapeHtml(videos[0]?.title || 'sin título')}` : 'Todavía no hay videos sincronizados.'}</p>
+      <strong>Clonaciones activas</strong>
+      <p>${clones.length ? `${clones.length} configuradas para este canal.` : "Todavía no hay clonaciones creadas."}</p>
     </article>
-    <div class="inline-action-list">
-      <button type="button" class="ghost-button" data-action="refresh-profile-videos" data-id="${account.id}">Sincronizar videos</button>
-      <button type="button" class="ghost-button" data-action="open-queue-view">Ver cola general</button>
-    </div>
+    <article class="compact-info-card">
+      <strong>Último video</strong>
+      <p>${videos.length ? escapeHtml(videos[0]?.title || "Video sin título") : "Todavía no hay videos sincronizados."}</p>
+    </article>
   `;
 }
 
-function renderProfileTabContent(account, videos, publications) {
-  if (state.currentProfileTab === 'summary') {
-    const queueItems = publications.filter((item) => isQueueLikeStatus(item.status)).slice(0, 4);
-    elements.profileTabContent.innerHTML = `
-      <div class="two-column-panel">
-        <section class="subpanel">
-          <div class="subpanel-head">
-            <strong>Últimos subidos</strong>
-            <span class="helper-inline">Mostrando pocos para no saturar.</span>
-          </div>
-          ${renderChannelVideoCards(videos.slice(0, 4), true)}
-        </section>
-        <section class="subpanel">
-          <div class="subpanel-head">
-            <strong>Lo pendiente en este perfil</strong>
-            <span class="helper-inline">De acá sale lo que se publica.</span>
-          </div>
-          ${renderQueueCards(queueItems, true)}
-        </section>
-      </div>
-    `;
-    return;
-  }
-
-  if (state.currentProfileTab === 'uploads') {
-    const { pageItems, currentPage, totalPages, start, end } = paginate(videos, state.profileUploadsPage, state.profileTabPageSize);
-    state.profileUploadsPage = currentPage;
-    elements.profileTabContent.innerHTML = `
+function renderYoutubeTabContent(account, channel, videos, publications, clones) {
+  if (state.currentYoutubeTab === "videos") {
+    const { pageItems, currentPage, totalPages, start, end } = paginate(
+      videos,
+      state.youtubeVideosPage,
+      state.youtubeTabPageSize
+    );
+    state.youtubeVideosPage = currentPage;
+    elements.youtubeProfileTabContent.innerHTML = `
       <section class="subpanel">
         <div class="subpanel-head between">
           <div>
-            <strong>Videos subidos</strong>
-            <span class="helper-inline">${videos.length ? `${start}-${end} de ${videos.length}` : 'Sin videos'}</span>
+            <strong>Videos del canal</strong>
+            <span class="helper-inline">${videos.length ? `${start}-${end} de ${videos.length}` : "Sin videos"}</span>
           </div>
           <div class="pager-controls">
-            <button type="button" class="ghost-button" data-action="profile-uploads-prev">Anterior</button>
-            <button type="button" class="ghost-button" data-action="profile-uploads-next">Siguiente</button>
+            <button type="button" class="ghost-button" data-action="youtube-videos-prev">Anterior</button>
+            <button type="button" class="ghost-button" data-action="youtube-videos-next">Siguiente</button>
           </div>
         </div>
-        ${renderChannelVideoCards(pageItems, false)}
+        ${renderChannelVideoCards(pageItems)}
       </section>
     `;
-    elements.profileTabContent.querySelector('[data-action="profile-uploads-prev"]').disabled = currentPage <= 1;
-    elements.profileTabContent.querySelector('[data-action="profile-uploads-next"]').disabled = currentPage >= totalPages;
+    elements.youtubeProfileTabContent.querySelector('[data-action="youtube-videos-prev"]').disabled = currentPage <= 1;
+    elements.youtubeProfileTabContent.querySelector('[data-action="youtube-videos-next"]').disabled = currentPage >= totalPages;
     return;
   }
 
-  if (state.currentProfileTab === 'queue') {
-    const queueItems = publications.filter((item) => isQueueLikeStatus(item.status));
-    const { pageItems, currentPage, totalPages, start, end } = paginate(queueItems, state.profileQueuePage, state.profileTabPageSize);
-    state.profileQueuePage = currentPage;
-    elements.profileTabContent.innerHTML = `
+  if (state.currentYoutubeTab === "stats") {
+    const totalViews = videos.reduce((sum, item) => sum + Number(item.viewCount || 0), 0);
+    const totalLikes = videos.reduce((sum, item) => sum + Number(item.likeCount || 0), 0);
+    const published = publications.filter((item) => String(item.status).toLowerCase() === "published").length;
+    elements.youtubeProfileTabContent.innerHTML = `
+      <section class="subpanel">
+        <div class="mini-stats-grid">
+          <article class="mini-stat"><span>Suscriptores</span><strong>${formatMetric(channel?.statistics?.subscriberCount || 0)}</strong></article>
+          <article class="mini-stat"><span>Vistas recientes</span><strong>${formatMetric(totalViews)}</strong></article>
+          <article class="mini-stat"><span>Likes recientes</span><strong>${formatMetric(totalLikes)}</strong></article>
+          <article class="mini-stat"><span>Publicaciones locales</span><strong>${publications.length}</strong></article>
+          <article class="mini-stat"><span>Publicados</span><strong>${published}</strong></article>
+        </div>
+        <div class="two-column-panel top-gap">
+          <section class="subpanel">
+            <div class="subpanel-head"><strong>Estado del canal</strong></div>
+            <article class="compact-info-card">
+              <p>Canal: ${accountLabel(account)}</p>
+              <p>OAuth: ${escapeHtml(translateStatus(account.oauth_status))}</p>
+              <p>Última sincronización: ${escapeHtml(formatDate(account.last_sync_at))}</p>
+            </article>
+          </section>
+          <section class="subpanel">
+            <div class="subpanel-head"><strong>Actividad</strong></div>
+            ${renderQueueCards(publications.slice(0, 4))}
+          </section>
+        </div>
+      </section>
+    `;
+    return;
+  }
+
+  if (state.currentYoutubeTab === "publish") {
+    const publishable = filterPublishableLibrary(account.id);
+    const { pageItems, currentPage, totalPages, start, end } = paginate(
+      publishable,
+      state.profilePublishPage,
+      state.youtubeTabPageSize
+    );
+    state.profilePublishPage = currentPage;
+    elements.youtubeProfileTabContent.innerHTML = `
       <section class="subpanel">
         <div class="subpanel-head between">
           <div>
-            <strong>Cola del perfil</strong>
-            <span class="helper-inline">${queueItems.length ? `${start}-${end} de ${queueItems.length}` : 'Sin trabajos'}</span>
+            <strong>Publicar desde biblioteca</strong>
+            <span class="helper-inline">${publishable.length ? `${start}-${end} de ${publishable.length}` : "Sin disponibles"}</span>
           </div>
-          <div class="pager-controls">
-            <button type="button" class="ghost-button" data-action="profile-queue-prev">Anterior</button>
-            <button type="button" class="ghost-button" data-action="profile-queue-next">Siguiente</button>
+          <div class="toolbar-row compact wrap tiny-gap publish-filter-row">
+            <input id="profile-publish-search" type="search" placeholder="Buscar en biblioteca" value="${escapeHtml(
+              state.profilePublishFilters.search
+            )}" />
+            <select id="profile-publish-source">
+              <option value="">Todos los orígenes</option>
+              <option value="tracked_capture" ${state.profilePublishFilters.source === "tracked_capture" ? "selected" : ""}>Capturados</option>
+              <option value="zip_import" ${state.profilePublishFilters.source === "zip_import" ? "selected" : ""}>ZIP</option>
+              <option value="direct_upload" ${state.profilePublishFilters.source === "direct_upload" ? "selected" : ""}>Local</option>
+              <option value="cloud_reference" ${state.profilePublishFilters.source === "cloud_reference" ? "selected" : ""}>Cloud</option>
+            </select>
+            <select id="profile-publish-availability">
+              <option value="available" ${state.profilePublishFilters.availability === "available" ? "selected" : ""}>Solo disponibles</option>
+              <option value="all" ${state.profilePublishFilters.availability === "all" ? "selected" : ""}>Todos</option>
+            </select>
           </div>
         </div>
-        ${renderQueueCards(pageItems, false)}
+        ${renderPublishRows(pageItems, account.id)}
+        <div class="pager-row tight top-gap">
+          <span class="pager-label">Página ${currentPage} de ${totalPages}</span>
+          <div class="pager-controls">
+            <button type="button" class="ghost-button" data-action="profile-publish-prev">Anterior</button>
+            <button type="button" class="ghost-button" data-action="profile-publish-next">Siguiente</button>
+          </div>
+        </div>
       </section>
     `;
-    elements.profileTabContent.querySelector('[data-action="profile-queue-prev"]').disabled = currentPage <= 1;
-    elements.profileTabContent.querySelector('[data-action="profile-queue-next"]').disabled = currentPage >= totalPages;
+    elements.youtubeProfileTabContent.querySelector('[data-action="profile-publish-prev"]').disabled = currentPage <= 1;
+    elements.youtubeProfileTabContent.querySelector('[data-action="profile-publish-next"]').disabled = currentPage >= totalPages;
     return;
   }
 
-  const publishable = filterPublishableLibrary(account.id);
-  const { pageItems, currentPage, totalPages, start, end } = paginate(
-    publishable,
-    state.profilePublishPage,
-    state.profileTabPageSize
-  );
-  state.profilePublishPage = currentPage;
-  elements.profileTabContent.innerHTML = `
+  const preview = buildClonePreview(state.cloneForm.trackedProfileId, state.cloneForm.dailyLimit);
+  elements.youtubeProfileTabContent.innerHTML = `
     <section class="subpanel">
       <div class="subpanel-head between">
         <div>
-          <strong>Publicar desde biblioteca</strong>
-          <span class="helper-inline">${publishable.length ? `${start}-${end} de ${publishable.length}` : 'Sin disponibles'}</span>
-        </div>
-        <div class="toolbar-row compact wrap tiny-gap publish-filter-row">
-          <input id="profile-publish-search" type="search" placeholder="Buscar en biblioteca" value="${escapeHtml(
-            state.profilePublishFilters.search
-          )}" />
-          <select id="profile-publish-source">
-            <option value="">Todos los orígenes</option>
-            <option value="tracked_media" ${state.profilePublishFilters.source === 'tracked_media' ? 'selected' : ''}>Trackeados</option>
-            <option value="zip_import" ${state.profilePublishFilters.source === 'zip_import' ? 'selected' : ''}>ZIP</option>
-            <option value="remote_url" ${state.profilePublishFilters.source === 'remote_url' ? 'selected' : ''}>URL</option>
-            <option value="s3-compatible" ${state.profilePublishFilters.source === 's3-compatible' ? 'selected' : ''}>Cloud</option>
-          </select>
-          <select id="profile-publish-availability">
-            <option value="available" ${state.profilePublishFilters.availability === 'available' ? 'selected' : ''}>Solo disponibles</option>
-            <option value="all" ${state.profilePublishFilters.availability === 'all' ? 'selected' : ''}>Todos</option>
-          </select>
+          <strong>Clonar perfil TikTok</strong>
+          <span class="helper-inline">Programa todos los videos del perfil elegido con un límite diario.</span>
         </div>
       </div>
-      ${renderPublishRows(pageItems, account.id)}
-      <div class="pager-row tight top-gap">
-        <span class="pager-label">Página ${currentPage} de ${totalPages}</span>
-        <div class="pager-controls">
-          <button type="button" class="ghost-button" data-action="profile-publish-prev">Anterior</button>
-          <button type="button" class="ghost-button" data-action="profile-publish-next">Siguiente</button>
+      <form id="clone-form" class="stack-form compact-form">
+        <select id="clone-tracked-profile-select">
+          <option value="">Elegir perfil scrapeado</option>
+          ${state.scrapedProfiles
+            .map((profile) => {
+              const label = profile.username?.startsWith("tag-")
+                ? `#${String(profile.username).replace(/^tag-/, "")}`
+                : `@${profile.username}`;
+              return `<option value="${profile.id}" ${String(profile.id) === String(state.cloneForm.trackedProfileId) ? "selected" : ""}>${escapeHtml(
+                profile.display_name || label
+              )} · ${Number(profile.stored_video_count || profile.video_count || 0)} videos</option>`;
+            })
+            .join("")}
+        </select>
+        <div class="field-row two-up">
+          <label>
+            <span>Límite diario</span>
+            <input id="clone-daily-limit-input" type="number" min="1" step="1" value="${Number(state.cloneForm.dailyLimit || 3)}" />
+          </label>
+          <article class="compact-info-card soft-card">
+            <strong>Vista previa</strong>
+            <p>${preview.profile ? `${Number(preview.totalVideos)} videos · ${preview.totalDays} días estimados` : "Elegí un perfil scrapeado para ver la previsión."}</p>
+          </article>
         </div>
+        ${
+          preview.previewDates.length
+            ? `<article class="compact-info-card"><strong>Calendario inicial</strong><p>${escapeHtml(
+                preview.previewDates.map((item) => formatDate(item)).join(" · ")
+              )}</p></article>`
+            : ""
+        }
+        <button type="submit">Crear clonación</button>
+      </form>
+
+      <div class="subpanel-head top-gap">
+        <strong>Clonaciones activas</strong>
       </div>
+      ${renderCloneCards(clones)}
     </section>
   `;
-  elements.profileTabContent.querySelector('[data-action="profile-publish-prev"]').disabled = currentPage <= 1;
-  elements.profileTabContent.querySelector('[data-action="profile-publish-next"]').disabled = currentPage >= totalPages;
 }
 
-function filterPublishableLibrary(accountId) {
-  const search = String(state.profilePublishFilters.search || '').trim().toLowerCase();
-  const source = String(state.profilePublishFilters.source || '').toLowerCase();
-  const availability = String(state.profilePublishFilters.availability || 'available').toLowerCase();
-  return state.libraryItems.filter((item) => {
-    const haystack = [getLibraryTitle(item), getLibraryOrigin(item), item.channel_title].filter(Boolean).join(' ').toLowerCase();
-    const matchesSearch = !search || haystack.includes(search);
-    const matchesSource = !source || getLibrarySource(item) === source;
-    const isAssignedToAnother = item.youtube_account_id && String(item.youtube_account_id) !== String(accountId);
-    const isPublished = getLibraryStatus(item) === 'published';
-    const isAvailable = !isAssignedToAnother && !isPublished;
-    const matchesAvailability = availability === 'all' || isAvailable;
-    return matchesSearch && matchesSource && matchesAvailability;
-  });
-}
-
-function renderChannelVideoCards(items, compactMode) {
+function renderChannelVideoCards(items) {
   if (!items.length) {
     return '<div class="empty-state">Todavía no hay videos para mostrar.</div>';
   }
   return items
     .map(
       (item) => `
-        <article class="channel-video-row ${compactMode ? 'compact-mode' : ''}">
-          <img class="channel-video-thumb" src="${item.thumbnails?.medium?.url || item.thumbnails?.default?.url || ''}" alt="${escapeHtml(
-            item.title || ''
-          )}" />
+        <article class="channel-video-row">
+          ${renderThumb(item.thumbnails?.medium?.url || item.thumbnails?.default?.url || "", item.title || "", "channel-video-thumb", "YouTube")}
           <div class="channel-video-main">
-            <strong>${escapeHtml(item.title || 'Video sin título')}</strong>
-            <p>${formatMetric(item.viewCount)} vistas · ${formatDate(item.publishedAt)}</p>
+            <strong>${escapeHtml(item.title || "Video sin título")}</strong>
+            <p>${formatMetric(item.viewCount)} vistas · ${formatIsoDuration(item.duration) || "-"} · ${formatDate(item.publishedAt)}</p>
           </div>
           <div class="channel-video-side">
-            ${item.url ? `<a class="ghost-button" href="${item.url}" target="_blank" rel="noreferrer">Abrir</a>` : ''}
+            ${item.url ? `<a class="ghost-button" href="${item.url}" target="_blank" rel="noreferrer">Abrir</a>` : ""}
           </div>
         </article>
       `
     )
-    .join('');
+    .join("");
 }
 
-function renderQueueCards(items, compactMode) {
-  if (!items.length) {
-    return '<div class="empty-state">No hay elementos en esta cola.</div>';
-  }
-  return items
-    .map(
-      (item) => `
-        <article class="queue-card ${compactMode ? 'compact-mode' : ''}">
-          <div class="queue-card-main">
-            <strong>${escapeHtml(item.title || 'Publicación sin título')}</strong>
-            <p>${escapeHtml(translateStatusDetail(item.status_detail || item.status || ''))}</p>
-          </div>
-          <div class="queue-card-side">
-            <span class="badge ${item.status === 'published' ? 'success' : item.status === 'failed' ? 'danger' : ''}">${escapeHtml(
-              translateStatus(item.status)
-            )}</span>
-            <span>${item.scheduled_for ? formatDate(item.scheduled_for) : 'listo ahora'}</span>
-            <div class="inline-action-list">
-              ${['ready', 'scheduled', 'failed'].includes(String(item.status || '').toLowerCase()) ? `<button type="button" class="ghost-button" data-action="publication-publish" data-id="${item.id}">Publicar</button>` : ''}
-              <button type="button" class="ghost-button" data-action="publication-sync" data-id="${item.id}">Sincronizar</button>
-            </div>
-          </div>
-        </article>
-      `
-    )
-    .join('');
+function filterPublishableLibrary(accountId) {
+  const search = String(state.profilePublishFilters.search || "").trim().toLowerCase();
+  const source = String(state.profilePublishFilters.source || "").trim().toLowerCase();
+  const availability = String(state.profilePublishFilters.availability || "available").toLowerCase();
+  return state.libraryItems.filter((item) => {
+    const haystack = [getLibraryTitle(item), getLibraryOrigin(item), item.channel_title].filter(Boolean).join(" ").toLowerCase();
+    const matchesSearch = !search || haystack.includes(search);
+    const matchesSource = !source || getLibrarySource(item) === source;
+    const isAssignedToAnother = item.youtube_account_id && String(item.youtube_account_id) !== String(accountId);
+    const isPublished = getLibraryStatus(item) === "published";
+    const isAvailable = !isAssignedToAnother && !isPublished;
+    const matchesAvailability = availability === "all" || isAvailable;
+    return matchesSearch && matchesSource && matchesAvailability;
+  });
 }
 
 function renderPublishRows(items, accountId) {
   if (!items.length) {
-    return '<div class="empty-state">No hay videos de biblioteca disponibles para este perfil.</div>';
+    return '<div class="empty-state">No hay videos de biblioteca disponibles para este canal.</div>';
   }
+
   return items
     .map(
       (item) => `
         <article class="video-row publish-row">
-          <img class="video-row-thumb" src="${item.thumbnail_url || item.poster_url || ''}" alt="${escapeHtml(getLibraryTitle(item))}" />
+          ${renderThumb(item.thumbnail_url || item.poster_url || "", getLibraryTitle(item), "video-row-thumb", "Biblioteca")}
           <div class="video-row-main">
             <strong>${escapeHtml(getLibraryTitle(item))}</strong>
             <p>${escapeHtml(getLibraryOrigin(item))}</p>
           </div>
           <div class="video-row-meta">
             <span>${escapeHtml(translateStatus(getLibraryStatus(item)))}</span>
-            <span>${escapeHtml(translateStorageProvider(item.storage_provider || 'local'))}</span>
+            <span>${escapeHtml(translateStorageProvider(item.storage_provider || "local"))}</span>
           </div>
           <div class="video-row-actions">
             <button type="button" class="ghost-button" data-action="publish-add-to-queue" data-id="${item.id}" data-account-id="${accountId}">Agregar a cola</button>
@@ -567,79 +596,130 @@ function renderPublishRows(items, accountId) {
         </article>
       `
     )
-    .join('');
+    .join("");
+}
+
+function renderCloneCards(items) {
+  if (!items.length) {
+    return '<div class="empty-state">Todavía no hay clonaciones creadas.</div>';
+  }
+
+  return items
+    .map(
+      (item) => `
+        <article class="queue-card">
+          <div class="queue-card-main">
+            <strong>${escapeHtml(item.display_name || `@${item.username}`)}</strong>
+            <p>${Number(item.total_items_count || 0)} programados · ${Number(item.daily_limit || 1)} por día</p>
+          </div>
+          <div class="queue-card-side">
+            <span class="badge ${String(item.status).toLowerCase() === "active" ? "success" : ""}">${escapeHtml(translateStatus(item.status))}</span>
+            <span>${escapeHtml(formatDate(item.last_scheduled_for || item.updated_at))}</span>
+          </div>
+        </article>
+      `
+    )
+    .join("");
+}
+
+function renderQueueCards(items) {
+  if (!items.length) {
+    return '<div class="empty-state">No hay elementos para mostrar.</div>';
+  }
+
+  return items
+    .map(
+      (item) => `
+        <article class="queue-card">
+          <div class="queue-card-main">
+            <strong>${escapeHtml(item.title || "Publicación sin título")}</strong>
+            <p>${escapeHtml(translateStatusDetail(item.status_detail || item.status || ""))}</p>
+          </div>
+          <div class="queue-card-side">
+            <span class="badge ${item.status === "published" ? "success" : item.status === "failed" ? "danger" : ""}">${escapeHtml(
+              translateStatus(item.status)
+            )}</span>
+            <span>${item.scheduled_for ? formatDate(item.scheduled_for) : "listo ahora"}</span>
+          </div>
+        </article>
+      `
+    )
+    .join("");
 }
 
 export function renderQueue() {
   const groups = {
     all: state.publications,
-    active: state.publications.filter((item) => ['queued', 'ready', 'awaiting_oauth'].includes(String(item.status || '').toLowerCase())),
-    publishing: state.publications.filter((item) => String(item.status || '').toLowerCase() === 'publishing'),
-    scheduled: state.publications.filter((item) => String(item.status || '').toLowerCase() === 'scheduled'),
-    failed: state.publications.filter((item) => String(item.status || '').toLowerCase() === 'failed'),
-    published: state.publications.filter((item) => String(item.status || '').toLowerCase() === 'published')
+    active: state.publications.filter((item) => ["queued", "ready", "awaiting_oauth"].includes(String(item.status || "").toLowerCase())),
+    publishing: state.publications.filter((item) => String(item.status || "").toLowerCase() === "publishing"),
+    scheduled: state.publications.filter((item) => String(item.status || "").toLowerCase() === "scheduled"),
+    failed: state.publications.filter((item) => String(item.status || "").toLowerCase() === "failed"),
+    published: state.publications.filter((item) => String(item.status || "").toLowerCase() === "published")
   };
 
   elements.queueSummaryStrip.innerHTML = Object.entries(groups)
     .map(
-      ([key, items]) => `<article class="summary-chip ${state.queueTab === key ? 'active' : ''}"><span>${labelQueueTab(key)}</span><strong>${items.length}</strong></article>`
+      ([key, items]) =>
+        `<article class="summary-chip ${state.queueTab === key ? "active" : ""}"><span>${labelQueueTab(key)}</span><strong>${items.length}</strong></article>`
     )
-    .join('');
+    .join("");
 
-  elements.queueTabBar.querySelectorAll('.queue-tab').forEach((button) => {
-    button.classList.toggle('active', button.dataset.queueTab === state.queueTab);
+  elements.queueTabBar.querySelectorAll(".queue-tab").forEach((button) => {
+    button.classList.toggle("active", button.dataset.queueTab === state.queueTab);
   });
 
   const filtered = groups[state.queueTab] || groups.all;
   const { pageItems, currentPage, totalPages, start, end } = paginate(filtered, state.queuePage, state.queuePageSize);
   state.queuePage = currentPage;
-  elements.queuePagerLabel.textContent = filtered.length ? `${start}-${end} de ${filtered.length}` : '0 resultados';
+  elements.queuePagerLabel.textContent = filtered.length ? `${start}-${end} de ${filtered.length}` : "0 resultados";
   elements.queuePrevPage.disabled = currentPage <= 1;
   elements.queueNextPage.disabled = currentPage >= totalPages;
 
   if (!filtered.length) {
-    renderEmpty(elements.publicationList, 'No hay publicaciones para esta pestaña.');
+    renderEmpty(elements.publicationList, "No hay publicaciones para esta pestaña.");
     return;
   }
 
   elements.publicationList.innerHTML = pageItems
-    .map(
-      (item) => `
+    .map((item) => {
+      const sourceLabel =
+        item.source_kind === "clone"
+          ? `${item.clone_display_name || `@${item.clone_username || "origen"}`} → ${item.channel_title || "sin canal"}`
+          : item.source_kind === "library_video"
+            ? `${item.original_filename || "video de biblioteca"} → ${item.channel_title || "sin canal"}`
+            : `@${item.username || "origen"} → ${item.channel_title || "sin canal"}`;
+      return `
         <article class="queue-row">
           <div class="queue-row-main">
-            <strong>${escapeHtml(item.title || 'Publicación sin título')}</strong>
-            <p>${escapeHtml(
-              item.source_kind === 'library_video'
-                ? `${item.original_filename || 'video de biblioteca'} → ${item.channel_title || 'sin perfil'}`
-                : `@${item.username || 'origen'} → ${item.channel_title || 'sin perfil'}`
-            )}</p>
+            <strong>${escapeHtml(item.title || "Publicación sin título")}</strong>
+            <p>${escapeHtml(sourceLabel)}</p>
           </div>
           <div class="queue-row-meta">
-            <span class="badge ${item.status === 'published' ? 'success' : item.status === 'failed' ? 'danger' : ''}">${escapeHtml(
+            <span class="badge ${item.status === "published" ? "success" : item.status === "failed" ? "danger" : ""}">${escapeHtml(
               translateStatus(item.status)
             )}</span>
             <span>${escapeHtml(translateSourceKind(item.source_kind))}</span>
             <span>${item.scheduled_for ? formatDate(item.scheduled_for) : formatDate(item.created_at)}</span>
           </div>
           <div class="queue-row-actions">
-            ${['ready', 'scheduled', 'failed'].includes(String(item.status || '').toLowerCase()) ? `<button type="button" class="ghost-button" data-action="publication-publish" data-id="${item.id}">Publicar</button>` : ''}
+            ${["ready", "scheduled", "failed"].includes(String(item.status || "").toLowerCase()) ? `<button type="button" class="ghost-button" data-action="publication-publish" data-id="${item.id}">Publicar</button>` : ""}
             <button type="button" class="ghost-button" data-action="publication-sync" data-id="${item.id}">Sincronizar</button>
-            ${item.youtube_url ? `<a class="ghost-button" href="${item.youtube_url}" target="_blank" rel="noreferrer">Abrir</a>` : ''}
+            ${item.youtube_url ? `<a class="ghost-button" href="${item.youtube_url}" target="_blank" rel="noreferrer">Abrir</a>` : ""}
           </div>
         </article>
-      `
-    )
-    .join('');
+      `;
+    })
+    .join("");
 }
 
 function labelQueueTab(value) {
   const labels = {
-    all: 'Todo',
-    active: 'Pendientes',
-    publishing: 'Publicando',
-    scheduled: 'Programados',
-    failed: 'Fallidos',
-    published: 'Publicados'
+    all: "Todo",
+    active: "Pendientes",
+    publishing: "Publicando",
+    scheduled: "Programados",
+    failed: "Fallidos",
+    published: "Publicados"
   };
   return labels[value] || value;
 }
@@ -647,22 +727,72 @@ function labelQueueTab(value) {
 export function renderOverview() {
   const summary = state.dashboardSummary;
   if (!summary) {
-    renderEmpty(elements.summaryStrip, 'Todavía no hay resumen del sistema.');
+    renderEmpty(elements.summaryStrip, "Todavía no hay resumen del sistema.");
+    renderEmpty(elements.overviewScrapedList, "Sin datos.");
+    renderEmpty(elements.overviewPublicationsList, "Sin datos.");
     return;
   }
 
   const cards = [
-    ['Perfiles rastreados', summary.tracked_profiles || 0],
-    ['Videos biblioteca', summary.library_videos || 0],
-    ['En cola', summary.queued_publications || 0],
-    ['Programados', summary.scheduled_publications || 0],
-    ['Canales', summary.youtube_accounts || 0],
-    ['Scrapes fallidos', summary.failed_scrapes || 0]
+    ["Perfiles scrapeados", summary.tracked_profiles || 0],
+    ["Videos scrapeados", summary.media_items || 0],
+    ["Biblioteca", summary.library_videos || 0],
+    ["Canales YouTube", summary.youtube_accounts || 0],
+    ["En cola", summary.queued_publications || 0],
+    ["Programados", summary.scheduled_publications || 0]
   ];
 
   elements.summaryStrip.innerHTML = cards
     .map(
       ([label, value]) => `<article class="summary-chip"><span>${escapeHtml(label)}</span><strong>${escapeHtml(String(value))}</strong></article>`
     )
-    .join('');
+    .join("");
+
+  const recentProfiles = Array.isArray(summary.recent_profiles) ? summary.recent_profiles : [];
+  if (!recentProfiles.length) {
+    renderEmpty(elements.overviewScrapedList, "Todavía no hay perfiles recientes.");
+  } else {
+    elements.overviewScrapedList.innerHTML = recentProfiles
+      .map((profile) => {
+        const label = profile.username?.startsWith("tag-")
+          ? `#${String(profile.username).replace(/^tag-/, "")}`
+          : `@${profile.username}`;
+        return `
+          <article class="queue-card">
+            <div class="queue-card-main">
+              <strong>${escapeHtml(profile.display_name || label)}</strong>
+              <p>${Number(profile.video_count || 0)} videos · ${escapeHtml(translateStatus(profile.last_scrape_status || "idle"))}</p>
+            </div>
+            <div class="queue-card-side">
+              <span>${escapeHtml(formatDate(profile.last_scraped_at))}</span>
+            </div>
+          </article>
+        `;
+      })
+      .join("");
+  }
+
+  const recentPublications = Array.isArray(summary.recent_publications) ? summary.recent_publications : [];
+  if (!recentPublications.length) {
+    renderEmpty(elements.overviewPublicationsList, "Todavía no hay publicaciones recientes.");
+  } else {
+    elements.overviewPublicationsList.innerHTML = recentPublications
+      .map(
+        (item) => `
+          <article class="queue-card">
+            <div class="queue-card-main">
+              <strong>${escapeHtml(item.title || "Publicación sin título")}</strong>
+              <p>${escapeHtml(`@${item.username || "origen"}`)}</p>
+            </div>
+            <div class="queue-card-side">
+              <span class="badge ${item.status === "published" ? "success" : item.status === "failed" ? "danger" : ""}">${escapeHtml(
+                translateStatus(item.status)
+              )}</span>
+              <span>${escapeHtml(formatDate(item.created_at))}</span>
+            </div>
+          </article>
+        `
+      )
+      .join("");
+  }
 }

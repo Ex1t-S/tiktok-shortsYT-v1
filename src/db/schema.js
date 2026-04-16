@@ -294,6 +294,25 @@ async function ensureSchema() {
   `);
 
   await query(`
+    CREATE TABLE IF NOT EXISTS profile_clones (
+      id BIGSERIAL PRIMARY KEY,
+      youtube_account_id BIGINT NOT NULL REFERENCES youtube_accounts(id) ON DELETE CASCADE,
+      tracked_profile_id BIGINT NOT NULL REFERENCES tracked_profiles(id) ON DELETE CASCADE,
+      status TEXT NOT NULL DEFAULT 'active',
+      daily_limit INTEGER NOT NULL DEFAULT 1,
+      total_items_count INTEGER NOT NULL DEFAULT 0,
+      queued_items_count INTEGER NOT NULL DEFAULT 0,
+      published_items_count INTEGER NOT NULL DEFAULT 0,
+      failed_items_count INTEGER NOT NULL DEFAULT 0,
+      last_scheduled_for TIMESTAMPTZ,
+      last_run_at TIMESTAMPTZ,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      UNIQUE (youtube_account_id, tracked_profile_id)
+    );
+  `);
+
+  await query(`
     ALTER TABLE publications
     ALTER COLUMN media_item_id DROP NOT NULL;
   `);
@@ -306,6 +325,11 @@ async function ensureSchema() {
   await query(`
     ALTER TABLE publications
     ADD COLUMN IF NOT EXISTS source_kind TEXT NOT NULL DEFAULT 'tracked_media';
+  `);
+
+  await query(`
+    ALTER TABLE publications
+    ADD COLUMN IF NOT EXISTS profile_clone_id BIGINT REFERENCES profile_clones(id) ON DELETE SET NULL;
   `);
 
   await query(`
@@ -380,6 +404,16 @@ async function ensureSchema() {
   await query(`
     CREATE INDEX IF NOT EXISTS publication_jobs_queue_idx
       ON publication_jobs (status, available_at ASC, created_at ASC);
+  `);
+
+  await query(`
+    CREATE INDEX IF NOT EXISTS profile_clones_account_idx
+      ON profile_clones (youtube_account_id, updated_at DESC, id DESC);
+  `);
+
+  await query(`
+    CREATE INDEX IF NOT EXISTS publications_clone_idx
+      ON publications (profile_clone_id, created_at DESC, id DESC);
   `);
 
   await query(`

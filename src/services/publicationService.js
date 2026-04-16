@@ -77,6 +77,9 @@ async function getPublicationById(publicationId) {
         ya.channel_title,
         ya.channel_handle,
         ya.oauth_status,
+        pc.tracked_profile_id AS clone_tracked_profile_id,
+        clone_profile.username AS clone_username,
+        clone_profile.display_name AS clone_display_name,
         COALESCE(mi.caption, lv.description) AS caption,
         mi.thumbnail_url,
         mi.post_url,
@@ -92,6 +95,8 @@ async function getPublicationById(publicationId) {
         lv.title AS library_title
       FROM publications p
       JOIN youtube_accounts ya ON ya.id = p.youtube_account_id
+      LEFT JOIN profile_clones pc ON pc.id = p.profile_clone_id
+      LEFT JOIN tracked_profiles clone_profile ON clone_profile.id = pc.tracked_profile_id
       LEFT JOIN media_items mi ON mi.id = p.media_item_id
       LEFT JOIN tracked_profiles tp ON tp.id = mi.tracked_profile_id
       LEFT JOIN library_videos lv ON lv.id = p.library_video_id
@@ -160,6 +165,26 @@ async function findExistingActivePublication({ mediaItemId, libraryVideoId, yout
   return result.rows[0] || null;
 }
 
+async function findExistingPublication({ mediaItemId, libraryVideoId, youtubeAccountId, profileCloneId }) {
+  const result = await query(
+    `
+      SELECT *
+      FROM publications
+      WHERE youtube_account_id = $1
+        AND (
+          ($2::bigint IS NOT NULL AND media_item_id = $2)
+          OR ($3::bigint IS NOT NULL AND library_video_id = $3)
+        )
+        AND ($4::bigint IS NULL OR profile_clone_id = $4 OR profile_clone_id IS NULL)
+      ORDER BY created_at DESC, id DESC
+      LIMIT 1
+    `,
+    [youtubeAccountId, mediaItemId || null, libraryVideoId || null, profileCloneId || null]
+  );
+
+  return result.rows[0] || null;
+}
+
 async function queuePublications(payload = {}) {
   const mediaIds = Array.isArray(payload.mediaIds)
     ? payload.mediaIds.map((value) => Number(value)).filter(Number.isFinite)
@@ -199,7 +224,7 @@ async function queuePublications(payload = {}) {
       FROM media_items mi
       JOIN tracked_profiles tp ON tp.id = mi.tracked_profile_id
       WHERE mi.id = ANY($1::bigint[])
-      ORDER BY mi.score DESC, mi.id DESC
+      ORDER BY array_position($1::bigint[], mi.id), mi.id DESC
     `,
     [mediaIds]
   );
@@ -220,13 +245,15 @@ async function queuePublications(payload = {}) {
 
   const trackedScheduleDates = buildScheduleDates(mediaResult.rows.length, payload);
   const libraryScheduleDates = buildScheduleDates(libraryVideos.length, payload);
+  const explicitScheduleDates = Array.isArray(payload.scheduleDates) ? payload.scheduleDates : [];
 
   const created = [];
   for (const [index, mediaItem] of mediaResult.rows.entries()) {
-    const existing = await findExistingActivePublication({
+    const existing = await findExistingPublication({
       mediaItemId: mediaItem.id,
       libraryVideoId: null,
-      youtubeAccountId
+      youtubeAccountId,
+      profileCloneId: payload.profileCloneId
     });
     if (existing) {
       created.push(existing);
@@ -236,7 +263,7 @@ async function queuePublications(payload = {}) {
     const title = sanitizeMetadataText(payload.title || buildDefaultTitle(mediaItem), 100);
     const description = sanitizeMetadataText(payload.description || buildDefaultDescription(mediaItem), 5000);
     const tags = sanitizeMetadataTags(payload.tags || [mediaItem.editorial_category, "shorts"]);
-    const scheduledFor = trackedScheduleDates[index];
+    const scheduledFor = explicitScheduleDates[index] || trackedScheduleDates[index];
     const publicationState = resolvePublicationState(account, scheduledFor);
 
     const insertResult = await query(
@@ -244,6 +271,7 @@ async function queuePublications(payload = {}) {
         INSERT INTO publications (
           media_item_id,
           youtube_account_id,
+          profile_clone_id,
           source_kind,
           title,
           description,
@@ -254,12 +282,14 @@ async function queuePublications(payload = {}) {
           scheduled_for,
           updated_at
         )
-        VALUES ($1, $2, 'tracked_media', $3, $4, $5::jsonb, $6, $7, $8, $9, NOW())
+        VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb, $8, $9, $10, $11, NOW())
         RETURNING *
       `,
       [
         mediaItem.id,
         youtubeAccountId,
+        payload.profileCloneId || null,
+        payload.sourceKind || "tracked_media",
         title,
         description,
         JSON.stringify(tags),
@@ -284,10 +314,11 @@ async function queuePublications(payload = {}) {
   }
 
   for (const [index, libraryVideo] of libraryVideos.entries()) {
-    const existing = await findExistingActivePublication({
+    const existing = await findExistingPublication({
       mediaItemId: null,
       libraryVideoId: libraryVideo.id,
-      youtubeAccountId
+      youtubeAccountId,
+      profileCloneId: null
     });
     if (existing) {
       created.push(existing);
@@ -392,6 +423,9 @@ async function listPublications() {
         ya.channel_title,
         ya.channel_handle,
         ya.oauth_status,
+        pc.tracked_profile_id AS clone_tracked_profile_id,
+        clone_profile.username AS clone_username,
+        clone_profile.display_name AS clone_display_name,
         COALESCE(mi.caption, lv.description) AS caption,
         mi.thumbnail_url,
         mi.post_url,
@@ -403,6 +437,8 @@ async function listPublications() {
         lv.storage_provider
       FROM publications p
       JOIN youtube_accounts ya ON ya.id = p.youtube_account_id
+      LEFT JOIN profile_clones pc ON pc.id = p.profile_clone_id
+      LEFT JOIN tracked_profiles clone_profile ON clone_profile.id = pc.tracked_profile_id
       LEFT JOIN media_items mi ON mi.id = p.media_item_id
       LEFT JOIN tracked_profiles tp ON tp.id = mi.tracked_profile_id
       LEFT JOIN library_videos lv ON lv.id = p.library_video_id
@@ -538,6 +574,11 @@ async function publishPublication(publicationId) {
       [publication.media_item_id]
     ).catch(() => {});
 
+    if (publication.profile_clone_id) {
+      const { syncCloneCounters } = require("./cloneService");
+      await syncCloneCounters(publication.profile_clone_id).catch(() => {});
+    }
+
     return getPublicationById(publicationId);
   } catch (error) {
     await query(
@@ -560,6 +601,11 @@ async function publishPublication(publicationId) {
       `,
       [publication.media_item_id]
     ).catch(() => {});
+
+    if (publication.profile_clone_id) {
+      const { syncCloneCounters } = require("./cloneService");
+      await syncCloneCounters(publication.profile_clone_id).catch(() => {});
+    }
 
     throw error;
   } finally {

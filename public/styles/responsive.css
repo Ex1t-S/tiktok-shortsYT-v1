@@ -3,6 +3,10 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .scraped-layout {
+    grid-template-columns: 250px minmax(0, 1fr);
+  }
+
   .profiles-layout {
     grid-template-columns: 250px minmax(0, 1fr) 280px;
   }
@@ -25,6 +29,7 @@
     grid-template-columns: 1fr;
   }
 
+  .scraped-layout,
   .profiles-layout,
   .two-column-panel,
   .overview-grid {

@@ -66,7 +66,7 @@ function sanitizeYoutubeAccount(account) {
 function buildOauthState(accountId) {
   const state = crypto.randomUUID();
   oauthStateStore.set(state, {
-    accountId: Number(accountId),
+    accountId: Number.isFinite(Number(accountId)) ? Number(accountId) : null,
     createdAt: Date.now()
   });
 
@@ -101,12 +101,47 @@ async function getYoutubeAccountById(accountId) {
   return result.rows[0] || null;
 }
 
+async function getYoutubeAccountByChannelId(channelId) {
+  const result = await query(
+    `
+      SELECT *
+      FROM youtube_accounts
+      WHERE channel_id = $1
+      ORDER BY updated_at DESC, id DESC
+      LIMIT 1
+    `,
+    [channelId]
+  );
+
+  return result.rows[0] || null;
+}
+
 function buildYoutubeConnectUrl(accountId) {
   if (!canUseYoutubeOAuth()) {
     return null;
   }
 
   const state = buildOauthState(accountId);
+  const params = new URLSearchParams({
+    client_id: env.googleClientId,
+    redirect_uri: env.googleRedirectUri,
+    response_type: "code",
+    access_type: "offline",
+    prompt: "consent",
+    include_granted_scopes: "true",
+    scope: "https://www.googleapis.com/auth/youtube.upload https://www.googleapis.com/auth/youtube.readonly",
+    state
+  });
+
+  return `${GOOGLE_AUTH_URL}?${params.toString()}`;
+}
+
+function buildYoutubeDirectOauthUrl() {
+  if (!canUseYoutubeOAuth()) {
+    return null;
+  }
+
+  const state = buildOauthState(null);
   const params = new URLSearchParams({
     client_id: env.googleClientId,
     redirect_uri: env.googleRedirectUri,
@@ -388,19 +423,71 @@ async function startYoutubeOAuth(accountId) {
   return connectUrl;
 }
 
+async function startYoutubeDirectOAuth() {
+  const connectUrl = buildYoutubeDirectOauthUrl();
+  if (!connectUrl) {
+    throw new Error("Google OAuth credentials are not configured");
+  }
+
+  return connectUrl;
+}
+
 async function handleYoutubeOAuthCallback(params = {}) {
   if (params.error) {
     throw new Error(String(params.error));
   }
 
   const storedState = consumeOauthState(params.state);
-  if (!storedState?.accountId) {
+  if (!storedState) {
     throw new Error("Invalid or expired OAuth state");
   }
 
   const tokens = await exchangeAuthCodeForTokens(params.code);
   const expiryDate = new Date(Date.now() + Number(tokens.expires_in || 3600) * 1000).toISOString();
   const channel = await fetchYoutubeChannel(tokens.access_token);
+  const channelId = channel?.id || null;
+  const channelTitle = channel?.snippet?.title || "YouTube channel";
+  const channelHandle = channel?.snippet?.customUrl || null;
+  const account =
+    (storedState.accountId ? await getYoutubeAccountById(storedState.accountId) : null) ||
+    (channelId ? await getYoutubeAccountByChannelId(channelId) : null);
+  const contactEmail = account?.contact_email || null;
+
+  let persistedAccountId = account?.id || null;
+
+  if (!persistedAccountId) {
+    const insertResult = await query(
+      `
+        INSERT INTO youtube_accounts (
+          channel_id,
+          channel_title,
+          channel_handle,
+          contact_email,
+          access_token,
+          refresh_token,
+          token_scope,
+          token_expiry,
+          oauth_status,
+          last_sync_at,
+          last_error,
+          updated_at
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'connected', NOW(), NULL, NOW())
+        RETURNING id
+      `,
+      [
+        channelId,
+        channelTitle,
+        channelHandle,
+        contactEmail,
+        tokens.access_token,
+        tokens.refresh_token || null,
+        tokens.scope || null,
+        expiryDate
+      ]
+    );
+    persistedAccountId = insertResult.rows[0].id;
+  }
 
   await query(
     `
@@ -409,10 +496,11 @@ async function handleYoutubeOAuthCallback(params = {}) {
         channel_id = COALESCE($2, channel_id),
         channel_title = COALESCE($3, channel_title),
         channel_handle = COALESCE($4, channel_handle),
-        access_token = $5,
-        refresh_token = COALESCE($6, refresh_token),
-        token_scope = $7,
-        token_expiry = $8,
+        contact_email = COALESCE($5, contact_email),
+        access_token = $6,
+        refresh_token = COALESCE($7, refresh_token),
+        token_scope = $8,
+        token_expiry = $9,
         oauth_status = 'connected',
         last_sync_at = NOW(),
         last_error = NULL,
@@ -420,10 +508,11 @@ async function handleYoutubeOAuthCallback(params = {}) {
       WHERE id = $1
     `,
     [
-      storedState.accountId,
-      channel?.id || null,
-      channel?.snippet?.title || null,
-      channel?.snippet?.customUrl || null,
+      persistedAccountId,
+      channelId,
+      channelTitle,
+      channelHandle,
+      contactEmail,
       tokens.access_token,
       tokens.refresh_token || null,
       tokens.scope || null,
@@ -448,7 +537,7 @@ async function handleYoutubeOAuthCallback(params = {}) {
       WHERE youtube_account_id = $1
         AND status = 'awaiting_oauth'
     `,
-    [storedState.accountId]
+    [persistedAccountId]
   );
 
   await query(
@@ -462,11 +551,11 @@ async function handleYoutubeOAuthCallback(params = {}) {
           AND status IN ('ready', 'scheduled')
       )
     `,
-    [storedState.accountId]
+    [persistedAccountId]
   );
 
-  const account = await getYoutubeAccountById(storedState.accountId);
-  return sanitizeYoutubeAccount(account);
+  const persistedAccount = await getYoutubeAccountById(persistedAccountId);
+  return sanitizeYoutubeAccount(persistedAccount);
 }
 
 async function youtubeApiRequest(accountId, url, options = {}, attempt = 0) {
@@ -495,7 +584,9 @@ module.exports = {
   createYoutubeAccount,
   createYoutubeAccountsBulk,
   getYoutubeAccountById,
+  getYoutubeAccountByChannelId,
   startYoutubeOAuth,
+  startYoutubeDirectOAuth,
   handleYoutubeOAuthCallback,
   youtubeApiRequest,
   getValidAccessToken,
