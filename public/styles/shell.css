@@ -7,6 +7,14 @@
   align-items: start;
 }
 
+.app-shell.is-youtube-focus {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.app-shell.is-youtube-focus .sidebar {
+  display: none;
+}
+
 .sidebar {
   min-height: calc(100vh - 24px);
   padding: 18px;
@@ -108,8 +116,20 @@
   align-items: start;
 }
 
+.youtube-workspace-layout {
+  display: grid;
+  grid-template-columns: 310px minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
 .profile-main-panel,
 .profile-list-panel,
 .profile-side-panel {
+  min-width: 0;
+}
+
+.youtube-context-panel,
+.youtube-main-panel {
   min-width: 0;
 }

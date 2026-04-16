@@ -454,6 +454,73 @@ textarea {
   color: #fff;
 }
 
+.youtube-context-panel {
+  position: sticky;
+  top: 12px;
+  display: grid;
+  gap: 14px;
+  align-self: start;
+}
+
+.youtube-context-panel .section-heading.compact.top-gap {
+  margin-top: 4px;
+}
+
+.youtube-context-panel .profiles-list {
+  max-height: 320px;
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.youtube-section-nav {
+  margin: 0;
+  flex-direction: column;
+}
+
+.youtube-section-nav .profile-tab {
+  width: 100%;
+  justify-content: flex-start;
+  border-radius: 16px;
+}
+
+.youtube-main-panel {
+  display: grid;
+  gap: 14px;
+}
+
+.youtube-inline-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.youtube-workspace-hero {
+  align-items: flex-start;
+}
+
+.youtube-section-shell {
+  display: grid;
+  gap: 14px;
+}
+
+.youtube-section-copy {
+  display: grid;
+  gap: 4px;
+}
+
+.youtube-clone-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+  gap: 14px;
+  align-items: start;
+}
+
+.youtube-clone-form-panel,
+.youtube-clone-list-panel {
+  display: grid;
+  gap: 12px;
+}
+
 .profile-tab-content {
   display: grid;
   gap: 14px;

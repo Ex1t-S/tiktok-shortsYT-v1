@@ -116,8 +116,8 @@
         </section>
 
         <section class="view-section" data-view="youtube">
-          <div class="profiles-layout">
-            <aside class="panel profile-list-panel">
+          <div class="youtube-workspace-layout">
+            <aside class="panel youtube-context-panel">
               <div class="section-heading compact">
                 <div>
                   <p class="eyebrow">YouTube</p>
@@ -139,28 +139,26 @@
                   <button id="youtube-profiles-next-page" type="button" class="ghost-button">Siguiente</button>
                 </div>
               </div>
-            </aside>
 
-            <section class="panel profile-main-panel">
-              <div id="youtube-profile-header" class="profile-header"></div>
-              <div class="profile-tab-bar" id="youtube-profile-tab-bar">
+              <div class="section-heading compact top-gap">
+                <div>
+                  <p class="eyebrow">Workspace</p>
+                  <h3>Secciones del canal</h3>
+                </div>
+              </div>
+              <div class="profile-tab-bar youtube-section-nav" id="youtube-profile-tab-bar">
                 <button type="button" class="profile-tab active" data-tab="videos">Videos</button>
                 <button type="button" class="profile-tab" data-tab="stats">Estadísticas</button>
                 <button type="button" class="profile-tab" data-tab="publish">Publicar</button>
                 <button type="button" class="profile-tab" data-tab="clone">Clonar</button>
               </div>
+            </aside>
+
+            <section class="panel youtube-main-panel">
+              <div id="youtube-profile-header" class="profile-header"></div>
+              <div id="youtube-side-actions" class="youtube-inline-summary"></div>
               <div id="youtube-profile-tab-content" class="profile-tab-content"></div>
             </section>
-
-            <aside class="panel profile-side-panel">
-              <div class="section-heading compact">
-                <div>
-                  <p class="eyebrow">Canal activo</p>
-                  <h3>Resumen rápido</h3>
-                </div>
-              </div>
-              <div id="youtube-side-actions" class="stack-list"></div>
-            </aside>
           </div>
         </section>
 

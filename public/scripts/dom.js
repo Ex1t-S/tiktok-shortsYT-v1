@@ -1,4 +1,6 @@
 export const elements = {
+  appShell: document.querySelector(".app-shell"),
+  sidebar: document.querySelector(".sidebar"),
   navTabs: Array.from(document.querySelectorAll(".nav-tab")),
   viewSections: Array.from(document.querySelectorAll(".view-section")),
   headerEyebrow: document.getElementById("header-eyebrow"),
@@ -106,6 +108,7 @@ const VIEW_META = {
 
 export function setActiveView(view) {
   state.currentView = view;
+  elements.appShell?.classList.toggle("is-youtube-focus", view === "youtube");
   elements.navTabs.forEach((button) => {
     button.classList.toggle("active", button.dataset.view === view);
   });

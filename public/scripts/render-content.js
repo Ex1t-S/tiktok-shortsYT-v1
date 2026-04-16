@@ -64,7 +64,7 @@ function getSelectedAccountPublications() {
 }
 
 function getLibraryTitle(item) {
-  return item.title || item.original_filename || pathFromArchive(item.source_archive_path) || "Video sin título";
+  return item.title || item.original_filename || pathFromArchive(item.source_archive_path) || "Video sin titulo";
 }
 
 function getLibraryOrigin(item) {
@@ -81,6 +81,16 @@ function getLibrarySource(item) {
 
 function isQueueLikeStatus(status) {
   return ["queued", "ready", "awaiting_oauth", "publishing", "scheduled"].includes(String(status || "").toLowerCase());
+}
+
+function describeYoutubeTab(tab) {
+  const labels = {
+    videos: "Uploads recientes del canal.",
+    stats: "Metricas y actividad resumida.",
+    publish: "Videos de biblioteca listos para cola.",
+    clone: "Clonacion programada desde TikTok scrapeado."
+  };
+  return labels[tab] || "Workspace del canal.";
 }
 
 function buildClonePreview(profileId, dailyLimit) {
@@ -107,8 +117,8 @@ export function renderScrapedProfiles() {
 
 function renderScrapedProfilesList() {
   if (!state.scrapedProfiles.length) {
-    renderEmpty(elements.scrapedProfilesList, "Todavía no hay perfiles scrapeados.");
-    elements.scrapedProfilesPagerLabel.textContent = "Página 1";
+    renderEmpty(elements.scrapedProfilesList, "Todavia no hay perfiles scrapeados.");
+    elements.scrapedProfilesPagerLabel.textContent = "Pagina 1";
     elements.scrapedProfilesPrevPage.disabled = true;
     elements.scrapedProfilesNextPage.disabled = true;
     return;
@@ -149,13 +159,13 @@ function renderScrapedWorkspace() {
   const profile = state.currentTrackingProfile;
   const scrape = state.currentTrackingRun;
   if (!profile) {
-    renderEmpty(elements.scrapedProfileHeader, "Elegí un perfil scrapeado o ejecutá un escaneo nuevo.");
-    renderEmpty(elements.scrapedVideosGrid, "Todavía no hay videos para mostrar.");
+    renderEmpty(elements.scrapedProfileHeader, "Elegi un perfil scrapeado o ejecuta un escaneo nuevo.");
+    renderEmpty(elements.scrapedVideosGrid, "Todavia no hay videos para mostrar.");
     elements.scrapedResultsMeta.textContent = "Sin perfil activo.";
     elements.saveLibraryButton.disabled = true;
     elements.scrapedVideosPrevPage.disabled = true;
     elements.scrapedVideosNextPage.disabled = true;
-    elements.scrapedVideosPagerLabel.textContent = "Página 1";
+    elements.scrapedVideosPagerLabel.textContent = "Pagina 1";
     return;
   }
 
@@ -177,10 +187,10 @@ function renderScrapedWorkspace() {
     </div>
     <div class="mini-stats-grid">
       <article class="mini-stat"><span>Videos</span><strong>${Number(profile.video_count || 0)}</strong></article>
-      <article class="mini-stat"><span>Imágenes</span><strong>${Number(profile.image_count || 0)}</strong></article>
+      <article class="mini-stat"><span>Imagenes</span><strong>${Number(profile.image_count || 0)}</strong></article>
       <article class="mini-stat"><span>Nuevos</span><strong>${Number(scrape?.new_items_count || 0)}</strong></article>
       <article class="mini-stat"><span>Guardados</span><strong>${Number(scrape?.saved_count || state.currentItems.length || 0)}</strong></article>
-      <article class="mini-stat"><span>Último scrape</span><strong>${escapeHtml(formatDate(profile.last_scraped_at))}</strong></article>
+      <article class="mini-stat"><span>Ultimo scrape</span><strong>${escapeHtml(formatDate(profile.last_scraped_at))}</strong></article>
     </div>
     ${
       scrape?.progress_message
@@ -193,16 +203,16 @@ function renderScrapedWorkspace() {
   elements.saveLibraryButton.disabled = state.selectedTrackIds.size === 0;
   elements.scrapedResultsMeta.textContent = total
     ? `${state.selectedTrackIds.size} seleccionados · ${total} videos cargados`
-    : "Sin videos todavía.";
+    : "Sin videos todavia.";
 
   const canLoadMore = Number(state.currentTrackTotalAvailable || 0) > total || total >= state.currentTrackLimit;
   elements.loadMoreMediaButton.classList.toggle("hidden", !canLoadMore);
 
   if (!total) {
-    renderEmpty(elements.scrapedVideosGrid, "Todavía no hay videos scrapeados para este perfil.");
+    renderEmpty(elements.scrapedVideosGrid, "Todavia no hay videos scrapeados para este perfil.");
     elements.scrapedVideosPrevPage.disabled = true;
     elements.scrapedVideosNextPage.disabled = true;
-    elements.scrapedVideosPagerLabel.textContent = "Página 1";
+    elements.scrapedVideosPagerLabel.textContent = "Pagina 1";
     return;
   }
 
@@ -228,7 +238,7 @@ function renderScrapedWorkspace() {
           </label>
           ${renderThumb(item.thumbnail_url, item.caption || "Video", "video-thumb", "TikTok")}
           <div class="video-card-body">
-            <strong>${escapeHtml(item.caption || "Video sin título")}</strong>
+            <strong>${escapeHtml(item.caption || "Video sin titulo")}</strong>
             <p>${escapeHtml(
               [formatDuration(item.duration_seconds), `${formatMetric(item.view_count)} vistas`, formatDate(item.published_at)]
                 .filter(Boolean)
@@ -253,8 +263,8 @@ export function renderYoutubeAccounts() {
 
 function renderYoutubeAccountsList() {
   if (!state.accounts.length) {
-    renderEmpty(elements.youtubeProfilesList, "Todavía no conectaste cuentas de YouTube.");
-    elements.youtubeProfilesPagerLabel.textContent = "Página 1";
+    renderEmpty(elements.youtubeProfilesList, "Todavia no conectaste cuentas de YouTube.");
+    elements.youtubeProfilesPagerLabel.textContent = "Pagina 1";
     elements.youtubeProfilesPrevPage.disabled = true;
     elements.youtubeProfilesNextPage.disabled = true;
     return;
@@ -316,9 +326,9 @@ export function renderOauthBox() {
 function renderYoutubeWorkspace() {
   const account = getSelectedAccount();
   if (!account) {
-    renderEmpty(elements.youtubeProfileHeader, "Conectá o elegí una cuenta de YouTube.");
-    renderEmpty(elements.youtubeProfileTabContent, "Todavía no hay una cuenta activa.");
-    renderEmpty(elements.youtubeSideActions, "El resumen del canal aparece acá.");
+    renderEmpty(elements.youtubeProfileHeader, "Conecta o elegi una cuenta de YouTube.");
+    renderEmpty(elements.youtubeProfileTabContent, "Todavia no hay una cuenta activa.");
+    renderEmpty(elements.youtubeSideActions, "Elegi una cuenta para abrir su workspace.");
     return;
   }
 
@@ -327,9 +337,10 @@ function renderYoutubeWorkspace() {
   const publications = getSelectedAccountPublications();
   const clones = getSelectedAccountClones();
   const queued = publications.filter((item) => isQueueLikeStatus(item.status));
+  const latestVideoTitle = videos[0]?.title || "Todavia no hay videos sincronizados.";
 
   elements.youtubeProfileHeader.innerHTML = `
-    <div class="profile-summary-head">
+    <div class="profile-summary-head youtube-workspace-hero">
       <div>
         <p class="eyebrow">Perfil YouTube</p>
         <h3>${accountLabel(account)}</h3>
@@ -345,9 +356,9 @@ function renderYoutubeWorkspace() {
     <div class="mini-stats-grid">
       <article class="mini-stat"><span>Videos</span><strong>${Number(channel?.statistics?.videoCount || videos.length || 0)}</strong></article>
       <article class="mini-stat"><span>Suscriptores</span><strong>${formatMetric(channel?.statistics?.subscriberCount || 0)}</strong></article>
-      <article class="mini-stat"><span>Vistas canal</span><strong>${formatMetric(channel?.statistics?.viewCount || 0)}</strong></article>
       <article class="mini-stat"><span>En cola</span><strong>${queued.length}</strong></article>
       <article class="mini-stat"><span>Clonaciones</span><strong>${clones.length}</strong></article>
+      <article class="mini-stat"><span>Vistas canal</span><strong>${formatMetric(channel?.statistics?.viewCount || 0)}</strong></article>
     </div>
   `;
 
@@ -361,16 +372,24 @@ function renderYoutubeWorkspace() {
     <article class="compact-info-card">
       <strong>Estado</strong>
       <p>${escapeHtml(
-        account.oauth_status === "connected" ? "Listo para publicar y clonar." : "Conectá OAuth antes de publicar."
+        account.oauth_status === "connected" ? "Listo para publicar y clonar." : "Conecta OAuth antes de publicar."
       )}</p>
     </article>
     <article class="compact-info-card">
-      <strong>Clonaciones activas</strong>
-      <p>${clones.length ? `${clones.length} configuradas para este canal.` : "Todavía no hay clonaciones creadas."}</p>
+      <strong>Seccion activa</strong>
+      <p>${escapeHtml(describeYoutubeTab(state.currentYoutubeTab))}</p>
     </article>
     <article class="compact-info-card">
-      <strong>Último video</strong>
-      <p>${videos.length ? escapeHtml(videos[0]?.title || "Video sin título") : "Todavía no hay videos sincronizados."}</p>
+      <strong>Actividad</strong>
+      <p>${escapeHtml(
+        clones.length
+          ? `${clones.length} clonaciones y ${queued.length} piezas en curso.`
+          : `${queued.length} piezas en curso en este canal.`
+      )}</p>
+    </article>
+    <article class="compact-info-card">
+      <strong>Ultimo video</strong>
+      <p>${escapeHtml(latestVideoTitle)}</p>
     </article>
   `;
 }
@@ -384,9 +403,9 @@ function renderYoutubeTabContent(account, channel, videos, publications, clones)
     );
     state.youtubeVideosPage = currentPage;
     elements.youtubeProfileTabContent.innerHTML = `
-      <section class="subpanel">
+      <section class="subpanel youtube-section-shell">
         <div class="subpanel-head between">
-          <div>
+          <div class="youtube-section-copy">
             <strong>Videos del canal</strong>
             <span class="helper-inline">${videos.length ? `${start}-${end} de ${videos.length}` : "Sin videos"}</span>
           </div>
@@ -395,6 +414,10 @@ function renderYoutubeTabContent(account, channel, videos, publications, clones)
             <button type="button" class="ghost-button" data-action="youtube-videos-next">Siguiente</button>
           </div>
         </div>
+        <article class="compact-info-card soft-card">
+          <strong>Lectura rapida</strong>
+          <p>Esta vista muestra solo uploads reales del canal activo para revisar linea editorial, frecuencia y nivel de respuesta.</p>
+        </article>
         ${renderChannelVideoCards(pageItems)}
       </section>
     `;
@@ -408,7 +431,11 @@ function renderYoutubeTabContent(account, channel, videos, publications, clones)
     const totalLikes = videos.reduce((sum, item) => sum + Number(item.likeCount || 0), 0);
     const published = publications.filter((item) => String(item.status).toLowerCase() === "published").length;
     elements.youtubeProfileTabContent.innerHTML = `
-      <section class="subpanel">
+      <section class="subpanel youtube-section-shell">
+        <article class="compact-info-card soft-card">
+          <strong>Panel de metricas</strong>
+          <p>Combina lo que devuelve YouTube con la actividad local para entender si el canal esta creciendo o solo acumulando cola.</p>
+        </article>
         <div class="mini-stats-grid">
           <article class="mini-stat"><span>Suscriptores</span><strong>${formatMetric(channel?.statistics?.subscriberCount || 0)}</strong></article>
           <article class="mini-stat"><span>Vistas recientes</span><strong>${formatMetric(totalViews)}</strong></article>
@@ -422,7 +449,7 @@ function renderYoutubeTabContent(account, channel, videos, publications, clones)
             <article class="compact-info-card">
               <p>Canal: ${accountLabel(account)}</p>
               <p>OAuth: ${escapeHtml(translateStatus(account.oauth_status))}</p>
-              <p>Última sincronización: ${escapeHtml(formatDate(account.last_sync_at))}</p>
+              <p>Ultima sincronizacion: ${escapeHtml(formatDate(account.last_sync_at))}</p>
             </article>
           </section>
           <section class="subpanel">
@@ -444,9 +471,9 @@ function renderYoutubeTabContent(account, channel, videos, publications, clones)
     );
     state.profilePublishPage = currentPage;
     elements.youtubeProfileTabContent.innerHTML = `
-      <section class="subpanel">
+      <section class="subpanel youtube-section-shell">
         <div class="subpanel-head between">
-          <div>
+          <div class="youtube-section-copy">
             <strong>Publicar desde biblioteca</strong>
             <span class="helper-inline">${publishable.length ? `${start}-${end} de ${publishable.length}` : "Sin disponibles"}</span>
           </div>
@@ -455,7 +482,7 @@ function renderYoutubeTabContent(account, channel, videos, publications, clones)
               state.profilePublishFilters.search
             )}" />
             <select id="profile-publish-source">
-              <option value="">Todos los orígenes</option>
+              <option value="">Todos los origenes</option>
               <option value="tracked_capture" ${state.profilePublishFilters.source === "tracked_capture" ? "selected" : ""}>Capturados</option>
               <option value="zip_import" ${state.profilePublishFilters.source === "zip_import" ? "selected" : ""}>ZIP</option>
               <option value="direct_upload" ${state.profilePublishFilters.source === "direct_upload" ? "selected" : ""}>Local</option>
@@ -467,9 +494,13 @@ function renderYoutubeTabContent(account, channel, videos, publications, clones)
             </select>
           </div>
         </div>
+        <article class="compact-info-card soft-card">
+          <strong>Uso recomendado</strong>
+          <p>Esta seccion sirve para publicacion manual. Filtra, revisa disponibilidad y manda solo lo necesario a la cola de este canal.</p>
+        </article>
         ${renderPublishRows(pageItems, account.id)}
         <div class="pager-row tight top-gap">
-          <span class="pager-label">Página ${currentPage} de ${totalPages}</span>
+          <span class="pager-label">Pagina ${currentPage} de ${totalPages}</span>
           <div class="pager-controls">
             <button type="button" class="ghost-button" data-action="profile-publish-prev">Anterior</button>
             <button type="button" class="ghost-button" data-action="profile-publish-next">Siguiente</button>
@@ -484,58 +515,66 @@ function renderYoutubeTabContent(account, channel, videos, publications, clones)
 
   const preview = buildClonePreview(state.cloneForm.trackedProfileId, state.cloneForm.dailyLimit);
   elements.youtubeProfileTabContent.innerHTML = `
-    <section class="subpanel">
+    <section class="subpanel youtube-section-shell">
       <div class="subpanel-head between">
-        <div>
+        <div class="youtube-section-copy">
           <strong>Clonar perfil TikTok</strong>
-          <span class="helper-inline">Programa todos los videos del perfil elegido con un límite diario.</span>
+          <span class="helper-inline">Programa todos los videos del perfil elegido con un limite diario.</span>
         </div>
       </div>
-      <form id="clone-form" class="stack-form compact-form">
-        <select id="clone-tracked-profile-select">
-          <option value="">Elegir perfil scrapeado</option>
-          ${state.scrapedProfiles
-            .map((profile) => {
-              const label = profile.username?.startsWith("tag-")
-                ? `#${String(profile.username).replace(/^tag-/, "")}`
-                : `@${profile.username}`;
-              return `<option value="${profile.id}" ${String(profile.id) === String(state.cloneForm.trackedProfileId) ? "selected" : ""}>${escapeHtml(
-                profile.display_name || label
-              )} · ${Number(profile.stored_video_count || profile.video_count || 0)} videos</option>`;
-            })
-            .join("")}
-        </select>
-        <div class="field-row two-up">
-          <label>
-            <span>Límite diario</span>
-            <input id="clone-daily-limit-input" type="number" min="1" step="1" value="${Number(state.cloneForm.dailyLimit || 3)}" />
-          </label>
-          <article class="compact-info-card soft-card">
-            <strong>Vista previa</strong>
-            <p>${preview.profile ? `${Number(preview.totalVideos)} videos · ${preview.totalDays} días estimados` : "Elegí un perfil scrapeado para ver la previsión."}</p>
-          </article>
-        </div>
-        ${
-          preview.previewDates.length
-            ? `<article class="compact-info-card"><strong>Calendario inicial</strong><p>${escapeHtml(
-                preview.previewDates.map((item) => formatDate(item)).join(" · ")
-              )}</p></article>`
-            : ""
-        }
-        <button type="submit">Crear clonación</button>
-      </form>
-
-      <div class="subpanel-head top-gap">
-        <strong>Clonaciones activas</strong>
+      <article class="compact-info-card soft-card">
+        <strong>Como funciona</strong>
+        <p>Elegis un perfil TikTok ya scrapeado, definis cuantos videos por dia queres subir y el sistema reparte la cola automaticamente.</p>
+      </article>
+      <div class="youtube-clone-layout">
+        <section class="subpanel youtube-clone-form-panel">
+          <div class="subpanel-head"><strong>Nueva clonacion</strong></div>
+          <form id="clone-form" class="stack-form compact-form">
+            <select id="clone-tracked-profile-select">
+              <option value="">Elegir perfil scrapeado</option>
+              ${state.scrapedProfiles
+                .map((profile) => {
+                  const label = profile.username?.startsWith("tag-")
+                    ? `#${String(profile.username).replace(/^tag-/, "")}`
+                    : `@${profile.username}`;
+                  return `<option value="${profile.id}" ${String(profile.id) === String(state.cloneForm.trackedProfileId) ? "selected" : ""}>${escapeHtml(
+                    profile.display_name || label
+                  )} · ${Number(profile.stored_video_count || profile.video_count || 0)} videos</option>`;
+                })
+                .join("")}
+            </select>
+            <div class="field-row two-up">
+              <label>
+                <span>Limite diario</span>
+                <input id="clone-daily-limit-input" type="number" min="1" step="1" value="${Number(state.cloneForm.dailyLimit || 3)}" />
+              </label>
+              <article class="compact-info-card soft-card">
+                <strong>Vista previa</strong>
+                <p>${preview.profile ? `${Number(preview.totalVideos)} videos · ${preview.totalDays} dias estimados` : "Elegi un perfil scrapeado para ver la prevision."}</p>
+              </article>
+            </div>
+            ${
+              preview.previewDates.length
+                ? `<article class="compact-info-card"><strong>Calendario inicial</strong><p>${escapeHtml(
+                    preview.previewDates.map((item) => formatDate(item)).join(" · ")
+                  )}</p></article>`
+                : ""
+            }
+            <button type="submit">Crear clonacion</button>
+          </form>
+        </section>
+        <section class="subpanel youtube-clone-list-panel">
+          <div class="subpanel-head"><strong>Clonaciones activas</strong></div>
+          ${renderCloneCards(clones)}
+        </section>
       </div>
-      ${renderCloneCards(clones)}
     </section>
   `;
 }
 
 function renderChannelVideoCards(items) {
   if (!items.length) {
-    return '<div class="empty-state">Todavía no hay videos para mostrar.</div>';
+    return '<div class="empty-state">Todavia no hay videos para mostrar.</div>';
   }
   return items
     .map(
@@ -543,7 +582,7 @@ function renderChannelVideoCards(items) {
         <article class="channel-video-row">
           ${renderThumb(item.thumbnails?.medium?.url || item.thumbnails?.default?.url || "", item.title || "", "channel-video-thumb", "YouTube")}
           <div class="channel-video-main">
-            <strong>${escapeHtml(item.title || "Video sin título")}</strong>
+            <strong>${escapeHtml(item.title || "Video sin titulo")}</strong>
             <p>${formatMetric(item.viewCount)} vistas · ${formatIsoDuration(item.duration) || "-"} · ${formatDate(item.publishedAt)}</p>
           </div>
           <div class="channel-video-side">
@@ -601,7 +640,7 @@ function renderPublishRows(items, accountId) {
 
 function renderCloneCards(items) {
   if (!items.length) {
-    return '<div class="empty-state">Todavía no hay clonaciones creadas.</div>';
+    return '<div class="empty-state">Todavia no hay clonaciones creadas.</div>';
   }
 
   return items
@@ -610,7 +649,7 @@ function renderCloneCards(items) {
         <article class="queue-card">
           <div class="queue-card-main">
             <strong>${escapeHtml(item.display_name || `@${item.username}`)}</strong>
-            <p>${Number(item.total_items_count || 0)} programados · ${Number(item.daily_limit || 1)} por día</p>
+            <p>${Number(item.total_items_count || 0)} programados · ${Number(item.daily_limit || 1)} por dia</p>
           </div>
           <div class="queue-card-side">
             <span class="badge ${String(item.status).toLowerCase() === "active" ? "success" : ""}">${escapeHtml(translateStatus(item.status))}</span>
@@ -632,7 +671,7 @@ function renderQueueCards(items) {
       (item) => `
         <article class="queue-card">
           <div class="queue-card-main">
-            <strong>${escapeHtml(item.title || "Publicación sin título")}</strong>
+            <strong>${escapeHtml(item.title || "Publicacion sin titulo")}</strong>
             <p>${escapeHtml(translateStatusDetail(item.status_detail || item.status || ""))}</p>
           </div>
           <div class="queue-card-side">
@@ -676,7 +715,7 @@ export function renderQueue() {
   elements.queueNextPage.disabled = currentPage >= totalPages;
 
   if (!filtered.length) {
-    renderEmpty(elements.publicationList, "No hay publicaciones para esta pestaña.");
+    renderEmpty(elements.publicationList, "No hay publicaciones para esta pestana.");
     return;
   }
 
@@ -691,7 +730,7 @@ export function renderQueue() {
       return `
         <article class="queue-row">
           <div class="queue-row-main">
-            <strong>${escapeHtml(item.title || "Publicación sin título")}</strong>
+            <strong>${escapeHtml(item.title || "Publicacion sin titulo")}</strong>
             <p>${escapeHtml(sourceLabel)}</p>
           </div>
           <div class="queue-row-meta">
@@ -727,7 +766,7 @@ function labelQueueTab(value) {
 export function renderOverview() {
   const summary = state.dashboardSummary;
   if (!summary) {
-    renderEmpty(elements.summaryStrip, "Todavía no hay resumen del sistema.");
+    renderEmpty(elements.summaryStrip, "Todavia no hay resumen del sistema.");
     renderEmpty(elements.overviewScrapedList, "Sin datos.");
     renderEmpty(elements.overviewPublicationsList, "Sin datos.");
     return;
@@ -750,7 +789,7 @@ export function renderOverview() {
 
   const recentProfiles = Array.isArray(summary.recent_profiles) ? summary.recent_profiles : [];
   if (!recentProfiles.length) {
-    renderEmpty(elements.overviewScrapedList, "Todavía no hay perfiles recientes.");
+    renderEmpty(elements.overviewScrapedList, "Todavia no hay perfiles recientes.");
   } else {
     elements.overviewScrapedList.innerHTML = recentProfiles
       .map((profile) => {
@@ -774,14 +813,14 @@ export function renderOverview() {
 
   const recentPublications = Array.isArray(summary.recent_publications) ? summary.recent_publications : [];
   if (!recentPublications.length) {
-    renderEmpty(elements.overviewPublicationsList, "Todavía no hay publicaciones recientes.");
+    renderEmpty(elements.overviewPublicationsList, "Todavia no hay publicaciones recientes.");
   } else {
     elements.overviewPublicationsList.innerHTML = recentPublications
       .map(
         (item) => `
           <article class="queue-card">
             <div class="queue-card-main">
-              <strong>${escapeHtml(item.title || "Publicación sin título")}</strong>
+              <strong>${escapeHtml(item.title || "Publicacion sin titulo")}</strong>
               <p>${escapeHtml(`@${item.username || "origen"}`)}</p>
             </div>
             <div class="queue-card-side">
