@@ -425,7 +425,7 @@ router.patch("/youtube/accounts/:id/videos/:videoId", async (req, res, next) => 
 
 router.post("/youtube/accounts/:id/videos/:videoId/generate-metadata", async (req, res, next) => {
   try {
-    const result = await generateYoutubeChannelVideoMetadata(req.params.id, req.params.videoId);
+    const result = await generateYoutubeChannelVideoMetadata(req.params.id, req.params.videoId, req.body || {});
     res.json(result);
   } catch (error) {
     next(error);
@@ -494,7 +494,7 @@ router.patch("/publications/:id", async (req, res, next) => {
 
 router.post("/publications/:id/generate-metadata", async (req, res, next) => {
   try {
-    const result = await generatePublicationMetadata(req.params.id);
+    const result = await generatePublicationMetadata(req.params.id, req.body || {});
     res.json(result);
   } catch (error) {
     next(error);

@@ -174,6 +174,26 @@ function buildDefaultMetadata(source = {}) {
   };
 }
 
+function buildPromptContext(source = {}, options = {}) {
+  const context = normalizeWhitespace(options.context || env.geminiMetadataContext || "", true).slice(0, 1200);
+  const primaryTitle = sanitizeTitle(
+    source.title || source.library_title || source.caption || source.original_filename || "",
+    buildSourceFallbackTitle(source)
+  );
+
+  return {
+    primaryTitle,
+    context,
+    guidance: [
+      "Usa el titulo del video como ancla principal del mensaje.",
+      "Escribe una descripcion con hook inicial y buen engagement para YouTube Shorts.",
+      "Mantene la descripcion corta, clara y nativa de YouTube.",
+      "Genera hashtags relevantes al contenido, no hashtags genericos basura.",
+      "No menciones TikTok ni el origen del video."
+    ]
+  };
+}
+
 function safeJsonParse(value) {
   try {
     return JSON.parse(value);
@@ -182,28 +202,35 @@ function safeJsonParse(value) {
   }
 }
 
-async function generateMetadataWithGemini(source = {}) {
+async function generateMetadataWithGemini(source = {}, options = {}) {
   const fallback = buildDefaultMetadata(source);
   if (!env.geminiApiKey) {
     return fallback;
   }
 
+  const promptContext = buildPromptContext(source, options);
+
   const promptPayload = {
     target: "youtube shorts",
     instructions: [
       "Escribe metadata clara y breve para YouTube.",
+      "Usa el titulo recibido como base principal del mensaje.",
+      "La descripcion debe abrir con una linea gancho que invite a mirar o comentar.",
+      "Los hashtags deben ser pocos, especificos y utiles para descubrimiento.",
       "No menciones TikTok ni la palabra TikTok.",
       "No uses hashtags basura como fyp, viral o similares.",
       "Devuelve un titulo limpio, una descripcion util y tags concretos.",
       "Mantene el idioma original del contenido si se entiende."
     ],
     source: {
-      title: String(source.title || source.library_title || source.caption || "").slice(0, 500),
+      title: promptContext.primaryTitle,
       description: String(source.description || source.caption || "").slice(0, 2000),
       username: source.username || null,
       sourceLabel: source.source_label || source.channel_title || null,
       existingTags: sanitizeMetadataTags(source.tags || [])
     },
+    context: promptContext.context || null,
+    promptGuidance: promptContext.guidance,
     fallback
   };
 
@@ -259,9 +286,9 @@ async function generateMetadataWithGemini(source = {}) {
   };
 }
 
-async function buildEnhancedMetadata(source = {}) {
+async function buildEnhancedMetadata(source = {}, options = {}) {
   try {
-    const generated = await generateMetadataWithGemini(source);
+    const generated = await generateMetadataWithGemini(source, options);
     if (generated.tags.length === 0) {
       generated.tags = ["shorts"];
     }

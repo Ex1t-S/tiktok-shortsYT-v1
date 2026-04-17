@@ -536,13 +536,15 @@ async function updateYoutubeChannelVideo(accountId, videoId, payload = {}) {
   };
 }
 
-async function generateYoutubeChannelVideoMetadata(accountId, videoId) {
+async function generateYoutubeChannelVideoMetadata(accountId, videoId, options = {}) {
   const currentVideo = await getYoutubeVideoResource(accountId, videoId);
   const generated = await buildEnhancedMetadata({
-    title: currentVideo.snippet?.title || "",
-    description: currentVideo.snippet?.description || "",
+    title: options.title || currentVideo.snippet?.title || "",
+    description: options.description !== undefined ? options.description : currentVideo.snippet?.description || "",
     tags: currentVideo.snippet?.tags || [],
     source_label: "youtube_video"
+  }, {
+    context: options.context || ""
   });
   const item = await updateYoutubeChannelVideo(accountId, videoId, generated);
 

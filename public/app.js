@@ -370,14 +370,18 @@ async function updateChannelVideo(videoId, payload) {
   setStatus(`El video ${videoId} fue actualizado en YouTube.`);
 }
 
-async function generateChannelVideoMetadata(videoId) {
+async function generateChannelVideoMetadata(videoId, editorValues = {}) {
   if (!state.selectedAccountId) {
     setStatus("ElegÃ­ una cuenta de YouTube primero.", true);
     return;
   }
 
   try {
-    const response = await postJson(`/api/youtube/accounts/${state.selectedAccountId}/videos/${videoId}/generate-metadata`, {});
+    const response = await postJson(`/api/youtube/accounts/${state.selectedAccountId}/videos/${videoId}/generate-metadata`, {
+      title: editorValues.title || "",
+      description: editorValues.description || "",
+      context: editorValues.context || ""
+    });
     await ensureSelectedAccountVideos(true);
     state.expandedChannelVideoId = String(videoId);
     renderYoutubeAccounts();
@@ -403,8 +407,12 @@ async function savePublicationMetadata(publicationId, payload) {
   setStatus(`La publicacion ${publicationId} fue actualizada.`);
 }
 
-async function generatePublicationMetadata(publicationId) {
-  const response = await postJson(`/api/publications/${publicationId}/generate-metadata`, {});
+async function generatePublicationMetadata(publicationId, editorValues = {}) {
+  const response = await postJson(`/api/publications/${publicationId}/generate-metadata`, {
+    title: editorValues.title || "",
+    description: editorValues.description || "",
+    context: editorValues.context || ""
+  });
   await Promise.all([loadPublications(), loadAccounts()]);
   state.expandedProfilePublicationId = String(publicationId);
   renderYoutubeAccounts();
@@ -624,7 +632,12 @@ function bindStaticEvents() {
       return;
     }
     if (action === "channel-video-generate-ai") {
-      generateChannelVideoMetadata(actionTarget.dataset.id).catch((error) => setStatus(error.message, true));
+      const card = actionTarget.closest(".channel-video-card");
+      generateChannelVideoMetadata(actionTarget.dataset.id, {
+        title: card?.querySelector('[data-channel-video-field="title"]')?.value || "",
+        description: card?.querySelector('[data-channel-video-field="description"]')?.value || "",
+        context: card?.querySelector('[data-channel-video-field="ai-context"]')?.value || ""
+      }).catch((error) => setStatus(error.message, true));
       return;
     }
     if (action === "profile-publish-prev") {
@@ -686,7 +699,12 @@ function bindStaticEvents() {
       return;
     }
     if (action === "profile-publication-generate-ai") {
-      generatePublicationMetadata(actionTarget.dataset.id).catch((error) => setStatus(error.message, true));
+      const card = actionTarget.closest(".profile-publication-card");
+      generatePublicationMetadata(actionTarget.dataset.id, {
+        title: card?.querySelector('[data-publication-field="title"]')?.value || "",
+        description: card?.querySelector('[data-publication-field="description"]')?.value || "",
+        context: card?.querySelector('[data-publication-field="ai-context"]')?.value || ""
+      }).catch((error) => setStatus(error.message, true));
       return;
     }
     if (action === "profile-publication-publish") {

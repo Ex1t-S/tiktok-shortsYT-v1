@@ -850,6 +850,10 @@ function renderChannelVideoCards(items) {
                       <textarea data-channel-video-field="description" rows="6">${escapeHtml(item.description || "")}</textarea>
                     </label>
                     <label>
+                      <span>Contexto IA</span>
+                      <textarea data-channel-video-field="ai-context" rows="3" placeholder="Ejemplo: tono cinematografico, CTA para comentarios, publico fan de historias IA"></textarea>
+                    </label>
+                    <label>
                       <span>Privacidad</span>
                       <select data-channel-video-field="privacy-status">
                         <option value="public" ${item.privacyStatus === "public" ? "selected" : ""}>Publico</option>
@@ -984,6 +988,10 @@ function renderProfileQueueRows(items) {
                     <label>
                       <span>Descripcion</span>
                       <textarea data-publication-field="description" rows="6">${escapeHtml(item.description || "")}</textarea>
+                    </label>
+                    <label>
+                      <span>Contexto IA</span>
+                      <textarea data-publication-field="ai-context" rows="3" placeholder="Ejemplo: tono misterioso, abrir con hook fuerte, hashtags de fruta IA"></textarea>
                     </label>
                     <div class="profile-publication-actions">
                       <button type="button" class="ghost-button" data-action="profile-publication-generate-ai" data-id="${id}">Generar con IA</button>

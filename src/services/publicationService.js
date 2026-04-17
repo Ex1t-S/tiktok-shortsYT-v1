@@ -454,7 +454,7 @@ async function updatePublicationMetadata(publicationId, payload = {}) {
   return getPublicationById(publicationId);
 }
 
-async function generatePublicationMetadata(publicationId) {
+async function generatePublicationMetadata(publicationId, options = {}) {
   const publication = await getPublicationById(publicationId);
   if (!publication) {
     throw new Error("publication not found");
@@ -462,8 +462,10 @@ async function generatePublicationMetadata(publicationId) {
 
   const generated = await buildEnhancedMetadata({
     ...publication,
-    title: publication.title || publication.library_title || publication.caption || "",
-    description: publication.description || publication.caption || ""
+    title: options.title || publication.title || publication.library_title || publication.caption || "",
+    description: options.description !== undefined ? options.description : publication.description || publication.caption || ""
+  }, {
+    context: options.context || ""
   });
 
   await query(

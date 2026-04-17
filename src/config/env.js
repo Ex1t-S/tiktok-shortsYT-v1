@@ -56,6 +56,7 @@ const env = {
   googleRedirectUri: readEnv("GOOGLE_REDIRECT_URI", ""),
   geminiApiKey: readEnv("GEMINI_API_KEY", ""),
   geminiModel: readEnv("GEMINI_MODEL", "gemini-2.5-flash-lite"),
+  geminiMetadataContext: readEnv("GEMINI_METADATA_CONTEXT", ""),
   youtubeDefaultPrivacyStatus: readEnv("YOUTUBE_DEFAULT_PRIVACY_STATUS", "private"),
   libraryStorageMode: readEnv("LIBRARY_STORAGE_MODE", "local"),
   libraryCloudProvider: readEnv("LIBRARY_CLOUD_PROVIDER", "s3-compatible"),
