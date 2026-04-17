@@ -376,15 +376,23 @@ async function generateChannelVideoMetadata(videoId) {
     return;
   }
 
-  const response = await postJson(`/api/youtube/accounts/${state.selectedAccountId}/videos/${videoId}/generate-metadata`, {});
-  await ensureSelectedAccountVideos(true);
-  state.expandedChannelVideoId = String(videoId);
-  renderYoutubeAccounts();
-  setStatus(
-    response?.metadata?.generator === "gemini"
-      ? `La IA regenerÃ³ la metadata del video ${videoId}.`
-      : `La metadata del video ${videoId} fue limpiada y actualizada.`
-  );
+  try {
+    const response = await postJson(`/api/youtube/accounts/${state.selectedAccountId}/videos/${videoId}/generate-metadata`, {});
+    await ensureSelectedAccountVideos(true);
+    state.expandedChannelVideoId = String(videoId);
+    renderYoutubeAccounts();
+    setStatus(
+      response?.metadata?.generator === "gemini"
+        ? `La IA regenerÃ³ la metadata del video ${videoId}.`
+        : `La metadata del video ${videoId} fue limpiada y actualizada.`
+    );
+  } catch (error) {
+    const message = String(error.message || "");
+    if (message.toLowerCase().includes("insufficient") || message.toLowerCase().includes("permission")) {
+      throw new Error("La cuenta de YouTube necesita reconectarse para editar videos existentes.");
+    }
+    throw error;
+  }
 }
 
 async function savePublicationMetadata(publicationId, payload) {

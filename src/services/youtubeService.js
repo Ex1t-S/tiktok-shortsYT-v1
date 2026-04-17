@@ -10,6 +10,11 @@ const YOUTUBE_CHANNELS_URL =
   "https://www.googleapis.com/youtube/v3/channels?part=snippet,contentDetails,statistics&mine=true";
 const YOUTUBE_PLAYLIST_ITEMS_URL = "https://www.googleapis.com/youtube/v3/playlistItems";
 const YOUTUBE_VIDEOS_URL = "https://www.googleapis.com/youtube/v3/videos";
+const YOUTUBE_OAUTH_SCOPES = [
+  "https://www.googleapis.com/auth/youtube.upload",
+  "https://www.googleapis.com/auth/youtube.readonly",
+  "https://www.googleapis.com/auth/youtube.force-ssl"
+];
 
 function buildLocalOauthCallbackUrl() {
   return `http://localhost:${env.port}/api/youtube/oauth/callback`;
@@ -130,7 +135,7 @@ function buildYoutubeConnectUrl(accountId) {
     access_type: "offline",
     prompt: "consent",
     include_granted_scopes: "true",
-    scope: "https://www.googleapis.com/auth/youtube.upload https://www.googleapis.com/auth/youtube.readonly",
+    scope: YOUTUBE_OAUTH_SCOPES.join(" "),
     state
   });
 
@@ -150,7 +155,7 @@ function buildYoutubeDirectOauthUrl() {
     access_type: "offline",
     prompt: "consent",
     include_granted_scopes: "true",
-    scope: "https://www.googleapis.com/auth/youtube.upload https://www.googleapis.com/auth/youtube.readonly",
+    scope: YOUTUBE_OAUTH_SCOPES.join(" "),
     state
   });
 
