@@ -357,6 +357,19 @@ async function syncExistingPublication(publicationId) {
   setStatus(`La publicación ${publicationId} fue sincronizada.`);
 }
 
+async function updateChannelVideo(videoId, payload) {
+  if (!state.selectedAccountId) {
+    setStatus("ElegÃ­ una cuenta de YouTube primero.", true);
+    return;
+  }
+
+  await postJson(`/api/youtube/accounts/${state.selectedAccountId}/videos/${videoId}`, payload, "PATCH");
+  await ensureSelectedAccountVideos(true);
+  state.expandedChannelVideoId = String(videoId);
+  renderYoutubeAccounts();
+  setStatus(`El video ${videoId} fue actualizado en YouTube.`);
+}
+
 async function savePublicationMetadata(publicationId, payload) {
   await postJson(`/api/publications/${publicationId}`, payload, "PATCH");
   await Promise.all([loadPublications(), loadAccounts()]);
@@ -516,6 +529,7 @@ function bindStaticEvents() {
     state.currentYoutubeTab = "videos";
     state.youtubeVideosPage = 1;
     state.profilePublishPage = 1;
+    state.expandedChannelVideoId = null;
     state.expandedProfilePublicationId = null;
     clearSelectedLibraryItems();
     setSidebarDrawerOpen(false);
@@ -530,6 +544,7 @@ function bindStaticEvents() {
     const nextTab = button.dataset.tab;
     if (state.currentYoutubeTab !== nextTab) {
       clearSelectedLibraryItems();
+      state.expandedChannelVideoId = null;
       state.expandedProfilePublicationId = null;
     }
     state.currentYoutubeTab = nextTab;
@@ -542,12 +557,33 @@ function bindStaticEvents() {
     const action = actionTarget.dataset.action;
     if (action === "youtube-videos-prev") {
       state.youtubeVideosPage = Math.max(1, state.youtubeVideosPage - 1);
+      state.expandedChannelVideoId = null;
       renderYoutubeAccounts();
       return;
     }
     if (action === "youtube-videos-next") {
       state.youtubeVideosPage += 1;
+      state.expandedChannelVideoId = null;
       renderYoutubeAccounts();
+      return;
+    }
+    if (action === "channel-video-toggle") {
+      const nextId = String(actionTarget.dataset.id || "");
+      state.expandedChannelVideoId = String(state.expandedChannelVideoId || "") === nextId ? null : nextId;
+      renderYoutubeAccounts();
+      return;
+    }
+    if (action === "channel-video-save" || action === "channel-video-make-private") {
+      const card = actionTarget.closest(".channel-video-card");
+      if (!card) return;
+      const titleInput = card.querySelector('[data-channel-video-field="title"]');
+      const descriptionInput = card.querySelector('[data-channel-video-field="description"]');
+      const privacySelect = card.querySelector('[data-channel-video-field="privacy-status"]');
+      updateChannelVideo(actionTarget.dataset.id, {
+        title: titleInput?.value || "",
+        description: descriptionInput?.value || "",
+        privacyStatus: action === "channel-video-make-private" ? "private" : privacySelect?.value || "private"
+      }).catch((error) => setStatus(error.message, true));
       return;
     }
     if (action === "profile-publish-prev") {

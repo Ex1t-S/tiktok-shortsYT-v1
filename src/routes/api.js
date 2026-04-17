@@ -26,7 +26,8 @@ const {
   startYoutubeOAuth,
   startYoutubeDirectOAuth,
   handleYoutubeOAuthCallback,
-  listYoutubeChannelVideos
+  listYoutubeChannelVideos,
+  updateYoutubeChannelVideo
 } = require("../services/youtubeService");
 const { listProfileClones, createProfileClone } = require("../services/cloneService");
 const {
@@ -406,6 +407,15 @@ router.get("/youtube/accounts/:id/videos", async (req, res, next) => {
       limit: req.query.limit
     });
     res.json(result);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.patch("/youtube/accounts/:id/videos/:videoId", async (req, res, next) => {
+  try {
+    const item = await updateYoutubeChannelVideo(req.params.id, req.params.videoId, req.body);
+    res.json({ item });
   } catch (error) {
     next(error);
   }

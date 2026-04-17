@@ -385,8 +385,16 @@ async function listYoutubeChannelVideos(accountId, options = {}) {
         id: videoId,
         title: video.snippet?.title || playlistItem.snippet?.title || "Untitled video",
         description: video.snippet?.description || "",
+        categoryId: video.snippet?.categoryId || null,
+        tags: Array.isArray(video.snippet?.tags) ? video.snippet.tags : [],
+        defaultLanguage: video.snippet?.defaultLanguage || null,
         publishedAt: video.snippet?.publishedAt || playlistItem.contentDetails?.videoPublishedAt || null,
         privacyStatus: video.status?.privacyStatus || null,
+        embeddable: video.status?.embeddable ?? null,
+        license: video.status?.license || null,
+        publicStatsViewable: video.status?.publicStatsViewable ?? null,
+        selfDeclaredMadeForKids: video.status?.selfDeclaredMadeForKids ?? null,
+        containsSyntheticMedia: video.status?.containsSyntheticMedia ?? null,
         thumbnails: video.snippet?.thumbnails || playlistItem.snippet?.thumbnails || {},
         duration: video.contentDetails?.duration || null,
         viewCount: Number(video.statistics?.viewCount || 0),
@@ -395,6 +403,117 @@ async function listYoutubeChannelVideos(accountId, options = {}) {
         url: videoId ? `https://www.youtube.com/watch?v=${videoId}` : null
       };
     })
+  };
+}
+
+async function updateYoutubeChannelVideo(accountId, videoId, payload = {}) {
+  const safeVideoId = String(videoId || "").trim();
+  if (!safeVideoId) {
+    throw new Error("videoId is required");
+  }
+
+  const readParams = new URLSearchParams({
+    part: "snippet,status",
+    id: safeVideoId
+  });
+  const readResponse = await youtubeApiRequest(accountId, `${YOUTUBE_VIDEOS_URL}?${readParams.toString()}`, {
+    method: "GET"
+  });
+  const readData = await readResponse.json().catch(() => ({}));
+  if (!readResponse.ok) {
+    throw new Error(readData.error?.message || "Failed to read YouTube video metadata");
+  }
+
+  const currentVideo = Array.isArray(readData.items) ? readData.items[0] : null;
+  if (!currentVideo) {
+    throw new Error("YouTube video not found");
+  }
+
+  const currentSnippet = currentVideo.snippet || {};
+  const currentStatus = currentVideo.status || {};
+  const nextTitle = String(payload.title !== undefined ? payload.title : currentSnippet.title || "").trim();
+  if (!nextTitle) {
+    throw new Error("title is required");
+  }
+
+  const nextDescription = String(
+    payload.description !== undefined ? payload.description : currentSnippet.description || ""
+  ).trim();
+  const nextPrivacyStatus = String(
+    payload.privacyStatus !== undefined ? payload.privacyStatus : currentStatus.privacyStatus || "private"
+  ).trim().toLowerCase();
+  if (!["private", "public", "unlisted"].includes(nextPrivacyStatus)) {
+    throw new Error("privacyStatus is invalid");
+  }
+
+  const updateResource = {
+    id: safeVideoId,
+    snippet: {
+      title: nextTitle,
+      description: nextDescription,
+      categoryId: currentSnippet.categoryId || "22"
+    },
+    status: {
+      privacyStatus: nextPrivacyStatus
+    }
+  };
+
+  if (Array.isArray(currentSnippet.tags) && currentSnippet.tags.length) {
+    updateResource.snippet.tags = currentSnippet.tags;
+  }
+  if (currentSnippet.defaultLanguage) {
+    updateResource.snippet.defaultLanguage = currentSnippet.defaultLanguage;
+  }
+  if (typeof currentStatus.embeddable === "boolean") {
+    updateResource.status.embeddable = currentStatus.embeddable;
+  }
+  if (currentStatus.license) {
+    updateResource.status.license = currentStatus.license;
+  }
+  if (typeof currentStatus.publicStatsViewable === "boolean") {
+    updateResource.status.publicStatsViewable = currentStatus.publicStatsViewable;
+  }
+  if (typeof currentStatus.selfDeclaredMadeForKids === "boolean") {
+    updateResource.status.selfDeclaredMadeForKids = currentStatus.selfDeclaredMadeForKids;
+  }
+  if (typeof currentStatus.containsSyntheticMedia === "boolean") {
+    updateResource.status.containsSyntheticMedia = currentStatus.containsSyntheticMedia;
+  }
+  if (nextPrivacyStatus === "private" && currentStatus.publishAt) {
+    updateResource.status.publishAt = currentStatus.publishAt;
+  }
+
+  const updateParams = new URLSearchParams({
+    part: "snippet,status"
+  });
+  const updateResponse = await youtubeApiRequest(accountId, `${YOUTUBE_VIDEOS_URL}?${updateParams.toString()}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json; charset=UTF-8"
+    },
+    body: JSON.stringify(updateResource)
+  });
+  const updateData = await updateResponse.json().catch(() => ({}));
+  if (!updateResponse.ok) {
+    throw new Error(updateData.error?.message || "Failed to update YouTube video");
+  }
+
+  const updatedVideo = updateData || {};
+  return {
+    id: updatedVideo.id || safeVideoId,
+    title: updatedVideo.snippet?.title || nextTitle,
+    description: updatedVideo.snippet?.description || nextDescription,
+    categoryId: updatedVideo.snippet?.categoryId || updateResource.snippet.categoryId,
+    tags: Array.isArray(updatedVideo.snippet?.tags) ? updatedVideo.snippet.tags : updateResource.snippet.tags || [],
+    defaultLanguage: updatedVideo.snippet?.defaultLanguage || updateResource.snippet.defaultLanguage || null,
+    privacyStatus: updatedVideo.status?.privacyStatus || nextPrivacyStatus,
+    embeddable: updatedVideo.status?.embeddable ?? updateResource.status.embeddable ?? null,
+    license: updatedVideo.status?.license || updateResource.status.license || null,
+    publicStatsViewable: updatedVideo.status?.publicStatsViewable ?? updateResource.status.publicStatsViewable ?? null,
+    selfDeclaredMadeForKids:
+      updatedVideo.status?.selfDeclaredMadeForKids ?? updateResource.status.selfDeclaredMadeForKids ?? null,
+    containsSyntheticMedia:
+      updatedVideo.status?.containsSyntheticMedia ?? updateResource.status.containsSyntheticMedia ?? null
   };
 }
 
@@ -590,5 +709,6 @@ module.exports = {
   handleYoutubeOAuthCallback,
   youtubeApiRequest,
   getValidAccessToken,
-  listYoutubeChannelVideos
+  listYoutubeChannelVideos,
+  updateYoutubeChannelVideo
 };

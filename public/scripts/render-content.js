@@ -810,22 +810,70 @@ function renderChannelVideoCards(items) {
   }
 
   return items
-    .map(
-      (item) => `
-        <article class="list-row list-row-compact list-row-video">
-          <div class="list-row-thumb">
-            ${renderThumb(item.thumbnails?.medium?.url || item.thumbnails?.default?.url || "", item.title || "", "channel-video-thumb", "YouTube")}
-          </div>
-          <div class="list-row-main">
-            <strong class="truncate-2" title="${escapeHtml(item.title || "Video sin titulo")}">${escapeHtml(item.title || "Video sin titulo")}</strong>
-            <p>${formatMetric(item.viewCount)} vistas · ${formatIsoDuration(item.duration) || "-"} · ${formatDate(item.publishedAt)}</p>
-          </div>
-          <div class="list-row-side">
-            ${item.url ? `<a class="ghost-button" href="${item.url}" target="_blank" rel="noreferrer">Abrir</a>` : ""}
-          </div>
+    .map((item) => {
+      const expanded = String(state.expandedChannelVideoId || "") === String(item.id || "");
+      const thumb = item.thumbnails?.medium?.url || item.thumbnails?.default?.url || "";
+
+      return `
+        <article class="channel-video-card ${expanded ? "is-expanded" : ""}">
+          <button type="button" class="channel-video-bar" data-action="channel-video-toggle" data-id="${item.id}" aria-expanded="${expanded ? "true" : "false"}">
+            <div class="channel-video-summary">
+              <div class="list-row-thumb">
+                ${renderThumb(thumb, item.title || "", "channel-video-thumb", "YouTube")}
+              </div>
+              <div class="list-row-main">
+                <strong class="truncate-2" title="${escapeHtml(item.title || "Video sin titulo")}">${escapeHtml(item.title || "Video sin titulo")}</strong>
+                <p>${formatMetric(item.viewCount)} vistas · ${formatIsoDuration(item.duration) || "-"} · ${formatDate(item.publishedAt)}</p>
+              </div>
+            </div>
+            <div class="channel-video-meta">
+              <span class="badge ${item.privacyStatus === "public" ? "success" : item.privacyStatus === "private" ? "" : "warning"}">${escapeHtml(
+                translateStatus(item.privacyStatus || "private")
+              )}</span>
+              <span class="meta-chip channel-video-expand">${expanded ? "Ocultar" : "Editar"}</span>
+            </div>
+          </button>
+          ${
+            expanded
+              ? `
+                <div class="channel-video-editor">
+                  <div class="channel-video-preview">
+                    ${renderThumb(thumb, item.title || "", "video-thumb", "YouTube")}
+                  </div>
+                  <div class="channel-video-fields">
+                    <label>
+                      <span>Titulo</span>
+                      <input type="text" data-channel-video-field="title" value="${escapeHtml(item.title || "")}" maxlength="100" />
+                    </label>
+                    <label>
+                      <span>Descripcion</span>
+                      <textarea data-channel-video-field="description" rows="6">${escapeHtml(item.description || "")}</textarea>
+                    </label>
+                    <label>
+                      <span>Privacidad</span>
+                      <select data-channel-video-field="privacy-status">
+                        <option value="public" ${item.privacyStatus === "public" ? "selected" : ""}>Publico</option>
+                        <option value="unlisted" ${item.privacyStatus === "unlisted" ? "selected" : ""}>Oculto</option>
+                        <option value="private" ${item.privacyStatus === "private" ? "selected" : ""}>Privado</option>
+                      </select>
+                    </label>
+                    <div class="channel-video-actions">
+                      <button type="button" class="ghost-button" data-action="channel-video-save" data-id="${item.id}">Guardar cambios</button>
+                      ${
+                        item.privacyStatus === "public"
+                          ? `<button type="button" data-action="channel-video-make-private" data-id="${item.id}">Pasar a privado</button>`
+                          : ""
+                      }
+                      ${item.url ? `<a class="ghost-button" href="${item.url}" target="_blank" rel="noreferrer">Abrir</a>` : ""}
+                    </div>
+                  </div>
+                </div>
+              `
+              : ""
+          }
         </article>
-      `
-    )
+      `;
+    })
     .join("");
 }
 

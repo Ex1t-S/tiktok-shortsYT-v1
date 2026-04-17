@@ -94,6 +94,7 @@ export const state = {
   currentYoutubeTab: "videos",
   youtubeVideosPage: 1,
   youtubeTabPageSize: 5,
+  expandedChannelVideoId: null,
   expandedProfilePublicationId: null,
   profilePublishPage: 1,
   selectedLibraryIds: new Set(),
