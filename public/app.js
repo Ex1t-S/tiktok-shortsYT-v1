@@ -33,6 +33,10 @@ function formatUsernameForInput(username) {
   return String(username).startsWith("tag-") ? `#${String(username).replace(/^tag-/, "")}` : `@${username}`;
 }
 
+function clearSelectedLibraryItems() {
+  state.selectedLibraryIds.clear();
+}
+
 function handleOauthFeedback() {
   const params = new URLSearchParams(window.location.search);
   const oauthStatus = params.get("youtube_oauth");
@@ -273,6 +277,12 @@ async function ensureSelectedAccountClones(force = false) {
 async function loadLibrary() {
   const { items } = await fetchJson("/api/library/videos");
   state.libraryItems = Array.isArray(items) ? items : [];
+  const availableIds = new Set(state.libraryItems.map((item) => String(item.id)));
+  state.selectedLibraryIds.forEach((id) => {
+    if (!availableIds.has(String(id))) {
+      state.selectedLibraryIds.delete(String(id));
+    }
+  });
   renderYoutubeAccounts();
 }
 
@@ -283,16 +293,28 @@ async function loadPublications() {
   renderYoutubeAccounts();
 }
 
-async function sendLibraryVideoToQueue(libraryVideoId, youtubeAccountId, publishNow = false) {
+async function sendLibraryVideoToQueue(libraryVideoIds, youtubeAccountId, publishNow = false) {
+  const ids = Array.isArray(libraryVideoIds) ? libraryVideoIds.map((id) => Number(id)) : [Number(libraryVideoIds)];
+  if (!ids.length) {
+    setStatus("No hay videos seleccionados.", true);
+    return;
+  }
+
   const response = await postJson("/api/publications", {
-    libraryVideoIds: [Number(libraryVideoId)],
+    libraryVideoIds: ids,
     youtubeAccountId: Number(youtubeAccountId)
   });
   if (publishNow) {
     await Promise.all((response.items || []).map((item) => postJson(`/api/publications/${item.id}/publish`, {})));
   }
+  clearSelectedLibraryItems();
   await Promise.all([loadPublications(), loadLibrary(), loadAccounts(), loadDashboard()]);
-  setStatus(publishNow ? "Se creó la publicación y se intentó subir ahora." : "El video se agregó a la cola del perfil.");
+  const count = ids.length;
+  setStatus(
+    publishNow
+      ? `${count} video${count === 1 ? "" : "s"} enviado${count === 1 ? "" : "s"} a publicación.`
+      : `${count} video${count === 1 ? "" : "s"} agregado${count === 1 ? "" : "s"} a la cola.`
+  );
 }
 
 async function publishExistingPublication(publicationId) {
@@ -438,6 +460,7 @@ function bindStaticEvents() {
     state.currentYoutubeTab = "videos";
     state.youtubeVideosPage = 1;
     state.profilePublishPage = 1;
+    clearSelectedLibraryItems();
     setSidebarDrawerOpen(false);
     Promise.all([ensureSelectedAccountVideos(), ensureSelectedAccountClones()])
       .then(() => renderYoutubeAccounts())
@@ -447,7 +470,11 @@ function bindStaticEvents() {
   elements.youtubeProfileTabBar.addEventListener("click", (event) => {
     const button = event.target.closest(".profile-tab");
     if (!button) return;
-    state.currentYoutubeTab = button.dataset.tab;
+    const nextTab = button.dataset.tab;
+    if (state.currentYoutubeTab !== nextTab) {
+      clearSelectedLibraryItems();
+    }
+    state.currentYoutubeTab = nextTab;
     renderYoutubeAccounts();
   });
 
@@ -475,6 +502,28 @@ function bindStaticEvents() {
       renderYoutubeAccounts();
       return;
     }
+    if (action === "profile-publish-select-page") {
+      const ids = String(actionTarget.dataset.ids || "")
+        .split(",")
+        .map((id) => id.trim())
+        .filter(Boolean);
+      ids.forEach((id) => state.selectedLibraryIds.add(String(id)));
+      renderYoutubeAccounts();
+      return;
+    }
+    if (action === "profile-publish-clear-selection") {
+      clearSelectedLibraryItems();
+      renderYoutubeAccounts();
+      return;
+    }
+    if (action === "profile-publish-bulk-queue") {
+      sendLibraryVideoToQueue(Array.from(state.selectedLibraryIds), actionTarget.dataset.accountId).catch((error) => setStatus(error.message, true));
+      return;
+    }
+    if (action === "profile-publish-bulk-publish") {
+      sendLibraryVideoToQueue(Array.from(state.selectedLibraryIds), actionTarget.dataset.accountId, true).catch((error) => setStatus(error.message, true));
+      return;
+    }
     if (action === "publish-add-to-queue") {
       sendLibraryVideoToQueue(actionTarget.dataset.id, actionTarget.dataset.accountId).catch((error) => setStatus(error.message, true));
       return;
@@ -491,6 +540,7 @@ function bindStaticEvents() {
     if (target.id === "profile-publish-search") {
       state.profilePublishFilters.search = target.value;
       state.profilePublishPage = 1;
+      clearSelectedLibraryItems();
       renderYoutubeAccounts();
       return;
     }
@@ -503,15 +553,25 @@ function bindStaticEvents() {
   elements.youtubeProfileTabContent.addEventListener("change", (event) => {
     const target = event.target;
     if (!(target instanceof HTMLInputElement || target instanceof HTMLSelectElement)) return;
+    if (target instanceof HTMLInputElement && target.dataset.action === "toggle-library-select") {
+      const id = String(target.dataset.id || "");
+      if (!id) return;
+      if (target.checked) state.selectedLibraryIds.add(id);
+      else state.selectedLibraryIds.delete(id);
+      renderYoutubeAccounts();
+      return;
+    }
     if (target.id === "profile-publish-source") {
       state.profilePublishFilters.source = target.value;
       state.profilePublishPage = 1;
+      clearSelectedLibraryItems();
       renderYoutubeAccounts();
       return;
     }
     if (target.id === "profile-publish-availability") {
       state.profilePublishFilters.availability = target.value;
       state.profilePublishPage = 1;
+      clearSelectedLibraryItems();
       renderYoutubeAccounts();
       return;
     }

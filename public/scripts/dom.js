@@ -85,6 +85,7 @@ export const state = {
   youtubeVideosPage: 1,
   youtubeTabPageSize: 5,
   profilePublishPage: 1,
+  selectedLibraryIds: new Set(),
   profilePublishFilters: {
     search: "",
     source: "",

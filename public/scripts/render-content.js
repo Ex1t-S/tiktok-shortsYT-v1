@@ -518,8 +518,13 @@ function renderYoutubeTabContent(account, channel, videos, publications, clones)
     );
 
     state.profilePublishPage = currentPage;
+    const pageIds = pageItems.map((item) => String(item.id));
+    const selectedCount = publishable.filter((item) => state.selectedLibraryIds.has(String(item.id))).length;
+    const pageSelectionCount = pageIds.filter((id) => state.selectedLibraryIds.has(id)).length;
+    const allPageSelected = pageIds.length > 0 && pageSelectionCount === pageIds.length;
+
     elements.youtubeProfileTabContent.innerHTML = `
-      <section class="workspace-section">
+      <section class="workspace-section publish-workspace-section">
         <div class="section-toolbar section-toolbar-tight">
           <div>
             <strong>Publicar desde biblioteca</strong>
@@ -540,6 +545,18 @@ function renderYoutubeTabContent(account, channel, videos, publications, clones)
               <option value="available" ${state.profilePublishFilters.availability === "available" ? "selected" : ""}>Solo disponibles</option>
               <option value="all" ${state.profilePublishFilters.availability === "all" ? "selected" : ""}>Todos</option>
             </select>
+          </div>
+        </div>
+        <div class="selection-bar publish-selection-bar ${selectedCount ? "has-selection" : ""}">
+          <div class="selection-copy">
+            <strong>${selectedCount ? `${selectedCount} seleccionados` : "Selecciona videos"}</strong>
+            <span>${allPageSelected ? "Toda la página actual está marcada." : `${pageSelectionCount} de ${pageItems.length} en esta página`}</span>
+          </div>
+          <div class="selection-actions">
+            <button type="button" class="ghost-button" data-action="profile-publish-select-page" data-ids="${pageIds.join(",")}">${allPageSelected ? "Página marcada" : "Seleccionar página"}</button>
+            <button type="button" class="ghost-button" data-action="profile-publish-clear-selection" ${selectedCount ? "" : "disabled"}>Limpiar</button>
+            <button type="button" class="ghost-button" data-action="profile-publish-bulk-queue" data-account-id="${account.id}" ${selectedCount ? "" : "disabled"}>Agregar a cola</button>
+            <button type="button" data-action="profile-publish-bulk-publish" data-account-id="${account.id}" ${selectedCount ? "" : "disabled"}>Publicar ahora</button>
           </div>
         </div>
         <div class="dense-list">
@@ -669,9 +686,15 @@ function renderPublishRows(items, accountId) {
   }
 
   return items
-    .map(
-      (item) => `
-        <article class="list-row list-row-compact publish-row">
+    .map((item) => {
+      const id = String(item.id);
+      const selected = state.selectedLibraryIds.has(id);
+
+      return `
+        <article class="list-row list-row-compact publish-row ${selected ? "is-selected" : ""}">
+          <label class="row-checkbox">
+            <input type="checkbox" data-action="toggle-library-select" data-id="${id}" ${selected ? "checked" : ""} />
+          </label>
           <div class="list-row-thumb">
             ${renderThumb(item.thumbnail_url || item.poster_url || "", getLibraryTitle(item), "video-row-thumb", "Biblioteca")}
           </div>
@@ -688,8 +711,8 @@ function renderPublishRows(items, accountId) {
             <button type="button" data-action="publish-now-from-library" data-id="${item.id}" data-account-id="${accountId}">Publicar</button>
           </div>
         </article>
-      `
-    )
+      `;
+    })
     .join("");
 }
 
