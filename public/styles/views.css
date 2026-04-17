@@ -38,3 +38,9 @@
 .helper-inline {
   margin: 0;
 }
+
+.youtube-channel-list,
+.channel-strip-item,
+.channel-strip-meta {
+  min-width: 0;
+}

@@ -8,7 +8,6 @@ import {
   setSidebarDrawerOpen,
   setStatus,
   setTrackingPollTimer,
-  setYoutubeContextOpen,
   state,
   stopTrackingPolling
 } from "./scripts/dom.js";
@@ -341,13 +340,6 @@ function bindStaticEvents() {
     setSidebarDrawerOpen(!state.sidebarDrawerOpen);
   });
 
-  elements.toggleYoutubeContextButton?.addEventListener("click", () => {
-    if (state.currentView !== "youtube") {
-      setActiveView("youtube");
-    }
-    setYoutubeContextOpen(!state.youtubeContextOpen);
-  });
-
   document.addEventListener("click", (event) => {
     const target = event.target;
     if (!(target instanceof Element)) return;
@@ -355,20 +347,11 @@ function bindStaticEvents() {
     if (state.sidebarDrawerOpen && !target.closest(".sidebar") && !target.closest("#sidebar-mobile-button")) {
       setSidebarDrawerOpen(false);
     }
-
-    if (state.currentView !== "youtube" || !state.youtubeContextOpen) return;
-    if (target.closest("#toggle-youtube-context-button") || target.closest(".workspace-toolbar") || target.closest(".youtube-context-panel")) {
-      return;
-    }
-    setYoutubeContextOpen(false);
   });
 
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && state.sidebarDrawerOpen) {
       setSidebarDrawerOpen(false);
-    }
-    if (event.key === "Escape" && state.youtubeContextOpen) {
-      setYoutubeContextOpen(false);
     }
   });
 
@@ -456,7 +439,6 @@ function bindStaticEvents() {
     state.youtubeVideosPage = 1;
     state.profilePublishPage = 1;
     setSidebarDrawerOpen(false);
-    setYoutubeContextOpen(false);
     Promise.all([ensureSelectedAccountVideos(), ensureSelectedAccountClones()])
       .then(() => renderYoutubeAccounts())
       .catch((error) => setStatus(error.message, true));

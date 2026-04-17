@@ -147,46 +147,31 @@
         </section>
 
         <section class="view-section" data-view="youtube">
-          <div class="workspace-grid workspace-grid-context youtube-grid">
-            <aside id="youtube-context-panel" class="panel context-panel youtube-context-panel">
-              <div class="panel-head">
+          <div class="view-stack youtube-view-stack">
+            <section class="panel youtube-channel-strip">
+              <div class="youtube-channel-strip-head">
                 <div>
                   <span class="panel-label">YouTube</span>
-                  <h2>Cuentas conectadas</h2>
+                  <h2>Canales conectados</h2>
                 </div>
-                <button id="refresh-accounts-button" type="button" class="ghost-button">Actualizar</button>
+                <div class="youtube-channel-strip-actions">
+                  <button id="refresh-accounts-button" type="button" class="ghost-button">Actualizar</button>
+                  <a id="add-youtube-account-button" class="button-link" href="/api/youtube/oauth/start">Agregar cuenta</a>
+                </div>
               </div>
 
-              <div id="youtube-oauth-box" class="oauth-box"></div>
-              <a id="add-youtube-account-button" class="button-link context-primary-action" href="/api/youtube/oauth/start">Agregar cuenta</a>
-              <div id="youtube-profiles-list" class="context-list"></div>
+              <div id="youtube-profiles-list" class="youtube-channel-list"></div>
 
-              <div class="panel-pager">
+              <div class="panel-pager youtube-channel-strip-footer">
                 <span id="youtube-profiles-pager-label" class="pager-label">Pagina 1</span>
                 <div class="pager-controls">
                   <button id="youtube-profiles-prev-page" type="button" class="ghost-button">Anterior</button>
                   <button id="youtube-profiles-next-page" type="button" class="ghost-button">Siguiente</button>
                 </div>
               </div>
-            </aside>
+            </section>
 
             <section class="panel workspace-panel youtube-workspace-panel">
-              <div class="workspace-toolbar">
-                <div class="workspace-toolbar-copy">
-                  <span class="panel-label">Canal</span>
-                  <strong id="youtube-toolbar-title">Canal activo</strong>
-                </div>
-                <button
-                  id="toggle-youtube-context-button"
-                  type="button"
-                  class="ghost-button"
-                  aria-expanded="false"
-                  aria-controls="youtube-context-panel"
-                >
-                  Canales
-                </button>
-              </div>
-
               <div id="youtube-profile-header" class="workspace-header"></div>
 
               <div class="profile-tab-bar" id="youtube-profile-tab-bar">

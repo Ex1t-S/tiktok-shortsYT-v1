@@ -30,10 +30,6 @@ export const elements = {
 
   refreshAccountsButton: document.getElementById("refresh-accounts-button"),
   addYoutubeAccountButton: document.getElementById("add-youtube-account-button"),
-  youtubeOauthBox: document.getElementById("youtube-oauth-box"),
-  youtubeContextPanel: document.getElementById("youtube-context-panel"),
-  toggleYoutubeContextButton: document.getElementById("toggle-youtube-context-button"),
-  youtubeToolbarTitle: document.getElementById("youtube-toolbar-title"),
   youtubeProfilesList: document.getElementById("youtube-profiles-list"),
   youtubeProfilesPagerLabel: document.getElementById("youtube-profiles-pager-label"),
   youtubeProfilesPrevPage: document.getElementById("youtube-profiles-prev-page"),
@@ -86,7 +82,6 @@ export const state = {
   youtubeListPage: 1,
   youtubeListPageSize: 5,
   currentYoutubeTab: "videos",
-  youtubeContextOpen: false,
   youtubeVideosPage: 1,
   youtubeTabPageSize: 5,
   profilePublishPage: 1,
@@ -159,9 +154,6 @@ export function setSidebarDrawerOpen(isOpen) {
 
 export function setActiveView(view) {
   state.currentView = view;
-  if (view !== "youtube") {
-    setYoutubeContextOpen(false);
-  }
   if (state.sidebarDrawerOpen) {
     setSidebarDrawerOpen(false);
   }
@@ -176,12 +168,6 @@ export function setActiveView(view) {
   const [eyebrow, title] = VIEW_META[view] || ["Studio", "Studio"];
   if (elements.headerEyebrow) elements.headerEyebrow.textContent = eyebrow;
   if (elements.pageTitle) elements.pageTitle.textContent = title;
-}
-
-export function setYoutubeContextOpen(isOpen) {
-  state.youtubeContextOpen = Boolean(isOpen);
-  elements.youtubeContextPanel?.classList.toggle("is-open", state.youtubeContextOpen);
-  elements.toggleYoutubeContextButton?.setAttribute("aria-expanded", state.youtubeContextOpen ? "true" : "false");
 }
 
 let statusHideTimer = null;

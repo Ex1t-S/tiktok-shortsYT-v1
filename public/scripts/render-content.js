@@ -287,12 +287,12 @@ function renderScrapedWorkspace() {
 }
 
 export function renderYoutubeAccounts() {
-  renderOauthBox();
-  renderYoutubeAccountsList();
+  syncYoutubeAddAccountAction();
+  renderYoutubeChannelStrip();
   renderYoutubeWorkspace();
 }
 
-function renderYoutubeAccountsList() {
+function renderYoutubeAccountsListLegacy() {
   if (!state.accounts.length) {
     renderEmpty(elements.youtubeProfilesList, "Todavia no hay cuentas conectadas.");
     elements.youtubeProfilesPagerLabel.textContent = "Pagina 1";
@@ -332,40 +332,67 @@ function renderYoutubeAccountsList() {
 }
 
 export function renderOauthBox() {
+  syncYoutubeAddAccountAction();
+}
+
+function renderYoutubeChannelStrip() {
+  if (!state.accounts.length) {
+    renderEmpty(elements.youtubeProfilesList, "Todavia no hay cuentas conectadas.");
+    elements.youtubeProfilesPagerLabel.textContent = "Pagina 1";
+    elements.youtubeProfilesPrevPage.disabled = true;
+    elements.youtubeProfilesNextPage.disabled = true;
+    return;
+  }
+
+  const { pageItems, currentPage, totalPages, start, end } = paginate(
+    state.accounts,
+    state.youtubeListPage,
+    state.youtubeListPageSize
+  );
+
+  state.youtubeListPage = currentPage;
+  elements.youtubeProfilesPagerLabel.textContent = `${start}-${end} de ${state.accounts.length}`;
+  elements.youtubeProfilesPrevPage.disabled = currentPage <= 1;
+  elements.youtubeProfilesNextPage.disabled = currentPage >= totalPages;
+
+  elements.youtubeProfilesList.innerHTML = pageItems
+    .map((account) => {
+      const active = String(account.id) === String(state.selectedAccountId);
+      const queueCount = state.publications.filter(
+        (item) => String(item.youtube_account_id) === String(account.id) && isQueueLikeStatus(item.status)
+      ).length;
+      const syncLabel = account.last_sync_at ? `Sync ${formatDate(account.last_sync_at)}` : "Sin sync";
+
+      return `
+        <button type="button" class="channel-strip-item ${active ? "active" : ""}" data-action="select-youtube-profile" data-id="${account.id}">
+          <strong class="channel-strip-title truncate-1" title="${escapeHtml(accountLabel(account))}">${escapeHtml(accountLabel(account))}</strong>
+          <span class="channel-strip-meta">
+            <span class="badge ${account.oauth_status === "connected" ? "success" : "warning"}">${escapeHtml(translateStatus(account.oauth_status))}</span>
+            <span class="meta-chip">${queueCount} en cola</span>
+          </span>
+          <span class="channel-strip-detail truncate-1" title="${escapeHtml(syncLabel)}">${escapeHtml(syncLabel)}</span>
+        </button>
+      `;
+    })
+    .join("");
+}
+
+function syncYoutubeAddAccountAction() {
   const oauth = state.oauth;
   if (!oauth) {
-    elements.youtubeOauthBox.innerHTML = '<div class="oauth-status-card">Cargando OAuth...</div>';
+    elements.addYoutubeAccountButton.setAttribute("href", "#");
+    elements.addYoutubeAccountButton.setAttribute("aria-disabled", "true");
     return;
   }
 
   elements.addYoutubeAccountButton.setAttribute("href", oauth.ready ? "/api/youtube/oauth/start" : "#");
   elements.addYoutubeAccountButton.setAttribute("aria-disabled", oauth.ready ? "false" : "true");
-
-  if (oauth.ready) {
-    elements.youtubeOauthBox.innerHTML = `
-      <article class="oauth-status-card success">
-        <strong>OAuth listo</strong>
-        <span>${escapeHtml(oauth.redirectUri || "Google configurado")}</span>
-      </article>
-    `;
-    return;
-  }
-
-  elements.youtubeOauthBox.innerHTML = `
-    <article class="oauth-status-card danger">
-      <strong>OAuth incompleto</strong>
-      <span>${escapeHtml((oauth.missingVariables || []).join(", ") || "Faltan variables")}</span>
-    </article>
-  `;
 }
 
 function renderYoutubeWorkspace() {
   const account = getSelectedAccount();
 
   if (!account) {
-    if (elements.youtubeToolbarTitle) {
-      elements.youtubeToolbarTitle.textContent = "Canal activo";
-    }
     renderEmpty(elements.youtubeProfileHeader, "Elegi una cuenta para abrir el workspace.");
     renderEmpty(elements.youtubeProfileTabContent, "No hay un canal activo.");
     return;
@@ -377,10 +404,6 @@ function renderYoutubeWorkspace() {
   const clones = getSelectedAccountClones();
   const queued = publications.filter((item) => isQueueLikeStatus(item.status));
   const latestVideoTitle = videos[0]?.title || "Sin uploads sincronizados";
-
-  if (elements.youtubeToolbarTitle) {
-    elements.youtubeToolbarTitle.textContent = account.channel_handle || account.channel_title || "Canal activo";
-  }
 
   elements.youtubeProfileHeader.innerHTML = `
     <div class="workspace-header-card">
