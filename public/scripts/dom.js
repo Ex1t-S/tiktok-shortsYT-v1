@@ -1,8 +1,8 @@
 export const elements = {
   appShell: document.querySelector(".app-shell"),
-  sidebar: document.querySelector(".sidebar"),
+  sidebar: document.getElementById("sidebar"),
   sidebarToggleButton: document.getElementById("sidebar-toggle-button"),
-  sidebarDrawerButton: document.getElementById("sidebar-drawer-button"),
+  sidebarMobileButton: document.getElementById("sidebar-mobile-button"),
   sidebarDrawerBackdrop: document.getElementById("sidebar-drawer-backdrop"),
   navTabs: Array.from(document.querySelectorAll(".nav-tab")),
   viewSections: Array.from(document.querySelectorAll(".view-section")),
@@ -33,6 +33,7 @@ export const elements = {
   youtubeOauthBox: document.getElementById("youtube-oauth-box"),
   youtubeContextPanel: document.getElementById("youtube-context-panel"),
   toggleYoutubeContextButton: document.getElementById("toggle-youtube-context-button"),
+  youtubeToolbarTitle: document.getElementById("youtube-toolbar-title"),
   youtubeProfilesList: document.getElementById("youtube-profiles-list"),
   youtubeProfilesPagerLabel: document.getElementById("youtube-profiles-pager-label"),
   youtubeProfilesPrevPage: document.getElementById("youtube-profiles-prev-page"),
@@ -40,7 +41,6 @@ export const elements = {
   youtubeProfileHeader: document.getElementById("youtube-profile-header"),
   youtubeProfileTabBar: document.getElementById("youtube-profile-tab-bar"),
   youtubeProfileTabContent: document.getElementById("youtube-profile-tab-content"),
-  youtubeSideActions: document.getElementById("youtube-side-actions"),
 
   queueSummaryStrip: document.getElementById("queue-summary-strip"),
   queueTabBar: document.getElementById("queue-tab-bar"),
@@ -108,43 +108,23 @@ export const state = {
 };
 
 const VIEW_META = {
-  scraped: ["Perfiles", "Perfiles scrapeados"],
-  youtube: ["Canales", "Perfiles YouTube"],
+  scraped: ["TikTok", "Perfiles scrapeados"],
+  youtube: ["YouTube", "Perfiles YouTube"],
   queue: ["Cola", "Cola general"],
-  overview: ["Resumen", "Resumen"]
+  overview: ["Resumen", "Resumen general"]
 };
 
 const SIDEBAR_STORAGE_KEY = "studio.sidebar.collapsed";
 
-export function setActiveView(view) {
-  state.currentView = view;
-  if (view !== "youtube") {
-    setYoutubeContextOpen(false);
-  }
-  if (state.sidebarCollapsed && state.sidebarDrawerOpen) {
-    setSidebarDrawerOpen(false);
-  }
-  elements.navTabs.forEach((button) => {
-    button.classList.toggle("active", button.dataset.view === view);
-  });
-  elements.viewSections.forEach((section) => {
-    section.classList.toggle("active", section.dataset.view === view);
-  });
-  const [eyebrow, title] = VIEW_META[view] || ["Workspace", "Workspace"];
-  if (elements.headerEyebrow) elements.headerEyebrow.textContent = eyebrow;
-  if (elements.pageTitle) elements.pageTitle.textContent = title;
-}
-
 function syncSidebarButtons() {
   elements.sidebarToggleButton?.setAttribute("aria-expanded", state.sidebarCollapsed ? "false" : "true");
   elements.sidebarToggleButton?.setAttribute("title", state.sidebarCollapsed ? "Expandir barra" : "Colapsar barra");
-  const toggleIcon = elements.sidebarToggleButton?.querySelector(".sidebar-button-icon");
-  const toggleLabel = elements.sidebarToggleButton?.querySelector(".sidebar-button-label");
-  if (toggleIcon) toggleIcon.textContent = state.sidebarCollapsed ? ">>" : "<<";
-  if (toggleLabel) toggleLabel.textContent = state.sidebarCollapsed ? "Expandir" : "Colapsar";
+  const icon = elements.sidebarToggleButton?.querySelector(".sidebar-toggle-icon");
+  if (icon) {
+    icon.textContent = state.sidebarCollapsed ? ">>" : "<<";
+  }
 
-  elements.sidebarDrawerButton?.classList.toggle("hidden", !state.sidebarCollapsed);
-  elements.sidebarDrawerButton?.setAttribute("aria-expanded", state.sidebarDrawerOpen ? "true" : "false");
+  elements.sidebarMobileButton?.setAttribute("aria-expanded", state.sidebarDrawerOpen ? "true" : "false");
 }
 
 export function initializeSidebarChrome() {
@@ -153,6 +133,7 @@ export function initializeSidebarChrome() {
   } catch {
     state.sidebarCollapsed = false;
   }
+
   elements.appShell?.classList.toggle("is-sidebar-collapsed", state.sidebarCollapsed);
   syncSidebarButtons();
 }
@@ -160,27 +141,46 @@ export function initializeSidebarChrome() {
 export function setSidebarCollapsed(isCollapsed) {
   state.sidebarCollapsed = Boolean(isCollapsed);
   elements.appShell?.classList.toggle("is-sidebar-collapsed", state.sidebarCollapsed);
-  if (!state.sidebarCollapsed) {
-    setSidebarDrawerOpen(false);
-  }
+
   try {
     window.localStorage.setItem(SIDEBAR_STORAGE_KEY, state.sidebarCollapsed ? "true" : "false");
   } catch {}
+
   syncSidebarButtons();
 }
 
 export function setSidebarDrawerOpen(isOpen) {
-  state.sidebarDrawerOpen = Boolean(isOpen) && state.sidebarCollapsed;
+  state.sidebarDrawerOpen = Boolean(isOpen);
+  elements.appShell?.classList.toggle("is-sidebar-drawer-open", state.sidebarDrawerOpen);
   elements.sidebar?.classList.toggle("is-drawer-open", state.sidebarDrawerOpen);
   elements.sidebarDrawerBackdrop?.classList.toggle("hidden", !state.sidebarDrawerOpen);
-  elements.sidebarDrawerBackdrop?.classList.toggle("is-visible", state.sidebarDrawerOpen);
   syncSidebarButtons();
+}
+
+export function setActiveView(view) {
+  state.currentView = view;
+  if (view !== "youtube") {
+    setYoutubeContextOpen(false);
+  }
+  if (state.sidebarDrawerOpen) {
+    setSidebarDrawerOpen(false);
+  }
+
+  elements.navTabs.forEach((button) => {
+    button.classList.toggle("active", button.dataset.view === view);
+  });
+  elements.viewSections.forEach((section) => {
+    section.classList.toggle("active", section.dataset.view === view);
+  });
+
+  const [eyebrow, title] = VIEW_META[view] || ["Studio", "Studio"];
+  if (elements.headerEyebrow) elements.headerEyebrow.textContent = eyebrow;
+  if (elements.pageTitle) elements.pageTitle.textContent = title;
 }
 
 export function setYoutubeContextOpen(isOpen) {
   state.youtubeContextOpen = Boolean(isOpen);
   elements.youtubeContextPanel?.classList.toggle("is-open", state.youtubeContextOpen);
-  elements.toggleYoutubeContextButton?.classList.toggle("is-active", state.youtubeContextOpen);
   elements.toggleYoutubeContextButton?.setAttribute("aria-expanded", state.youtubeContextOpen ? "true" : "false");
 }
 

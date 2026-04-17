@@ -334,14 +334,10 @@ function bindStaticEvents() {
   });
 
   elements.sidebarToggleButton?.addEventListener("click", () => {
-    if (state.sidebarCollapsed) {
-      setSidebarCollapsed(false);
-      return;
-    }
-    setSidebarCollapsed(true);
+    setSidebarCollapsed(!state.sidebarCollapsed);
   });
 
-  elements.sidebarDrawerButton?.addEventListener("click", () => {
+  elements.sidebarMobileButton?.addEventListener("click", () => {
     setSidebarDrawerOpen(!state.sidebarDrawerOpen);
   });
 
@@ -356,12 +352,14 @@ function bindStaticEvents() {
     const target = event.target;
     if (!(target instanceof Element)) return;
 
-    if (state.sidebarCollapsed && state.sidebarDrawerOpen && !target.closest(".sidebar")) {
+    if (state.sidebarDrawerOpen && !target.closest(".sidebar") && !target.closest("#sidebar-mobile-button")) {
       setSidebarDrawerOpen(false);
     }
 
     if (state.currentView !== "youtube" || !state.youtubeContextOpen) return;
-    if (target.closest(".youtube-toolbar-actions")) return;
+    if (target.closest("#toggle-youtube-context-button") || target.closest(".workspace-toolbar") || target.closest(".youtube-context-panel")) {
+      return;
+    }
     setYoutubeContextOpen(false);
   });
 
@@ -585,7 +583,6 @@ async function init() {
   initializeSidebarChrome();
   bindStaticEvents();
   setActiveView("scraped");
-  setStatus("Cargando workspace...");
 
   try {
     await Promise.all([loadDashboard(), loadScrapedProfiles(), loadAccounts(), loadLibrary(), loadPublications()]);
@@ -596,7 +593,7 @@ async function init() {
     }
     renderYoutubeAccounts();
     renderQueue();
-    setStatus("Workspace listo.");
+    setStatus("");
   } catch (error) {
     setStatus(error.message, true);
   }

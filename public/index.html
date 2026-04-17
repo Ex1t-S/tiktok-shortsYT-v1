@@ -14,124 +14,102 @@
   </head>
   <body>
     <div class="app-shell">
-      <aside class="sidebar">
-        <div class="sidebar-stack">
-          <div class="brand-block">
-            <div class="sidebar-brand-row">
-              <div>
-                <p class="eyebrow">Shorts Studio</p>
-                <h1>Studio</h1>
-              </div>
-              <button
-                id="sidebar-drawer-button"
-                type="button"
-                class="sidebar-chrome-button hidden"
-                aria-expanded="false"
-                aria-controls="sidebar"
-                title="Abrir drawer"
-              >
-                <span class="sidebar-button-icon">|||</span>
-              </button>
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+          <div class="sidebar-brand">
+            <span class="brand-badge">SS</span>
+            <div class="brand-copy">
+              <span class="brand-name">Shorts Studio</span>
+              <span class="brand-subline">Control</span>
             </div>
-            <span class="brand-pill">Control hub</span>
           </div>
-
-          <nav class="sidebar-nav">
-            <button
-              type="button"
-              class="nav-tab active"
-              data-view="scraped"
-              data-tooltip="Perfiles scrapeados"
-              aria-label="Perfiles scrapeados"
-            >
-              <span class="nav-tab-icon">SC</span>
-              <span class="nav-tab-label">Perfiles scrapeados</span>
-            </button>
-            <button
-              type="button"
-              class="nav-tab"
-              data-view="youtube"
-              data-tooltip="Perfiles YouTube"
-              aria-label="Perfiles YouTube"
-            >
-              <span class="nav-tab-icon">YT</span>
-              <span class="nav-tab-label">Perfiles YouTube</span>
-            </button>
-            <button
-              type="button"
-              class="nav-tab"
-              data-view="queue"
-              data-tooltip="Cola"
-              aria-label="Cola"
-            >
-              <span class="nav-tab-icon">QL</span>
-              <span class="nav-tab-label">Cola</span>
-            </button>
-            <button
-              type="button"
-              class="nav-tab secondary"
-              data-view="overview"
-              data-tooltip="Resumen"
-              aria-label="Resumen"
-            >
-              <span class="nav-tab-icon">RS</span>
-              <span class="nav-tab-label">Resumen</span>
-            </button>
-          </nav>
-        </div>
-
-        <div class="sidebar-footer">
-          <button
-            id="sidebar-toggle-button"
-            type="button"
-            class="sidebar-chrome-button"
-            aria-expanded="true"
-            title="Colapsar barra"
-          >
-            <span class="sidebar-button-icon"><<</span>
-            <span class="sidebar-button-label">Colapsar</span>
+          <button id="sidebar-toggle-button" type="button" class="sidebar-toggle" aria-expanded="true" title="Colapsar barra">
+            <span class="sidebar-toggle-icon"><<</span>
           </button>
         </div>
+
+        <nav class="sidebar-nav">
+          <button
+            type="button"
+            class="nav-tab active"
+            data-view="scraped"
+            data-tooltip="Perfiles scrapeados"
+            aria-label="Perfiles scrapeados"
+          >
+            <span class="nav-tab-icon">SC</span>
+            <span class="nav-tab-label">Perfiles scrapeados</span>
+          </button>
+          <button
+            type="button"
+            class="nav-tab"
+            data-view="youtube"
+            data-tooltip="Perfiles YouTube"
+            aria-label="Perfiles YouTube"
+          >
+            <span class="nav-tab-icon">YT</span>
+            <span class="nav-tab-label">Perfiles YouTube</span>
+          </button>
+          <button
+            type="button"
+            class="nav-tab"
+            data-view="queue"
+            data-tooltip="Cola"
+            aria-label="Cola"
+          >
+            <span class="nav-tab-icon">CL</span>
+            <span class="nav-tab-label">Cola</span>
+          </button>
+          <button
+            type="button"
+            class="nav-tab"
+            data-view="overview"
+            data-tooltip="Resumen"
+            aria-label="Resumen"
+          >
+            <span class="nav-tab-icon">RS</span>
+            <span class="nav-tab-label">Resumen</span>
+          </button>
+        </nav>
       </aside>
 
       <div id="sidebar-drawer-backdrop" class="sidebar-drawer-backdrop hidden"></div>
 
       <main class="workspace-shell">
-        <div class="workspace-heading">
-          <p class="eyebrow" id="header-eyebrow">Perfiles</p>
-          <h2 id="page-title">Perfiles scrapeados</h2>
-        </div>
+        <header class="workspace-topbar">
+          <div class="topbar-main">
+            <button id="sidebar-mobile-button" type="button" class="topbar-menu-button" aria-expanded="false" aria-controls="sidebar">
+              Menu
+            </button>
+            <div class="topbar-copy">
+              <span id="header-eyebrow" class="topbar-label">Perfiles</span>
+              <h1 id="page-title">Perfiles scrapeados</h1>
+            </div>
+          </div>
+        </header>
 
         <section class="view-section active" data-view="scraped">
-          <div class="page-grid">
-            <section class="panel hero-panel">
-              <div>
-                <p class="eyebrow">Scanner</p>
-                <h3>Escanear perfil o hashtag</h3>
-                <p class="helper-copy">
-                  Carga un perfil nuevo, actualiza uno existente y despues entra al detalle para revisar sus videos scrapeados.
-                </p>
-              </div>
-              <form id="track-form" class="toolbar-form">
+          <div class="view-stack">
+            <section class="panel scan-toolbar-panel">
+              <form id="track-form" class="scan-toolbar">
                 <input id="username" name="username" type="text" placeholder="@usuario, #tema o URL" required />
                 <button id="submit-button" type="submit">Escanear</button>
                 <button id="refresh-button" type="button" class="ghost-button">Reescanear actual</button>
               </form>
             </section>
 
-            <div class="scraped-layout">
-              <aside class="panel profile-list-panel">
-                <div class="section-heading compact">
+            <div class="workspace-grid workspace-grid-context scraped-grid">
+              <aside class="panel context-panel scraped-context-panel">
+                <div class="panel-head">
                   <div>
-                    <p class="eyebrow">TikTok</p>
-                    <h3>Perfiles scrapeados</h3>
+                    <span class="panel-label">TikTok</span>
+                    <h2>Perfiles scrapeados</h2>
                   </div>
                   <button id="refresh-scraped-button" type="button" class="ghost-button">Actualizar</button>
                 </div>
 
-                <div id="scraped-profiles-list" class="profiles-list"></div>
+                <div id="scraped-profiles-list" class="context-list"></div>
 
-                <div class="pager-row tight">
+                <div class="panel-pager">
                   <span id="scraped-profiles-pager-label" class="pager-label">Pagina 1</span>
                   <div class="pager-controls">
                     <button id="scraped-profiles-prev-page" type="button" class="ghost-button">Anterior</button>
@@ -140,22 +118,22 @@
                 </div>
               </aside>
 
-              <section class="panel profile-main-panel">
-                <div id="scraped-profile-header" class="profile-header"></div>
+              <section class="panel workspace-panel scraped-workspace-panel">
+                <div id="scraped-profile-header" class="workspace-header"></div>
 
-                <div class="compact-action-bar">
-                  <div class="compact-action-copy">
-                    <strong>Videos scrapeados</strong>
+                <div class="selection-bar">
+                  <div class="selection-copy">
+                    <strong>Videos</strong>
                     <span id="scraped-results-meta">Sin perfil activo.</span>
                   </div>
-                  <div class="compact-action-controls">
+                  <div class="selection-actions">
                     <button id="save-library-button" type="button" class="ghost-button" disabled>Guardar en biblioteca</button>
                   </div>
                 </div>
 
-                <div id="scraped-videos-grid" class="video-grid compact"></div>
+                <div id="scraped-videos-grid" class="media-grid"></div>
 
-                <div class="pager-row">
+                <div class="panel-pager">
                   <span id="scraped-videos-pager-label" class="pager-label">Pagina 1</span>
                   <div class="pager-controls">
                     <button id="scraped-videos-prev-page" type="button" class="ghost-button">Anterior</button>
@@ -169,73 +147,68 @@
         </section>
 
         <section class="view-section" data-view="youtube">
-          <div class="youtube-workspace-layout">
-            <section class="panel youtube-main-panel">
-              <div class="youtube-main-toolbar">
-                <div class="youtube-main-toolbar-copy">
-                  <p class="eyebrow">Canal activo</p>
+          <div class="workspace-grid workspace-grid-context youtube-grid">
+            <aside id="youtube-context-panel" class="panel context-panel youtube-context-panel">
+              <div class="panel-head">
+                <div>
+                  <span class="panel-label">YouTube</span>
+                  <h2>Cuentas conectadas</h2>
                 </div>
-
-                <div class="youtube-toolbar-actions">
-                  <button
-                    id="toggle-youtube-context-button"
-                    type="button"
-                    class="ghost-button"
-                    aria-expanded="false"
-                    aria-controls="youtube-context-panel"
-                  >
-                    Canales
-                  </button>
-
-                  <aside id="youtube-context-panel" class="youtube-context-panel">
-                    <div class="section-heading compact no-margin">
-                      <div>
-                        <p class="eyebrow">YouTube</p>
-                        <h3>Cuentas conectadas</h3>
-                      </div>
-                      <button id="refresh-accounts-button" type="button" class="ghost-button">Actualizar</button>
-                    </div>
-
-                    <div id="youtube-oauth-box" class="oauth-box"></div>
-                    <div class="stack-list">
-                      <a id="add-youtube-account-button" class="button-link" href="/api/youtube/oauth/start">Agregar cuenta</a>
-                    </div>
-                    <div id="youtube-profiles-list" class="profiles-list"></div>
-
-                    <div class="pager-row tight">
-                      <span id="youtube-profiles-pager-label" class="pager-label">Pagina 1</span>
-                      <div class="pager-controls">
-                        <button id="youtube-profiles-prev-page" type="button" class="ghost-button">Anterior</button>
-                        <button id="youtube-profiles-next-page" type="button" class="ghost-button">Siguiente</button>
-                      </div>
-                    </div>
-                  </aside>
-                </div>
+                <button id="refresh-accounts-button" type="button" class="ghost-button">Actualizar</button>
               </div>
 
-              <div id="youtube-profile-header" class="profile-header"></div>
+              <div id="youtube-oauth-box" class="oauth-box"></div>
+              <a id="add-youtube-account-button" class="button-link context-primary-action" href="/api/youtube/oauth/start">Agregar cuenta</a>
+              <div id="youtube-profiles-list" class="context-list"></div>
 
-              <div class="profile-tab-bar youtube-section-nav" id="youtube-profile-tab-bar">
+              <div class="panel-pager">
+                <span id="youtube-profiles-pager-label" class="pager-label">Pagina 1</span>
+                <div class="pager-controls">
+                  <button id="youtube-profiles-prev-page" type="button" class="ghost-button">Anterior</button>
+                  <button id="youtube-profiles-next-page" type="button" class="ghost-button">Siguiente</button>
+                </div>
+              </div>
+            </aside>
+
+            <section class="panel workspace-panel youtube-workspace-panel">
+              <div class="workspace-toolbar">
+                <div class="workspace-toolbar-copy">
+                  <span class="panel-label">Canal</span>
+                  <strong id="youtube-toolbar-title">Canal activo</strong>
+                </div>
+                <button
+                  id="toggle-youtube-context-button"
+                  type="button"
+                  class="ghost-button"
+                  aria-expanded="false"
+                  aria-controls="youtube-context-panel"
+                >
+                  Canales
+                </button>
+              </div>
+
+              <div id="youtube-profile-header" class="workspace-header"></div>
+
+              <div class="profile-tab-bar" id="youtube-profile-tab-bar">
                 <button type="button" class="profile-tab active" data-tab="videos">Videos</button>
                 <button type="button" class="profile-tab" data-tab="stats">Estadisticas</button>
                 <button type="button" class="profile-tab" data-tab="publish">Publicar</button>
                 <button type="button" class="profile-tab" data-tab="clone">Clonar</button>
               </div>
 
-              <div id="youtube-side-actions" class="youtube-inline-summary"></div>
               <div id="youtube-profile-tab-content" class="profile-tab-content"></div>
             </section>
           </div>
         </section>
 
         <section class="view-section" data-view="queue">
-          <section class="panel">
-            <div class="section-heading">
+          <section class="panel workspace-panel queue-workspace-panel">
+            <div class="panel-head">
               <div>
-                <p class="eyebrow">Publicaciones</p>
-                <h3>Cola general</h3>
+                <span class="panel-label">Publicaciones</span>
+                <h2>Cola general</h2>
               </div>
-              <button id="refresh-publications-button" type="button" class="ghost-button">Actualizar cola</button>
+              <button id="refresh-publications-button" type="button" class="ghost-button">Actualizar</button>
             </div>
 
             <div id="queue-summary-strip" class="summary-strip compact"></div>
@@ -251,7 +224,7 @@
 
             <div id="publication-list" class="queue-list"></div>
 
-            <div class="pager-row">
+            <div class="panel-pager">
               <span id="queue-pager-label" class="pager-label">Pagina 1</span>
               <div class="pager-controls">
                 <button id="queue-prev-page" type="button" class="ghost-button">Anterior</button>
@@ -262,27 +235,27 @@
         </section>
 
         <section class="view-section" data-view="overview">
-          <section class="panel">
-            <div class="section-heading">
+          <section class="panel workspace-panel overview-workspace-panel">
+            <div class="panel-head">
               <div>
-                <p class="eyebrow">Resumen</p>
-                <h3>Estado del sistema</h3>
+                <span class="panel-label">Monitoreo</span>
+                <h2>Resumen general</h2>
               </div>
             </div>
 
             <div id="summary-strip" class="summary-strip"></div>
 
-            <div class="two-column-panel top-gap">
+            <div class="overview-columns">
               <section class="subpanel">
                 <div class="subpanel-head">
-                  <strong>Ultimos perfiles scrapeados</strong>
+                  <strong>Perfiles recientes</strong>
                 </div>
                 <div id="overview-scraped-list" class="stack-list"></div>
               </section>
 
               <section class="subpanel">
                 <div class="subpanel-head">
-                  <strong>Ultimas publicaciones</strong>
+                  <strong>Actividad reciente</strong>
                 </div>
                 <div id="overview-publications-list" class="stack-list"></div>
               </section>

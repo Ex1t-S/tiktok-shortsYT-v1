@@ -1,136 +1,164 @@
-@media (max-width: 1400px) {
-  .video-grid.compact {
+@media (max-width: 1480px) {
+  .media-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .youtube-clone-layout {
+  .metric-strip {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .youtube-grid {
+    grid-template-columns: 296px minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 1380px) {
+  .youtube-grid,
+  .workspace-grid-context {
     grid-template-columns: 1fr;
   }
 
-  .scraped-layout {
-    grid-template-columns: 250px minmax(0, 1fr);
+  .youtube-context-panel {
+    position: absolute;
+    top: 56px;
+    right: 0;
+    width: min(340px, calc(100vw - 72px));
+    max-height: min(calc(100vh - 120px), 720px);
+    overflow: auto;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-6px);
+    transition: opacity 160ms ease, transform 160ms ease;
+    z-index: 22;
+    box-shadow: var(--shadow-strong);
   }
 
-  .profiles-layout {
-    grid-template-columns: 250px minmax(0, 1fr) 280px;
+  .youtube-context-panel.is-open {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
   }
 
-  .mini-stats-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+  #toggle-youtube-context-button {
+    display: inline-flex;
+  }
+}
+
+@media (min-width: 1381px) {
+  #toggle-youtube-context-button {
+    display: none;
+  }
+
+  .youtube-context-panel {
+    position: sticky;
+    top: 72px;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    transform: none !important;
+    max-height: none;
+    overflow: visible;
   }
 }
 
 @media (max-width: 1180px) {
-  .youtube-main-toolbar {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .youtube-toolbar-actions {
-    width: 100%;
-    justify-content: stretch;
-  }
-
-  .youtube-toolbar-actions > .ghost-button {
-    width: 100%;
-  }
-
-  .youtube-context-panel {
-    left: 0;
-    right: auto;
-    width: min(100%, 520px);
-    max-height: min(68vh, 720px);
-  }
-
-  .app-shell {
+  .app-shell,
+  .app-shell.is-sidebar-collapsed {
     grid-template-columns: 1fr;
   }
 
   .sidebar {
-    position: relative;
-    top: 0;
-    min-height: auto;
+    position: fixed;
+    left: 12px;
+    top: 12px;
+    bottom: 12px;
+    width: min(280px, calc(100vw - 24px));
+    min-height: 0;
+    transform: translateX(calc(-100% - 20px));
+    transition: transform 180ms ease;
   }
 
-  .scraped-layout,
-  .youtube-workspace-layout,
-  .profiles-layout,
-  .two-column-panel,
-  .overview-grid {
-    grid-template-columns: 1fr;
+  .app-shell.is-sidebar-drawer-open .sidebar {
+    transform: translateX(0);
+  }
+
+  .topbar-menu-button {
+    display: inline-flex;
+  }
+
+  .sidebar-toggle {
+    display: none;
   }
 }
 
-@media (max-width: 840px) {
-  .youtube-context-panel {
-    width: 100%;
-    max-height: none;
+@media (max-width: 920px) {
+  .filter-row,
+  .clone-split-layout,
+  .overview-columns,
+  .field-row.two-up {
+    grid-template-columns: 1fr;
   }
 
+  .metric-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .scan-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .list-row,
+  .queue-item,
+  .section-toolbar,
+  .selection-bar,
+  .panel-pager,
+  .workspace-header-main {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .list-row-meta,
+  .queue-item-meta,
+  .list-row-side,
+  .queue-item-actions,
+  .selection-actions,
+  .pager-controls,
+  .workspace-actions {
+    justify-content: flex-start;
+  }
+
+  .publish-row .list-row-meta,
+  .queue-item-compact .queue-item-meta {
+    flex-basis: auto;
+  }
+}
+
+@media (max-width: 720px) {
   .app-shell {
     width: min(100%, calc(100% - 12px));
     margin: 6px auto;
     gap: 10px;
   }
 
+  .workspace-topbar,
   .panel,
-  .sidebar {
-    border-radius: 16px;
-    padding: 14px;
+  .subpanel {
+    padding: 12px;
   }
 
-  .workspace-heading {
-    padding-inline: 2px;
+  .topbar-copy h1 {
+    font-size: 1.15rem;
   }
 
-  .workspace-heading h2 {
-    font-size: 1.45rem;
-  }
-
-  .video-grid.compact,
-  .mini-stats-grid,
+  .media-grid,
+  .metric-strip,
   .summary-strip,
-  .youtube-inline-summary {
+  .media-card-actions {
     grid-template-columns: 1fr;
-  }
-
-  .toolbar-form,
-  .toolbar-row,
-  .compact-action-controls,
-  .video-row,
-  .queue-row,
-  .channel-video-row,
-  .queue-card,
-  .profile-summary-head {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .video-row-actions,
-  .queue-row-actions,
-  .queue-card-side,
-  .compact-copy {
-    justify-content: flex-start;
-    text-align: left;
-  }
-
-  .field-row.two-up {
-    grid-template-columns: 1fr;
-  }
-
-  .youtube-section-nav {
-    flex-direction: row;
-  }
-
-  .youtube-section-nav .profile-tab {
-    width: auto;
-    justify-content: center;
   }
 
   .status-toast {
     left: 12px;
     right: 12px;
-    bottom: 12px;
     max-width: none;
   }
 }

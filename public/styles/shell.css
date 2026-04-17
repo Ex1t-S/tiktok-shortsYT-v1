@@ -1,25 +1,29 @@
 .app-shell {
-  width: min(1920px, calc(100% - 28px));
-  margin: 14px auto;
+  width: min(1780px, calc(100% - 24px));
+  margin: 12px auto;
   display: grid;
-  grid-template-columns: 220px minmax(0, 1fr);
-  gap: 18px;
+  grid-template-columns: 240px minmax(0, 1fr);
+  gap: 16px;
   align-items: start;
+}
+
+.app-shell.is-sidebar-collapsed {
+  grid-template-columns: 88px minmax(0, 1fr);
 }
 
 .sidebar {
   position: sticky;
-  top: 14px;
-  min-height: calc(100vh - 28px);
-  padding: 16px 14px 14px;
-  border-radius: 22px;
-  background:
-    linear-gradient(180deg, rgba(8, 13, 23, 0.98) 0%, rgba(10, 17, 30, 0.98) 100%);
-  border: 1px solid rgba(148, 163, 184, 0.16);
-  box-shadow: var(--shadow-strong), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  top: 12px;
+  min-height: calc(100vh - 24px);
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 16px;
+  padding: 14px 12px;
+  border-radius: var(--radius-panel);
+  background: rgba(8, 15, 28, 0.96);
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  box-shadow: var(--shadow-strong);
+  z-index: 30;
 }
 
 .workspace-shell {
@@ -29,34 +33,92 @@
   gap: 14px;
 }
 
-.workspace-heading {
-  padding: 4px 4px 2px;
+.workspace-topbar {
+  position: sticky;
+  top: 12px;
+  z-index: 20;
+  padding: 10px 14px;
+  border-radius: var(--radius-panel);
+  background: rgba(9, 14, 24, 0.92);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  backdrop-filter: blur(12px);
 }
 
-.workspace-heading h2 {
+.topbar-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.topbar-copy {
+  min-width: 0;
+}
+
+.topbar-label {
+  display: inline-block;
+  margin-bottom: 2px;
+  color: rgba(191, 219, 254, 0.82);
+  font-size: 0.77rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.topbar-copy h1 {
   margin: 0;
-  color: rgba(248, 250, 252, 0.98);
-  font-size: clamp(1.6rem, 2vw, 2.2rem);
-  letter-spacing: -0.035em;
+  color: #f8fafc;
+  font-family: "Manrope", sans-serif;
+  font-size: clamp(1.2rem, 1.9vw, 1.7rem);
+  line-height: 1.1;
+  letter-spacing: -0.03em;
 }
 
-.workspace-heading .eyebrow {
-  color: rgba(255, 112, 135, 0.96);
+.topbar-menu-button {
+  display: none;
+}
+
+.view-section {
+  display: none;
+  min-width: 0;
+}
+
+.view-section.active {
+  display: block;
+}
+
+.view-stack {
+  display: grid;
+  gap: 14px;
+}
+
+.workspace-grid {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+  align-items: start;
+}
+
+.workspace-grid-context {
+  grid-template-columns: 300px minmax(0, 1fr);
+}
+
+.youtube-grid {
+  grid-template-columns: 320px minmax(0, 1fr);
 }
 
 .status-toast {
   position: fixed;
-  right: 22px;
-  bottom: 22px;
+  right: 16px;
+  bottom: 16px;
   z-index: 60;
   max-width: min(420px, calc(100vw - 32px));
-  padding: 12px 16px;
-  border-radius: 14px;
-  border: 1px solid rgba(148, 163, 184, 0.16);
-  background: rgba(10, 15, 24, 0.94);
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(8, 15, 28, 0.96);
+  border: 1px solid rgba(148, 163, 184, 0.18);
   color: #f8fafc;
   box-shadow: var(--shadow-strong);
-  backdrop-filter: blur(14px);
   opacity: 0;
   transform: translateY(10px);
   transition: opacity 180ms ease, transform 180ms ease;
@@ -68,51 +130,13 @@
 }
 
 .status-toast.is-error {
-  background: rgba(75, 16, 20, 0.96);
-  border-color: rgba(248, 113, 113, 0.26);
-  color: #ffe4e6;
+  background: rgba(69, 10, 10, 0.96);
+  border-color: rgba(248, 113, 113, 0.24);
 }
 
-.view-section {
-  display: none;
-}
-
-.view-section.active {
-  display: block;
-}
-
-.page-grid,
-.tracking-layout {
-  display: grid;
-  gap: 16px;
-}
-
-.scraped-layout {
-  display: grid;
-  grid-template-columns: 280px minmax(0, 1fr);
-  gap: 16px;
-  align-items: start;
-}
-
-.profiles-layout {
-  display: grid;
-  grid-template-columns: 280px minmax(0, 1fr) 300px;
-  gap: 16px;
-  align-items: start;
-}
-
-.youtube-workspace-layout {
-  position: relative;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 16px;
-  align-items: start;
-}
-
-.profile-main-panel,
-.profile-list-panel,
-.profile-side-panel,
-.youtube-context-panel,
-.youtube-main-panel {
-  min-width: 0;
+.sidebar-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 24;
+  background: rgba(2, 6, 23, 0.4);
 }
