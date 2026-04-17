@@ -1,6 +1,13 @@
 const fs = require("fs");
 const { query } = require("../db");
 const { env } = require("../config/env");
+const {
+  sanitizeTitle,
+  sanitizeDescription,
+  sanitizeMetadataTags,
+  buildDefaultMetadata,
+  buildEnhancedMetadata
+} = require("./metadataService");
 const { youtubeApiRequest } = require("./youtubeService");
 const { downloadPostToTemp, cleanupTempDir } = require("./ytDlpService");
 const { getLibraryVideoById, getVideoMimeType, resolveLibraryVideoFile } = require("./libraryService");
@@ -9,69 +16,16 @@ const { enqueuePublicationJob } = require("./publicationQueueService");
 const YOUTUBE_UPLOAD_URL = "https://www.googleapis.com/upload/youtube/v3/videos?uploadType=resumable&part=snippet,status";
 const YOUTUBE_VIDEO_URL = "https://www.googleapis.com/youtube/v3/videos";
 
-function normalizeTags(input) {
-  if (!input) {
-    return [];
-  }
-
-  if (Array.isArray(input)) {
-    return input.map((value) => String(value).trim()).filter(Boolean);
-  }
-
-  return String(input)
-    .split(",")
-    .map((value) => value.trim())
-    .filter(Boolean);
-}
-
-function sanitizeMetadataText(value, maxLength) {
-  return String(value || "")
-    .normalize("NFKD")
-    .replace(/[^\x20-\x7E\n\r\t]/g, "")
-    .replace(/\r\n/g, "\n")
-    .replace(/\n{3,}/g, "\n\n")
-    .replace(/[ \t]{2,}/g, " ")
-    .trim()
-    .slice(0, maxLength);
-}
-
-function sanitizeMetadataTags(tags) {
-  return normalizeTags(tags)
-    .map((tag) => sanitizeMetadataText(tag, 30).replace(/^#+/, "").replace(/\s+/g, ""))
-    .filter(Boolean)
-    .slice(0, 20);
-}
-
 function trimText(value, maxLength) {
   return String(value || "").trim().slice(0, maxLength);
 }
 
-function stripHashtags(value) {
-  return String(value || "")
-    .replace(/(^|\s)#[^\s#]+/g, " ")
-    .replace(/\s{2,}/g, " ")
-    .trim();
-}
-
 function buildDefaultTitle(mediaItem) {
-  const baseCandidate =
-    stripHashtags(mediaItem.title || "") ||
-    stripHashtags(mediaItem.caption || "") ||
-    stripHashtags(mediaItem.description || "") ||
-    mediaItem.original_filename ||
-    `Short from @${mediaItem.username || mediaItem.source_label || "library"}`;
-  const base = baseCandidate || mediaItem.original_filename || `Short from @${mediaItem.username || mediaItem.source_label || "library"}`;
-  return trimText(base, 100);
+  return trimText(buildDefaultMetadata(mediaItem).title, 100);
 }
 
 function buildDefaultDescription(mediaItem) {
-  const parts = [
-    sanitizeMetadataText(mediaItem.description || mediaItem.caption || "", 4500),
-    mediaItem.post_url ? `Source: ${mediaItem.post_url}` : "",
-    "#shorts"
-  ].filter(Boolean);
-
-  return sanitizeMetadataText(parts.join("\n\n"), 5000);
+  return sanitizeDescription(buildDefaultMetadata(mediaItem).description);
 }
 
 function parseYoutubeError(data, fallback) {
@@ -270,9 +224,11 @@ async function queuePublications(payload = {}) {
       continue;
     }
 
-    const title = sanitizeMetadataText(payload.title || buildDefaultTitle(mediaItem), 100);
-    const description = sanitizeMetadataText(payload.description || buildDefaultDescription(mediaItem), 5000);
-    const tags = sanitizeMetadataTags(payload.tags || [mediaItem.editorial_category, "shorts"]);
+    const defaults = buildDefaultMetadata(mediaItem);
+    const title = sanitizeTitle(payload.title || defaults.title, defaults.title);
+    const description =
+      payload.description !== undefined ? sanitizeDescription(payload.description) || defaults.description : defaults.description;
+    const tags = sanitizeMetadataTags(payload.tags !== undefined ? payload.tags : defaults.tags);
     const scheduledFor = explicitScheduleDates[index] || trackedScheduleDates[index];
     const publicationState = resolvePublicationState(account, scheduledFor);
 
@@ -335,9 +291,11 @@ async function queuePublications(payload = {}) {
       continue;
     }
 
-    const title = sanitizeMetadataText(payload.title || buildDefaultTitle(libraryVideo), 100);
-    const description = sanitizeMetadataText(payload.description || buildDefaultDescription(libraryVideo), 5000);
-    const tags = sanitizeMetadataTags(payload.tags || [libraryVideo.source_label, "shorts"]);
+    const defaults = buildDefaultMetadata(libraryVideo);
+    const title = sanitizeTitle(payload.title || defaults.title, defaults.title);
+    const description =
+      payload.description !== undefined ? sanitizeDescription(payload.description) || defaults.description : defaults.description;
+    const tags = sanitizeMetadataTags(payload.tags !== undefined ? payload.tags : defaults.tags);
     const scheduledFor = libraryScheduleDates[index];
     const publicationState = resolvePublicationState(account, scheduledFor);
 
@@ -466,14 +424,19 @@ async function updatePublicationMetadata(publicationId, payload = {}) {
     throw new Error("publication not found");
   }
 
+  const defaults = buildDefaultMetadata(publication);
   const nextTitle =
     payload.title !== undefined
-      ? sanitizeMetadataText(payload.title, 100) || buildDefaultTitle(publication)
-      : sanitizeMetadataText(publication.title || buildDefaultTitle(publication), 100);
+      ? sanitizeTitle(payload.title, defaults.title)
+      : sanitizeTitle(publication.title || defaults.title, defaults.title);
   const nextDescription =
     payload.description !== undefined
-      ? sanitizeMetadataText(payload.description, 5000)
-      : sanitizeMetadataText(publication.description || "", 5000);
+      ? sanitizeDescription(payload.description) || defaults.description
+      : sanitizeDescription(publication.description || defaults.description) || defaults.description;
+  const nextTags =
+    payload.tags !== undefined
+      ? sanitizeMetadataTags(payload.tags)
+      : sanitizeMetadataTags(publication.tags || defaults.tags);
 
   await query(
     `
@@ -481,13 +444,45 @@ async function updatePublicationMetadata(publicationId, payload = {}) {
       SET
         title = $2,
         description = $3,
+        tags = $4::jsonb,
         updated_at = NOW()
       WHERE id = $1
     `,
-    [publicationId, nextTitle, nextDescription]
+    [publicationId, nextTitle, nextDescription, JSON.stringify(nextTags)]
   );
 
   return getPublicationById(publicationId);
+}
+
+async function generatePublicationMetadata(publicationId) {
+  const publication = await getPublicationById(publicationId);
+  if (!publication) {
+    throw new Error("publication not found");
+  }
+
+  const generated = await buildEnhancedMetadata({
+    ...publication,
+    title: publication.title || publication.library_title || publication.caption || "",
+    description: publication.description || publication.caption || ""
+  });
+
+  await query(
+    `
+      UPDATE publications
+      SET
+        title = $2,
+        description = $3,
+        tags = $4::jsonb,
+        updated_at = NOW()
+      WHERE id = $1
+    `,
+    [publicationId, generated.title, generated.description, JSON.stringify(generated.tags)]
+  );
+
+  return {
+    item: await getPublicationById(publicationId),
+    metadata: generated
+  };
 }
 
 async function createUploadSession(publication, filePath) {
@@ -501,8 +496,8 @@ async function createUploadSession(publication, filePath) {
     },
     body: JSON.stringify({
       snippet: {
-        title: sanitizeMetadataText(publication.title || buildDefaultTitle(publication), 100),
-        description: sanitizeMetadataText(publication.description || buildDefaultDescription(publication), 5000),
+        title: sanitizeTitle(publication.title || buildDefaultTitle(publication), buildDefaultTitle(publication)),
+        description: sanitizeDescription(publication.description || buildDefaultDescription(publication)) || buildDefaultDescription(publication),
         tags: sanitizeMetadataTags(publication.tags),
         categoryId: "22"
       },
@@ -728,6 +723,7 @@ module.exports = {
   listPublications,
   getPublicationById,
   updatePublicationMetadata,
+  generatePublicationMetadata,
   publishPublication,
   syncPublication
 };

@@ -858,6 +858,7 @@ function renderChannelVideoCards(items) {
                       </select>
                     </label>
                     <div class="channel-video-actions">
+                      <button type="button" class="ghost-button" data-action="channel-video-generate-ai" data-id="${item.id}">Generar con IA</button>
                       <button type="button" class="ghost-button" data-action="channel-video-save" data-id="${item.id}">Guardar cambios</button>
                       ${
                         item.privacyStatus === "public"
@@ -985,6 +986,7 @@ function renderProfileQueueRows(items) {
                       <textarea data-publication-field="description" rows="6">${escapeHtml(item.description || "")}</textarea>
                     </label>
                     <div class="profile-publication-actions">
+                      <button type="button" class="ghost-button" data-action="profile-publication-generate-ai" data-id="${id}">Generar con IA</button>
                       <button type="button" class="ghost-button" data-action="profile-publication-save" data-id="${id}">Guardar cambios</button>
                       ${
                         ["ready", "scheduled", "failed"].includes(String(item.status || "").toLowerCase())

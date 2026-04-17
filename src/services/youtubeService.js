@@ -1,6 +1,7 @@
 const crypto = require("crypto");
 const { query } = require("../db");
 const { env } = require("../config/env");
+const { sanitizeTitle, sanitizeDescription, sanitizeMetadataTags, buildEnhancedMetadata } = require("./metadataService");
 
 const oauthStateStore = new Map();
 const GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth";
@@ -406,7 +407,7 @@ async function listYoutubeChannelVideos(accountId, options = {}) {
   };
 }
 
-async function updateYoutubeChannelVideo(accountId, videoId, payload = {}) {
+async function getYoutubeVideoResource(accountId, videoId) {
   const safeVideoId = String(videoId || "").trim();
   if (!safeVideoId) {
     throw new Error("videoId is required");
@@ -429,22 +430,35 @@ async function updateYoutubeChannelVideo(accountId, videoId, payload = {}) {
     throw new Error("YouTube video not found");
   }
 
+  return currentVideo;
+}
+
+async function updateYoutubeChannelVideo(accountId, videoId, payload = {}) {
+  const safeVideoId = String(videoId || "").trim();
+  const currentVideo = await getYoutubeVideoResource(accountId, safeVideoId);
+
   const currentSnippet = currentVideo.snippet || {};
   const currentStatus = currentVideo.status || {};
-  const nextTitle = String(payload.title !== undefined ? payload.title : currentSnippet.title || "").trim();
+  const nextTitle = sanitizeTitle(
+    payload.title !== undefined ? payload.title : currentSnippet.title || "",
+    sanitizeTitle(currentSnippet.title || "", "Video sin titulo")
+  );
   if (!nextTitle) {
     throw new Error("title is required");
   }
 
-  const nextDescription = String(
+  const nextDescription = sanitizeDescription(
     payload.description !== undefined ? payload.description : currentSnippet.description || ""
-  ).trim();
+  );
   const nextPrivacyStatus = String(
     payload.privacyStatus !== undefined ? payload.privacyStatus : currentStatus.privacyStatus || "private"
   ).trim().toLowerCase();
   if (!["private", "public", "unlisted"].includes(nextPrivacyStatus)) {
     throw new Error("privacyStatus is invalid");
   }
+  const nextTags = sanitizeMetadataTags(
+    payload.tags !== undefined ? payload.tags : Array.isArray(currentSnippet.tags) ? currentSnippet.tags : []
+  );
 
   const updateResource = {
     id: safeVideoId,
@@ -458,8 +472,8 @@ async function updateYoutubeChannelVideo(accountId, videoId, payload = {}) {
     }
   };
 
-  if (Array.isArray(currentSnippet.tags) && currentSnippet.tags.length) {
-    updateResource.snippet.tags = currentSnippet.tags;
+  if (nextTags.length) {
+    updateResource.snippet.tags = nextTags;
   }
   if (currentSnippet.defaultLanguage) {
     updateResource.snippet.defaultLanguage = currentSnippet.defaultLanguage;
@@ -514,6 +528,22 @@ async function updateYoutubeChannelVideo(accountId, videoId, payload = {}) {
       updatedVideo.status?.selfDeclaredMadeForKids ?? updateResource.status.selfDeclaredMadeForKids ?? null,
     containsSyntheticMedia:
       updatedVideo.status?.containsSyntheticMedia ?? updateResource.status.containsSyntheticMedia ?? null
+  };
+}
+
+async function generateYoutubeChannelVideoMetadata(accountId, videoId) {
+  const currentVideo = await getYoutubeVideoResource(accountId, videoId);
+  const generated = await buildEnhancedMetadata({
+    title: currentVideo.snippet?.title || "",
+    description: currentVideo.snippet?.description || "",
+    tags: currentVideo.snippet?.tags || [],
+    source_label: "youtube_video"
+  });
+  const item = await updateYoutubeChannelVideo(accountId, videoId, generated);
+
+  return {
+    item,
+    metadata: generated
   };
 }
 
@@ -710,5 +740,6 @@ module.exports = {
   youtubeApiRequest,
   getValidAccessToken,
   listYoutubeChannelVideos,
-  updateYoutubeChannelVideo
+  updateYoutubeChannelVideo,
+  generateYoutubeChannelVideoMetadata
 };

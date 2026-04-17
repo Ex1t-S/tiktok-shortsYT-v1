@@ -27,7 +27,8 @@ const {
   startYoutubeDirectOAuth,
   handleYoutubeOAuthCallback,
   listYoutubeChannelVideos,
-  updateYoutubeChannelVideo
+  updateYoutubeChannelVideo,
+  generateYoutubeChannelVideoMetadata
 } = require("../services/youtubeService");
 const { listProfileClones, createProfileClone } = require("../services/cloneService");
 const {
@@ -35,6 +36,7 @@ const {
   autoDistributeLibraryVideos,
   listPublications,
   updatePublicationMetadata,
+  generatePublicationMetadata,
   publishPublication,
   syncPublication
 } = require("../services/publicationService");
@@ -421,6 +423,15 @@ router.patch("/youtube/accounts/:id/videos/:videoId", async (req, res, next) => 
   }
 });
 
+router.post("/youtube/accounts/:id/videos/:videoId/generate-metadata", async (req, res, next) => {
+  try {
+    const result = await generateYoutubeChannelVideoMetadata(req.params.id, req.params.videoId);
+    res.json(result);
+  } catch (error) {
+    next(error);
+  }
+});
+
 router.get("/youtube/accounts/:id/clones", async (req, res, next) => {
   try {
     const items = await listProfileClones(req.params.id);
@@ -476,6 +487,15 @@ router.patch("/publications/:id", async (req, res, next) => {
   try {
     const item = await updatePublicationMetadata(req.params.id, req.body);
     res.json({ item });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post("/publications/:id/generate-metadata", async (req, res, next) => {
+  try {
+    const result = await generatePublicationMetadata(req.params.id);
+    res.json(result);
   } catch (error) {
     next(error);
   }

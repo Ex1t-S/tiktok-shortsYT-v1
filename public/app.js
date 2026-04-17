@@ -370,12 +370,41 @@ async function updateChannelVideo(videoId, payload) {
   setStatus(`El video ${videoId} fue actualizado en YouTube.`);
 }
 
+async function generateChannelVideoMetadata(videoId) {
+  if (!state.selectedAccountId) {
+    setStatus("ElegÃ­ una cuenta de YouTube primero.", true);
+    return;
+  }
+
+  const response = await postJson(`/api/youtube/accounts/${state.selectedAccountId}/videos/${videoId}/generate-metadata`, {});
+  await ensureSelectedAccountVideos(true);
+  state.expandedChannelVideoId = String(videoId);
+  renderYoutubeAccounts();
+  setStatus(
+    response?.metadata?.generator === "gemini"
+      ? `La IA regenerÃ³ la metadata del video ${videoId}.`
+      : `La metadata del video ${videoId} fue limpiada y actualizada.`
+  );
+}
+
 async function savePublicationMetadata(publicationId, payload) {
   await postJson(`/api/publications/${publicationId}`, payload, "PATCH");
   await Promise.all([loadPublications(), loadAccounts()]);
   state.expandedProfilePublicationId = String(publicationId);
   renderYoutubeAccounts();
   setStatus(`La publicacion ${publicationId} fue actualizada.`);
+}
+
+async function generatePublicationMetadata(publicationId) {
+  const response = await postJson(`/api/publications/${publicationId}/generate-metadata`, {});
+  await Promise.all([loadPublications(), loadAccounts()]);
+  state.expandedProfilePublicationId = String(publicationId);
+  renderYoutubeAccounts();
+  setStatus(
+    response?.metadata?.generator === "gemini"
+      ? `La IA regenerÃ³ la metadata de la publicacion ${publicationId}.`
+      : `La metadata de la publicacion ${publicationId} fue limpiada.`
+  );
 }
 
 async function createClone() {
@@ -586,6 +615,10 @@ function bindStaticEvents() {
       }).catch((error) => setStatus(error.message, true));
       return;
     }
+    if (action === "channel-video-generate-ai") {
+      generateChannelVideoMetadata(actionTarget.dataset.id).catch((error) => setStatus(error.message, true));
+      return;
+    }
     if (action === "profile-publish-prev") {
       state.profilePublishPage = Math.max(1, state.profilePublishPage - 1);
       renderYoutubeAccounts();
@@ -642,6 +675,10 @@ function bindStaticEvents() {
         title: titleInput?.value || "",
         description: descriptionInput?.value || ""
       }).catch((error) => setStatus(error.message, true));
+      return;
+    }
+    if (action === "profile-publication-generate-ai") {
+      generatePublicationMetadata(actionTarget.dataset.id).catch((error) => setStatus(error.message, true));
       return;
     }
     if (action === "profile-publication-publish") {
