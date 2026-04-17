@@ -1,6 +1,7 @@
 import { elements, state } from "./dom.js";
 import {
   escapeHtml,
+  extractVideoTitle,
   formatDate,
   formatDuration,
   formatIsoDuration,
@@ -64,7 +65,10 @@ function getSelectedAccountPublications() {
 }
 
 function getLibraryTitle(item) {
-  return item.title || item.original_filename || pathFromArchive(item.source_archive_path) || "Video sin titulo";
+  return (
+    extractVideoTitle(item.title, item.description, item.original_filename, pathFromArchive(item.source_archive_path)) ||
+    "Video sin titulo"
+  );
 }
 
 function getLibraryOrigin(item) {
@@ -81,6 +85,32 @@ function getLibrarySource(item) {
 
 function isQueueLikeStatus(status) {
   return ["queued", "ready", "awaiting_oauth", "publishing", "scheduled"].includes(String(status || "").toLowerCase());
+}
+
+function getScrapedVideoTitle(item) {
+  return extractVideoTitle(item.caption, item.description, item.original_filename) || "Video sin titulo";
+}
+
+function getPublicationTitle(item) {
+  return (
+    extractVideoTitle(item.title, item.library_title, item.caption, item.original_filename, item.clone_display_name && `@${item.clone_display_name}`) ||
+    "Publicacion sin titulo"
+  );
+}
+
+function getPublicationPreview(item) {
+  return item.thumbnail_url || item.library_thumbnail_url || "";
+}
+
+function getProfileQueueItems(publications) {
+  const queueStatuses = new Set(["awaiting_oauth", "ready", "scheduled", "publishing", "failed"]);
+  return publications
+    .filter((item) => queueStatuses.has(String(item.status || "").toLowerCase()))
+    .sort((left, right) => {
+      const leftDate = new Date(left.scheduled_for || left.created_at || 0).getTime();
+      const rightDate = new Date(right.scheduled_for || right.created_at || 0).getTime();
+      return rightDate - leftDate;
+    });
 }
 
 function buildClonePreview(profileId, dailyLimit) {
@@ -269,7 +299,7 @@ function renderScrapedWorkspace() {
               <input type="checkbox" data-action="toggle-track" data-id="${id}" ${selected ? "checked" : ""} />
               <span>Seleccionar</span>
             </label>
-            <strong class="truncate-2">${escapeHtml(item.caption || "Video sin titulo")}</strong>
+            <strong class="truncate-2" title="${escapeHtml(getScrapedVideoTitle(item))}">${escapeHtml(getScrapedVideoTitle(item))}</strong>
             <p>${escapeHtml(
               [formatDuration(item.duration_seconds), `${formatMetric(item.view_count)} vistas`, formatDate(item.published_at)]
                 .filter(Boolean)
@@ -509,6 +539,31 @@ function renderYoutubeTabContent(account, channel, videos, publications, clones)
     return;
   }
 
+  if (state.currentYoutubeTab === "queue") {
+    const queueItems = getProfileQueueItems(publications);
+    const scheduledCount = queueItems.filter((item) => String(item.status || "").toLowerCase() === "scheduled").length;
+    const readyCount = queueItems.filter((item) => String(item.status || "").toLowerCase() === "ready").length;
+
+    elements.youtubeProfileTabContent.innerHTML = `
+      <section class="workspace-section profile-queue-workspace">
+        <div class="section-toolbar section-toolbar-tight">
+          <div>
+            <strong>Cola del canal</strong>
+            <span class="helper-inline">${queueItems.length ? `${queueItems.length} pendientes en este canal` : "Sin publicaciones pendientes"}</span>
+          </div>
+          <div class="list-row-meta">
+            <span class="meta-chip">${scheduledCount} programados</span>
+            <span class="meta-chip">${readyCount} listos</span>
+          </div>
+        </div>
+        <div class="dense-list">
+          ${renderProfileQueueRows(queueItems)}
+        </div>
+      </section>
+    `;
+    return;
+  }
+
   if (state.currentYoutubeTab === "publish") {
     const publishable = filterPublishableLibrary(account.id);
     const { pageItems, currentPage, totalPages, start, end } = paginate(
@@ -716,6 +771,85 @@ function renderPublishRows(items, accountId) {
     .join("");
 }
 
+function renderProfileQueueRows(items) {
+  if (!items.length) {
+    return '<div class="empty-state">No hay videos en cola para este canal.</div>';
+  }
+
+  return items
+    .map((item) => {
+      const id = String(item.id);
+      const expanded = String(state.expandedProfilePublicationId || "") === id;
+      const title = getPublicationTitle(item);
+      const scheduleLabel = item.scheduled_for ? formatDate(item.scheduled_for) : formatDate(item.created_at);
+      const sourceLabel =
+        item.source_kind === "clone"
+          ? `${item.clone_display_name || `@${item.clone_username || "origen"}`} -> ${accountLabel(getSelectedAccount())}`
+          : item.source_kind === "library_video"
+            ? getLibraryOrigin(item)
+            : `@${item.username || "origen"}`;
+
+      return `
+        <article class="profile-publication-card ${expanded ? "is-expanded" : ""}">
+          <button type="button" class="profile-publication-bar" data-action="profile-publication-toggle" data-id="${id}" aria-expanded="${expanded ? "true" : "false"}">
+            <div class="profile-publication-summary">
+              <div class="list-row-thumb">
+                ${renderThumb(getPublicationPreview(item), title, "video-row-thumb", "Preview")}
+              </div>
+              <div class="list-row-main">
+                <strong class="truncate-2" title="${escapeHtml(title)}">${escapeHtml(title)}</strong>
+                <p class="truncate-1" title="${escapeHtml(sourceLabel)}">${escapeHtml(sourceLabel)}</p>
+              </div>
+            </div>
+            <div class="profile-publication-meta">
+              <span class="badge ${item.status === "published" ? "success" : item.status === "failed" ? "danger" : ""}">${escapeHtml(
+                translateStatus(item.status)
+              )}</span>
+              <span class="meta-chip">${escapeHtml(scheduleLabel)}</span>
+              <span class="meta-chip profile-publication-expand">${expanded ? "Ocultar" : "Editar"}</span>
+            </div>
+          </button>
+          ${
+            expanded
+              ? `
+                <div class="profile-publication-editor">
+                  <div class="profile-publication-preview">
+                    ${renderThumb(getPublicationPreview(item), title, "video-thumb", "Preview")}
+                  </div>
+                  <div class="profile-publication-fields">
+                    <label>
+                      <span>Titulo</span>
+                      <input type="text" data-publication-field="title" value="${escapeHtml(title)}" maxlength="100" />
+                    </label>
+                    <label>
+                      <span>Descripcion</span>
+                      <textarea data-publication-field="description" rows="6">${escapeHtml(item.description || "")}</textarea>
+                    </label>
+                    <div class="profile-publication-actions">
+                      <button type="button" class="ghost-button" data-action="profile-publication-save" data-id="${id}">Guardar cambios</button>
+                      ${
+                        ["ready", "scheduled", "failed"].includes(String(item.status || "").toLowerCase())
+                          ? `<button type="button" data-action="profile-publication-publish" data-id="${id}">Publicar</button>`
+                          : ""
+                      }
+                      <button type="button" class="ghost-button" data-action="profile-publication-sync" data-id="${id}">Sincronizar</button>
+                      ${
+                        item.youtube_url
+                          ? `<a class="ghost-button" href="${item.youtube_url}" target="_blank" rel="noreferrer">Abrir</a>`
+                          : ""
+                      }
+                    </div>
+                  </div>
+                </div>
+              `
+              : ""
+          }
+        </article>
+      `;
+    })
+    .join("");
+}
+
 function renderCloneCards(items) {
   if (!items.length) {
     return '<div class="empty-state">Todavia no hay clonaciones creadas.</div>';
@@ -820,9 +954,7 @@ export function renderQueue() {
       return `
         <article class="queue-item queue-item-compact">
           <div class="queue-item-main">
-            <strong class="truncate-2" title="${escapeHtml(item.title || "Publicacion sin titulo")}">${escapeHtml(
-              item.title || "Publicacion sin titulo"
-            )}</strong>
+            <strong class="truncate-2" title="${escapeHtml(getPublicationTitle(item))}">${escapeHtml(getPublicationTitle(item))}</strong>
             <p class="truncate-1" title="${escapeHtml(sourceLabel)}">${escapeHtml(sourceLabel)}</p>
           </div>
           <div class="queue-item-meta">
@@ -921,7 +1053,7 @@ export function renderOverview() {
         (item) => `
           <article class="list-row">
             <div class="list-row-main">
-              <strong class="truncate-2" title="${escapeHtml(item.title || "Publicacion sin titulo")}">${escapeHtml(item.title || "Publicacion sin titulo")}</strong>
+              <strong class="truncate-2" title="${escapeHtml(getPublicationTitle(item))}">${escapeHtml(getPublicationTitle(item))}</strong>
               <p class="truncate-1" title="${escapeHtml(`@${item.username || "origen"}`)}">${escapeHtml(`@${item.username || "origen"}`)}</p>
             </div>
             <div class="list-row-meta">

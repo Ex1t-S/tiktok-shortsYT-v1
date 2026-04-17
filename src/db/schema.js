@@ -233,6 +233,7 @@ async function ensureSchema() {
       source_url TEXT,
       storage_bucket TEXT,
       storage_object_key TEXT,
+      thumbnail_url TEXT,
       title TEXT,
       description TEXT,
       mime_type TEXT,
@@ -268,6 +269,11 @@ async function ensureSchema() {
   await query(`
     ALTER TABLE library_videos
     ADD COLUMN IF NOT EXISTS storage_object_key TEXT;
+  `);
+
+  await query(`
+    ALTER TABLE library_videos
+    ADD COLUMN IF NOT EXISTS thumbnail_url TEXT;
   `);
 
   await query(`

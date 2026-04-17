@@ -103,6 +103,16 @@
     align-items: stretch;
   }
 
+  .profile-publication-bar,
+  .profile-publication-summary,
+  .profile-publication-editor {
+    display: grid;
+  }
+
+  .profile-publication-editor {
+    grid-template-columns: 1fr;
+  }
+
   .youtube-channel-strip-actions {
     justify-content: flex-start;
   }

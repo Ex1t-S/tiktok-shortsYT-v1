@@ -187,6 +187,24 @@ export function formatIsoDuration(value) {
   return `${totalMinutes}:${String(seconds).padStart(2, "0")}`;
 }
 
+export function extractVideoTitle(...values) {
+  for (const value of values) {
+    const raw = String(value || "").trim();
+    if (!raw) continue;
+
+    const cleaned = raw
+      .replace(/(^|\s)#[^\s#]+/g, " ")
+      .replace(/\s{2,}/g, " ")
+      .trim();
+
+    if (cleaned) {
+      return cleaned;
+    }
+  }
+
+  return "";
+}
+
 export async function fetchJson(url, options) {
   const response = await fetch(url, options);
   const data = await response.json().catch(() => ({}));

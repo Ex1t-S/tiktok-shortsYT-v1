@@ -32,6 +32,7 @@ const {
   queuePublications,
   autoDistributeLibraryVideos,
   listPublications,
+  updatePublicationMetadata,
   publishPublication,
   syncPublication
 } = require("../services/publicationService");
@@ -437,6 +438,15 @@ router.post("/publications", async (req, res, next) => {
   try {
     const items = await queuePublications(req.body);
     res.status(201).json({ items });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.patch("/publications/:id", async (req, res, next) => {
+  try {
+    const item = await updatePublicationMetadata(req.params.id, req.body);
+    res.json({ item });
   } catch (error) {
     next(error);
   }

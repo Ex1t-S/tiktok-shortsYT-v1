@@ -289,6 +289,12 @@ async function loadLibrary() {
 async function loadPublications() {
   const { items } = await fetchJson("/api/publications");
   state.publications = Array.isArray(items) ? items : [];
+  if (
+    state.expandedProfilePublicationId &&
+    !state.publications.some((item) => String(item.id) === String(state.expandedProfilePublicationId))
+  ) {
+    state.expandedProfilePublicationId = null;
+  }
   renderQueue();
   renderYoutubeAccounts();
 }
@@ -327,6 +333,14 @@ async function syncExistingPublication(publicationId) {
   await postJson(`/api/publications/${publicationId}/sync`, {});
   await Promise.all([loadPublications(), loadAccounts(), loadDashboard()]);
   setStatus(`La publicación ${publicationId} fue sincronizada.`);
+}
+
+async function savePublicationMetadata(publicationId, payload) {
+  await postJson(`/api/publications/${publicationId}`, payload, "PATCH");
+  await Promise.all([loadPublications(), loadAccounts()]);
+  state.expandedProfilePublicationId = String(publicationId);
+  renderYoutubeAccounts();
+  setStatus(`La publicacion ${publicationId} fue actualizada.`);
 }
 
 async function createClone() {
@@ -460,6 +474,7 @@ function bindStaticEvents() {
     state.currentYoutubeTab = "videos";
     state.youtubeVideosPage = 1;
     state.profilePublishPage = 1;
+    state.expandedProfilePublicationId = null;
     clearSelectedLibraryItems();
     setSidebarDrawerOpen(false);
     Promise.all([ensureSelectedAccountVideos(), ensureSelectedAccountClones()])
@@ -473,6 +488,7 @@ function bindStaticEvents() {
     const nextTab = button.dataset.tab;
     if (state.currentYoutubeTab !== nextTab) {
       clearSelectedLibraryItems();
+      state.expandedProfilePublicationId = null;
     }
     state.currentYoutubeTab = nextTab;
     renderYoutubeAccounts();
@@ -532,11 +548,37 @@ function bindStaticEvents() {
       sendLibraryVideoToQueue(actionTarget.dataset.id, actionTarget.dataset.accountId, true).catch((error) => setStatus(error.message, true));
       return;
     }
+    if (action === "profile-publication-toggle") {
+      const nextId = String(actionTarget.dataset.id || "");
+      state.expandedProfilePublicationId =
+        String(state.expandedProfilePublicationId || "") === nextId ? null : nextId;
+      renderYoutubeAccounts();
+      return;
+    }
+    if (action === "profile-publication-save") {
+      const card = actionTarget.closest(".profile-publication-card");
+      if (!card) return;
+      const titleInput = card.querySelector('[data-publication-field="title"]');
+      const descriptionInput = card.querySelector('[data-publication-field="description"]');
+      savePublicationMetadata(actionTarget.dataset.id, {
+        title: titleInput?.value || "",
+        description: descriptionInput?.value || ""
+      }).catch((error) => setStatus(error.message, true));
+      return;
+    }
+    if (action === "profile-publication-publish") {
+      publishExistingPublication(actionTarget.dataset.id).catch((error) => setStatus(error.message, true));
+      return;
+    }
+    if (action === "profile-publication-sync") {
+      syncExistingPublication(actionTarget.dataset.id).catch((error) => setStatus(error.message, true));
+      return;
+    }
   });
 
   elements.youtubeProfileTabContent.addEventListener("input", (event) => {
     const target = event.target;
-    if (!(target instanceof HTMLInputElement || target instanceof HTMLSelectElement)) return;
+    if (!(target instanceof HTMLInputElement || target instanceof HTMLSelectElement || target instanceof HTMLTextAreaElement)) return;
     if (target.id === "profile-publish-search") {
       state.profilePublishFilters.search = target.value;
       state.profilePublishPage = 1;
@@ -552,7 +594,7 @@ function bindStaticEvents() {
 
   elements.youtubeProfileTabContent.addEventListener("change", (event) => {
     const target = event.target;
-    if (!(target instanceof HTMLInputElement || target instanceof HTMLSelectElement)) return;
+    if (!(target instanceof HTMLInputElement || target instanceof HTMLSelectElement || target instanceof HTMLTextAreaElement)) return;
     if (target instanceof HTMLInputElement && target.dataset.action === "toggle-library-select") {
       const id = String(target.dataset.id || "");
       if (!id) return;

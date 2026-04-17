@@ -46,12 +46,21 @@ function trimText(value, maxLength) {
   return String(value || "").trim().slice(0, maxLength);
 }
 
+function stripHashtags(value) {
+  return String(value || "")
+    .replace(/(^|\s)#[^\s#]+/g, " ")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+
 function buildDefaultTitle(mediaItem) {
-  const base =
-    mediaItem.title ||
-    mediaItem.caption ||
+  const baseCandidate =
+    stripHashtags(mediaItem.title || "") ||
+    stripHashtags(mediaItem.caption || "") ||
+    stripHashtags(mediaItem.description || "") ||
     mediaItem.original_filename ||
     `Short from @${mediaItem.username || mediaItem.source_label || "library"}`;
+  const base = baseCandidate || mediaItem.original_filename || `Short from @${mediaItem.username || mediaItem.source_label || "library"}`;
   return trimText(base, 100);
 }
 
@@ -81,7 +90,7 @@ async function getPublicationById(publicationId) {
         clone_profile.username AS clone_username,
         clone_profile.display_name AS clone_display_name,
         COALESCE(mi.caption, lv.description) AS caption,
-        mi.thumbnail_url,
+        COALESCE(mi.thumbnail_url, lv.thumbnail_url) AS thumbnail_url,
         mi.post_url,
         mi.score,
         mi.external_id,
@@ -92,7 +101,8 @@ async function getPublicationById(publicationId) {
         lv.storage_provider,
         lv.mime_type,
         lv.source_label,
-        lv.title AS library_title
+        lv.title AS library_title,
+        lv.thumbnail_url AS library_thumbnail_url
       FROM publications p
       JOIN youtube_accounts ya ON ya.id = p.youtube_account_id
       LEFT JOIN profile_clones pc ON pc.id = p.profile_clone_id
@@ -427,14 +437,15 @@ async function listPublications() {
         clone_profile.username AS clone_username,
         clone_profile.display_name AS clone_display_name,
         COALESCE(mi.caption, lv.description) AS caption,
-        mi.thumbnail_url,
+        COALESCE(mi.thumbnail_url, lv.thumbnail_url) AS thumbnail_url,
         mi.post_url,
         mi.score,
         tp.username,
         lv.original_filename,
         lv.source_label,
         lv.source_url,
-        lv.storage_provider
+        lv.storage_provider,
+        lv.thumbnail_url AS library_thumbnail_url
       FROM publications p
       JOIN youtube_accounts ya ON ya.id = p.youtube_account_id
       LEFT JOIN profile_clones pc ON pc.id = p.profile_clone_id
@@ -447,6 +458,36 @@ async function listPublications() {
   );
 
   return result.rows;
+}
+
+async function updatePublicationMetadata(publicationId, payload = {}) {
+  const publication = await getPublicationById(publicationId);
+  if (!publication) {
+    throw new Error("publication not found");
+  }
+
+  const nextTitle =
+    payload.title !== undefined
+      ? sanitizeMetadataText(payload.title, 100) || buildDefaultTitle(publication)
+      : sanitizeMetadataText(publication.title || buildDefaultTitle(publication), 100);
+  const nextDescription =
+    payload.description !== undefined
+      ? sanitizeMetadataText(payload.description, 5000)
+      : sanitizeMetadataText(publication.description || "", 5000);
+
+  await query(
+    `
+      UPDATE publications
+      SET
+        title = $2,
+        description = $3,
+        updated_at = NOW()
+      WHERE id = $1
+    `,
+    [publicationId, nextTitle, nextDescription]
+  );
+
+  return getPublicationById(publicationId);
 }
 
 async function createUploadSession(publication, filePath) {
@@ -685,6 +726,7 @@ module.exports = {
   autoDistributeLibraryVideos,
   listPublications,
   getPublicationById,
+  updatePublicationMetadata,
   publishPublication,
   syncPublication
 };

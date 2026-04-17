@@ -30,6 +30,13 @@ function buildImportBatchId() {
   return `${Date.now()}-${crypto.randomBytes(4).toString("hex")}`;
 }
 
+function stripHashtags(value) {
+  return String(value || "")
+    .replace(/(^|\s)#[^\s#]+/g, " ")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+
 function getVideoMimeType(filePath) {
   const extension = path.extname(filePath).toLowerCase();
   if (extension === ".mp4" || extension === ".m4v") {
@@ -112,17 +119,18 @@ async function persistLibraryVideoRecord(input) {
         original_filename,
         stored_path,
         source_kind,
-        storage_provider,
-        source_url,
-        storage_bucket,
-        storage_object_key,
-        title,
-        description,
-        mime_type,
+      storage_provider,
+      source_url,
+      storage_bucket,
+      storage_object_key,
+      thumbnail_url,
+      title,
+      description,
+      mime_type,
         file_size_bytes,
         updated_at
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, NOW())
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, NOW())
       RETURNING *
     `,
     [
@@ -136,6 +144,7 @@ async function persistLibraryVideoRecord(input) {
       input.sourceUrl || null,
       input.storageBucket || null,
       input.storageObjectKey || null,
+      input.thumbnailUrl || null,
       input.title || null,
       input.description || null,
       input.mimeType || null,
@@ -232,6 +241,7 @@ async function importLibraryZip(payload = {}) {
         sourceUrl: cloudStorage.sourceUrl,
         storageBucket: cloudStorage.storageBucket,
         storageObjectKey: cloudStorage.storageObjectKey,
+        thumbnailUrl: null,
         title: path.parse(originalFilename).name,
         description: payload.description ? String(payload.description).trim() : null,
         mimeType: getVideoMimeType(storedPath),
@@ -303,6 +313,7 @@ async function importLibraryVideo(payload = {}) {
       sourceUrl: cloudStorage.sourceUrl,
       storageBucket: cloudStorage.storageBucket,
       storageObjectKey: cloudStorage.storageObjectKey,
+      thumbnailUrl: null,
       title: title || path.parse(originalFilename).name,
       description,
       mimeType: mimeType || getVideoMimeType(storedPath),
@@ -324,6 +335,7 @@ async function importLibraryVideo(payload = {}) {
     sourceUrl,
     storageBucket: payload.storageBucket ? String(payload.storageBucket).trim() : null,
     storageObjectKey: payload.storageObjectKey ? String(payload.storageObjectKey).trim() : null,
+    thumbnailUrl: null,
     title: title || path.parse(originalFilename).name,
     description,
     mimeType: mimeType || getVideoMimeType(originalFilename),
@@ -376,7 +388,8 @@ async function captureTrackedMediaToLibrary(payload = {}) {
         sourceUrl: cloudStorage.sourceUrl,
         storageBucket: cloudStorage.storageBucket,
         storageObjectKey: cloudStorage.storageObjectKey,
-        title: mediaItem.caption ? String(mediaItem.caption).trim().slice(0, 120) : path.parse(originalFilename).name,
+        thumbnailUrl: mediaItem.thumbnail_url || null,
+        title: stripHashtags(mediaItem.caption || "").slice(0, 120) || path.parse(originalFilename).name,
         description: mediaItem.caption ? String(mediaItem.caption).trim() : null,
         mimeType: getVideoMimeType(storedPath),
         fileSizeBytes: fileStat.size

@@ -41,6 +41,9 @@
 
 .youtube-channel-list,
 .channel-strip-item,
-.channel-strip-meta {
+.channel-strip-meta,
+.profile-publication-summary,
+.profile-publication-fields,
+.profile-publication-editor {
   min-width: 0;
 }
