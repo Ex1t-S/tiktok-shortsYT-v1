@@ -572,19 +572,20 @@ async function publishPublication(publicationId) {
   );
 
   let tempDir = null;
-  const libraryVideo = publication.library_video_id
-    ? await getLibraryVideoById(publication.library_video_id)
-    : null;
-  const librarySource = libraryVideo ? await resolveLibraryVideoFile(libraryVideo) : null;
-  const download = publication.post_url ? await downloadPostToTemp(publication.post_url) : null;
-  const filePath = librarySource?.filePath || download?.filePath;
-  tempDir = librarySource?.tempDir || download?.tempDir || null;
-
-  if (!filePath) {
-    throw new Error("The source video file is not available");
-  }
 
   try {
+    const libraryVideo = publication.library_video_id
+      ? await getLibraryVideoById(publication.library_video_id)
+      : null;
+    const librarySource = libraryVideo ? await resolveLibraryVideoFile(libraryVideo) : null;
+    const download = publication.post_url ? await downloadPostToTemp(publication.post_url) : null;
+    const filePath = librarySource?.filePath || download?.filePath;
+    tempDir = librarySource?.tempDir || download?.tempDir || null;
+
+    if (!filePath) {
+      throw new Error("The source video file is not available");
+    }
+
     const sessionUrl = await createUploadSession(publication, filePath);
     const uploadResult = await uploadVideoBytes(publication, sessionUrl, filePath);
     const youtubeVideoId = uploadResult.id;

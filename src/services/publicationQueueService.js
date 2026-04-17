@@ -6,6 +6,71 @@ function buildWorkerId() {
   return `publication-worker-${process.pid}-${crypto.randomBytes(4).toString("hex")}`;
 }
 
+async function reconcilePublicationJobs() {
+  const staleMinutes = 15;
+
+  const staleRunningJobs = await query(
+    `
+      UPDATE publication_jobs
+      SET
+        status = 'queued',
+        available_at = NOW(),
+        locked_at = NULL,
+        locked_by = NULL,
+        last_error = COALESCE(last_error, 'Recovered stale running job'),
+        updated_at = NOW()
+      WHERE job_type = 'publish'
+        AND status = 'running'
+        AND locked_at < NOW() - ($1::text || ' minutes')::interval
+      RETURNING id, publication_id
+    `,
+    [staleMinutes]
+  );
+
+  if (staleRunningJobs.rows.length) {
+    await query(
+      `
+        UPDATE publications
+        SET
+          status = CASE
+            WHEN scheduled_for IS NOT NULL AND scheduled_for > NOW() THEN 'scheduled'
+            ELSE 'ready'
+          END,
+          status_detail = CASE
+            WHEN scheduled_for IS NOT NULL AND scheduled_for > NOW()
+              THEN CONCAT('Scheduled for ', TO_CHAR(scheduled_for AT TIME ZONE 'UTC', 'YYYY-MM-DD HH24:MI:SS'), ' UTC')
+            ELSE 'Ready to upload through the YouTube API'
+          END,
+          updated_at = NOW()
+        WHERE id = ANY($1::bigint[])
+          AND status = 'publishing'
+      `,
+      [staleRunningJobs.rows.map((job) => job.publication_id)]
+    );
+  }
+
+  const failedPublishing = await query(
+    `
+      UPDATE publications p
+      SET
+        status = 'failed',
+        status_detail = COALESCE(pj.last_error, p.status_detail, 'Publication job failed'),
+        updated_at = NOW()
+      FROM publication_jobs pj
+      WHERE pj.publication_id = p.id
+        AND pj.job_type = 'publish'
+        AND pj.status = 'failed'
+        AND p.status = 'publishing'
+      RETURNING p.id
+    `
+  );
+
+  return {
+    staleRunningJobs: staleRunningJobs.rows.length,
+    failedPublishing: failedPublishing.rows.length
+  };
+}
+
 function resolveJobAvailability(publication) {
   if (publication?.scheduled_for) {
     const when = new Date(publication.scheduled_for);
@@ -154,6 +219,8 @@ async function markPublicationJobFailed(job, error) {
 }
 
 async function backfillPublicationJobs() {
+  await reconcilePublicationJobs();
+
   const result = await query(
     `
       SELECT p.*
@@ -303,6 +370,7 @@ async function processPublicationQueue(workerId, limit = 3) {
 module.exports = {
   buildWorkerId,
   enqueuePublicationJob,
+  reconcilePublicationJobs,
   backfillPublicationJobs,
   processPublicationQueue,
   listPublicationJobs,

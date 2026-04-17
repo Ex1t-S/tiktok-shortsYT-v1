@@ -6,6 +6,7 @@ const {
   getProfileByUsername,
   listMediaByUsername
 } = require("../services/profileService");
+const { searchProfiles: searchTikTokProfiles } = require("../services/tiktokScraper");
 const {
   listDiscoverySeeds,
   createDiscoverySeed,
@@ -38,6 +39,8 @@ const {
 } = require("../services/publicationService");
 const {
   streamSingleMedia,
+  streamSingleMediaInline,
+  streamLibraryVideoInline,
   streamProfileZip,
   streamSelectedMediaZip
 } = require("../services/downloadService");
@@ -114,6 +117,22 @@ router.get("/scraped-profiles/:username/videos", async (req, res, next) => {
       limit: req.query.limit
     });
     res.json({ items });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get("/tiktok/search/profiles", async (req, res, next) => {
+  try {
+    const query = String(req.query.q || "").trim();
+    if (!query) {
+      return res.status(400).json({ error: "q is required" });
+    }
+
+    const result = await searchTikTokProfiles(query, {
+      limit: req.query.limit
+    });
+    res.json(result);
   } catch (error) {
     next(error);
   }
@@ -507,6 +526,22 @@ router.get("/profiles/:username/media", async (req, res, next) => {
 router.get("/media/:id/download", async (req, res, next) => {
   try {
     await streamSingleMedia(req.params.id, res);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get("/media/:id/stream", async (req, res, next) => {
+  try {
+    await streamSingleMediaInline(req.params.id, res);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get("/library/videos/:id/stream", async (req, res, next) => {
+  try {
+    await streamLibraryVideoInline(req.params.id, res);
   } catch (error) {
     next(error);
   }

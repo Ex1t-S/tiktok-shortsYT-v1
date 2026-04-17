@@ -19,7 +19,8 @@ function bindGlobalImageFallback() {
     "error",
     (event) => {
       const target = event.target;
-      if (!(target instanceof HTMLImageElement) || target.dataset.fallbackThumb !== "true") {
+      const isPreviewTarget = target instanceof HTMLImageElement || target instanceof HTMLVideoElement;
+      if (!isPreviewTarget || target.dataset.fallbackThumb !== "true") {
         return;
       }
       target.parentElement?.classList.add("is-fallback");
@@ -107,6 +108,27 @@ async function loadScrapedProfile(username) {
   state.scrapedVideosPage = 1;
   state.selectedTrackIds.clear();
   renderScrapedProfiles();
+}
+
+async function searchTikTokProfiles(rawQuery) {
+  const query = String(rawQuery || "").trim();
+  state.scrapedContextTab = "search";
+  state.scrapedSearchQuery = query;
+
+  if (!query) {
+    state.scrapedSearchResults = [];
+    renderScrapedProfiles();
+    return;
+  }
+
+  const payload = await fetchJson(`/api/tiktok/search/profiles?q=${encodeURIComponent(query)}&limit=10`);
+  state.scrapedSearchResults = Array.isArray(payload.items) ? payload.items : [];
+  renderScrapedProfiles();
+  setStatus(
+    state.scrapedSearchResults.length
+      ? `${state.scrapedSearchResults.length} perfiles encontrados.`
+      : "No se encontraron perfiles para esa búsqueda."
+  );
 }
 
 async function loadTrackingStatus(username) {
@@ -412,6 +434,13 @@ function bindStaticEvents() {
       .catch((error) => setStatus(error.message, true))
   );
 
+  elements.scrapedContextTabBar?.addEventListener("click", (event) => {
+    const button = event.target.closest(".context-tab");
+    if (!button) return;
+    state.scrapedContextTab = button.dataset.scrapedTab;
+    renderScrapedProfiles();
+  });
+
   elements.scrapedProfilesPrevPage.addEventListener("click", () => {
     state.scrapedProfilesPage = Math.max(1, state.scrapedProfilesPage - 1);
     renderScrapedProfiles();
@@ -430,11 +459,24 @@ function bindStaticEvents() {
   });
   elements.loadMoreMediaButton.addEventListener("click", () => expandTrackingResults().catch((error) => setStatus(error.message, true)));
   elements.saveLibraryButton.addEventListener("click", () => saveTrackingSelectionToLibrary().catch((error) => setStatus(error.message, true)));
+  elements.scrapedSearchForm?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    searchTikTokProfiles(elements.scrapedSearchInput?.value || "").catch((error) => setStatus(error.message, true));
+  });
 
   elements.scrapedProfilesList.addEventListener("click", (event) => {
     const button = event.target.closest('[data-action="select-scraped-profile"]');
     if (!button) return;
     loadScrapedProfile(button.dataset.username).catch((error) => setStatus(error.message, true));
+  });
+
+  elements.scrapedSearchResults?.addEventListener("click", (event) => {
+    const button = event.target.closest('[data-action="track-search-profile"]');
+    if (!button) return;
+    const username = String(button.dataset.username || "").trim();
+    if (!username) return;
+    elements.username.value = `@${username}`;
+    trackUsername(`@${username}`).catch((error) => setStatus(error.message, true));
   });
 
   elements.scrapedProfileHeader.addEventListener("click", (event) => {

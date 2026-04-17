@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
@@ -107,14 +107,29 @@
                   <button id="refresh-scraped-button" type="button" class="ghost-button">Actualizar</button>
                 </div>
 
-                <div id="scraped-profiles-list" class="context-list"></div>
+                <div class="context-tab-bar" id="scraped-context-tab-bar">
+                  <button type="button" class="context-tab active" data-scraped-tab="profiles">Guardados</button>
+                  <button type="button" class="context-tab" data-scraped-tab="search">Buscar</button>
+                </div>
 
-                <div class="panel-pager">
-                  <span id="scraped-profiles-pager-label" class="pager-label">Pagina 1</span>
-                  <div class="pager-controls">
-                    <button id="scraped-profiles-prev-page" type="button" class="ghost-button">Anterior</button>
-                    <button id="scraped-profiles-next-page" type="button" class="ghost-button">Siguiente</button>
+                <div id="scraped-profiles-pane" class="context-pane">
+                  <div id="scraped-profiles-list" class="context-list"></div>
+
+                  <div class="panel-pager">
+                    <span id="scraped-profiles-pager-label" class="pager-label">Pagina 1</span>
+                    <div class="pager-controls">
+                      <button id="scraped-profiles-prev-page" type="button" class="ghost-button">Anterior</button>
+                      <button id="scraped-profiles-next-page" type="button" class="ghost-button">Siguiente</button>
+                    </div>
                   </div>
+                </div>
+
+                <div id="scraped-search-pane" class="context-pane hidden">
+                  <form id="scraped-search-form" class="context-search-form">
+                    <input id="scraped-search-input" type="search" placeholder="Buscar perfiles en TikTok" />
+                    <button id="scraped-search-button" type="submit">Buscar</button>
+                  </form>
+                  <div id="scraped-search-results" class="dense-list"></div>
                 </div>
               </aside>
 

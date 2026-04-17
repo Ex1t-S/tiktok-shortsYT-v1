@@ -268,6 +268,85 @@ async function collectHashtagLinks(page, tag) {
   };
 }
 
+async function searchProfileCandidates(page, queryInput, limit = 12) {
+  const query = String(queryInput || "").trim();
+  if (!query) {
+    return [];
+  }
+
+  const searchUrl = `https://www.tiktok.com/search/user?q=${encodeURIComponent(query)}`;
+  await page.goto(searchUrl, { waitUntil: "domcontentloaded", timeout: env.scraperTimeoutMs });
+  await page.waitForTimeout(2500);
+
+  await page.evaluate(async () => {
+    for (let step = 0; step < 2; step += 1) {
+      window.scrollTo(0, document.body.scrollHeight);
+      await new Promise((resolve) => window.setTimeout(resolve, 500));
+    }
+    window.scrollTo(0, 0);
+  });
+  await page.waitForTimeout(600);
+
+  const pageData = await page.evaluate(() => {
+    const anchors = Array.from(document.querySelectorAll('a[href^="/@"], a[href*="tiktok.com/@"]'));
+    const results = anchors.map((anchor) => {
+      const href = anchor.href || anchor.getAttribute("href") || "";
+      const textBits = Array.from(anchor.querySelectorAll("h1,h2,h3,h4,strong,span,p"))
+        .map((node) => node.textContent?.trim() || "")
+        .filter(Boolean)
+        .slice(0, 8);
+
+      return {
+        href,
+        avatarUrl: anchor.querySelector("img")?.src || null,
+        textBits
+      };
+    });
+
+    return {
+      bodyText: document.body?.innerText || "",
+      results
+    };
+  });
+
+  if (hasCaptchaText(pageData.bodyText)) {
+    throw new TikTokScraperError(
+      "TikTok bloqueó temporalmente la búsqueda de perfiles con un challenge anti-bot.",
+      {
+        code: "TIKTOK_CHALLENGE",
+        statusCode: 503,
+        details: { query }
+      }
+    );
+  }
+
+  const deduped = new Map();
+  for (const entry of pageData.results) {
+    const usernameMatch = String(entry.href || "").match(/tiktok\.com\/@([^/?#]+)/i) || String(entry.href || "").match(/\/@([^/?#]+)/i);
+    const username = normalizeUsername(usernameMatch?.[1] || "");
+    if (!username || deduped.has(username)) {
+      continue;
+    }
+
+    const bits = Array.isArray(entry.textBits) ? entry.textBits : [];
+    const displayName =
+      bits.find((value) => value && !value.startsWith("@") && normalizeUsername(value) !== username) ||
+      bits[0] ||
+      username;
+    const detail = bits.find((value) => value.includes("followers") || value.includes("seguidor") || value.includes("likes")) || "";
+
+    deduped.set(username, {
+      username,
+      displayName,
+      avatarUrl: entry.avatarUrl || null,
+      profileUrl: `https://www.tiktok.com/@${username}`,
+      detail
+    });
+  }
+
+  return Array.from(deduped.values()).slice(0, Math.max(1, Number(limit || 12)));
+}
+
 async function extractMediaFromPostPage(page, postUrl) {
   await page.goto(postUrl, { waitUntil: "domcontentloaded", timeout: env.scraperTimeoutMs });
   await page.waitForTimeout(1200);
@@ -558,9 +637,93 @@ async function scrapeHashtag(tagInput, options = {}) {
   }
 }
 
+async function searchProfiles(queryInput, options = {}) {
+  const query = String(queryInput || "").trim();
+  const limit = Math.max(1, Number(options.limit || 12));
+  if (!query) {
+    throw new TikTokScraperError("search query is required", {
+      code: "INVALID_SEARCH_QUERY",
+      statusCode: 400
+    });
+  }
+
+  const launchOptions = {
+    headless: env.scraperHeadless
+  };
+
+  const proxy = getConfiguredProxy();
+  if (proxy) {
+    launchOptions.proxy = {
+      server: proxy.server,
+      username: proxy.username,
+      password: proxy.password
+    };
+  }
+
+  if (env.browserExecutablePath) {
+    launchOptions.executablePath = env.browserExecutablePath;
+  }
+  if (env.scraperBrowserChannel) {
+    launchOptions.channel = env.scraperBrowserChannel;
+  }
+
+  let browser = null;
+  let context = null;
+  const fallbackUsername =
+    query.startsWith("@") ||
+    /tiktok\.com\/@/i.test(query) ||
+    /^[a-z0-9._-]+$/i.test(query)
+      ? normalizeUsername(query)
+      : "";
+
+  try {
+    const contextOptions = {
+      userAgent: env.scraperUserAgent,
+      viewport: { width: 1440, height: 1024 },
+      locale: env.scraperLocale,
+      timezoneId: env.scraperTimezoneId
+    };
+
+    if (env.scraperSessionDir) {
+      context = await chromium.launchPersistentContext(env.scraperSessionDir, {
+        ...launchOptions,
+        ...contextOptions
+      });
+    } else {
+      browser = await chromium.launch(launchOptions);
+      context = await browser.newContext(contextOptions);
+    }
+
+    const page = context.pages()[0] || (await context.newPage());
+    const items = await searchProfileCandidates(page, query, limit);
+    return { query, items };
+  } catch (error) {
+    if (fallbackUsername) {
+      return {
+        query,
+        items: [
+          {
+            username: fallbackUsername,
+            displayName: `@${fallbackUsername}`,
+            avatarUrl: null,
+            profileUrl: `https://www.tiktok.com/@${fallbackUsername}`,
+            detail: "Alta directa por usuario"
+          }
+        ]
+      };
+    }
+
+    throw error;
+  } finally {
+    await context?.close();
+    await browser?.close();
+  }
+}
+
 module.exports = {
   scrapeProfile,
   scrapeHashtag,
+  searchProfiles,
   normalizeUsername,
   normalizeHashtag,
   TikTokScraperError

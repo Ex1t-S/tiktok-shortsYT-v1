@@ -40,6 +40,19 @@ function renderThumb(src, alt, imgClass, placeholder = "Sin preview") {
   `;
 }
 
+function renderPreview({ imageSrc = "", videoSrc = "", alt = "", className, placeholder = "Sin preview" }) {
+  const mediaMarkup = videoSrc
+    ? `<video class="${className}" src="${videoSrc}" muted playsinline preload="metadata" data-fallback-thumb="true"></video>`
+    : `<img class="${className}" src="${imageSrc || ""}" alt="${escapeHtml(alt || "")}" loading="lazy" data-fallback-thumb="true" />`;
+
+  return `
+    <div class="media-thumb-shell ${className}-shell">
+      ${mediaMarkup}
+      <span class="media-thumb-fallback">${escapeHtml(placeholder)}</span>
+    </div>
+  `;
+}
+
 function accountLabel(account) {
   return account?.channel_title || account?.channel_handle || account?.channel_id || "Canal";
 }
@@ -100,6 +113,45 @@ function getPublicationTitle(item) {
 
 function getPublicationPreview(item) {
   return item.thumbnail_url || item.library_thumbnail_url || "";
+}
+
+function getScrapedPreviewMarkup(item, className, placeholder = "TikTok") {
+  return renderThumb(item.thumbnail_url, getScrapedVideoTitle(item), className, placeholder);
+}
+
+function getLibraryPreviewMarkup(item, className, placeholder = "Biblioteca") {
+  if (item?.id) {
+    return renderPreview({
+      videoSrc: `/api/library/videos/${item.id}/stream`,
+      alt: getLibraryTitle(item),
+      className,
+      placeholder
+    });
+  }
+
+  return renderThumb(item.thumbnail_url || item.poster_url || "", getLibraryTitle(item), className, placeholder);
+}
+
+function getPublicationPreviewMarkup(item, className, placeholder = "Preview", preferInline = false) {
+  if (item?.library_video_id) {
+    return renderPreview({
+      videoSrc: `/api/library/videos/${item.library_video_id}/stream`,
+      alt: getPublicationTitle(item),
+      className,
+      placeholder
+    });
+  }
+
+  if (preferInline && item?.media_item_id) {
+    return renderPreview({
+      videoSrc: `/api/media/${item.media_item_id}/stream`,
+      alt: getPublicationTitle(item),
+      className,
+      placeholder
+    });
+  }
+
+  return renderThumb(getPublicationPreview(item), getPublicationTitle(item), className, placeholder);
 }
 
 function getProfileQueueItems(publications) {
@@ -163,11 +215,25 @@ function renderMetricStrip(items) {
 }
 
 export function renderScrapedProfiles() {
+  renderScrapedContextPane();
   renderScrapedProfilesList();
+  renderScrapedSearchResults();
   renderScrapedWorkspace();
 }
 
+function renderScrapedContextPane() {
+  elements.scrapedContextTabBar?.querySelectorAll(".context-tab").forEach((button) => {
+    button.classList.toggle("active", button.dataset.scrapedTab === state.scrapedContextTab);
+  });
+  elements.scrapedProfilesPane?.classList.toggle("hidden", state.scrapedContextTab !== "profiles");
+  elements.scrapedSearchPane?.classList.toggle("hidden", state.scrapedContextTab !== "search");
+}
+
 function renderScrapedProfilesList() {
+  if (state.scrapedContextTab !== "profiles") {
+    return;
+  }
+
   if (!state.scrapedProfiles.length) {
     renderEmpty(elements.scrapedProfilesList, "Todavia no hay perfiles scrapeados.");
     elements.scrapedProfilesPagerLabel.textContent = "Pagina 1";
@@ -204,6 +270,51 @@ function renderScrapedProfilesList() {
         attrs: { "data-username": profile.username }
       });
     })
+    .join("");
+}
+
+function renderScrapedSearchResults() {
+  if (state.scrapedContextTab !== "search") {
+    return;
+  }
+
+  if (elements.scrapedSearchInput) {
+    elements.scrapedSearchInput.value = state.scrapedSearchQuery || "";
+  }
+
+  if (!state.scrapedSearchQuery) {
+    renderEmpty(elements.scrapedSearchResults, "Busca perfiles de TikTok para importarlos o escanearlos.");
+    return;
+  }
+
+  if (!state.scrapedSearchResults.length) {
+    renderEmpty(elements.scrapedSearchResults, "No encontré perfiles para esa búsqueda.");
+    return;
+  }
+
+  elements.scrapedSearchResults.innerHTML = state.scrapedSearchResults
+    .map(
+      (item) => `
+        <article class="search-result-card">
+          <div class="search-result-main">
+            <div class="search-result-avatar">
+              ${renderThumb(item.avatarUrl || "", item.displayName || item.username, "video-row-thumb", "Perfil")}
+            </div>
+            <div class="list-row-main">
+              <strong class="truncate-2" title="${escapeHtml(item.displayName || `@${item.username}`)}">${escapeHtml(
+                item.displayName || `@${item.username}`
+              )}</strong>
+              <p class="truncate-1" title="${escapeHtml(`@${item.username}`)}">${escapeHtml(`@${item.username}`)}</p>
+              ${item.detail ? `<p class="truncate-1" title="${escapeHtml(item.detail)}">${escapeHtml(item.detail)}</p>` : ""}
+            </div>
+          </div>
+          <div class="search-result-actions">
+            <button type="button" class="ghost-button" data-action="track-search-profile" data-username="${escapeHtml(item.username)}">Escanear</button>
+            <a class="ghost-button" href="${item.profileUrl}" target="_blank" rel="noreferrer">Abrir</a>
+          </div>
+        </article>
+      `
+    )
     .join("");
 }
 
@@ -292,7 +403,7 @@ function renderScrapedWorkspace() {
       return `
         <article class="media-card ${selected ? "is-selected" : ""}">
           <div class="media-card-thumb">
-            ${renderThumb(item.thumbnail_url, item.caption || "Video", "video-thumb", "TikTok")}
+            ${getScrapedPreviewMarkup(item, "video-thumb", "TikTok")}
           </div>
           <div class="media-card-body">
             <label class="select-chip">
@@ -751,7 +862,7 @@ function renderPublishRows(items, accountId) {
             <input type="checkbox" data-action="toggle-library-select" data-id="${id}" ${selected ? "checked" : ""} />
           </label>
           <div class="list-row-thumb">
-            ${renderThumb(item.thumbnail_url || item.poster_url || "", getLibraryTitle(item), "video-row-thumb", "Biblioteca")}
+            ${getLibraryPreviewMarkup(item, "video-row-thumb", "Biblioteca")}
           </div>
           <div class="list-row-main">
             <strong class="truncate-2" title="${escapeHtml(getLibraryTitle(item))}">${escapeHtml(getLibraryTitle(item))}</strong>
@@ -794,7 +905,7 @@ function renderProfileQueueRows(items) {
           <button type="button" class="profile-publication-bar" data-action="profile-publication-toggle" data-id="${id}" aria-expanded="${expanded ? "true" : "false"}">
             <div class="profile-publication-summary">
               <div class="list-row-thumb">
-                ${renderThumb(getPublicationPreview(item), title, "video-row-thumb", "Preview")}
+                ${getPublicationPreviewMarkup(item, "video-row-thumb", "Preview")}
               </div>
               <div class="list-row-main">
                 <strong class="truncate-2" title="${escapeHtml(title)}">${escapeHtml(title)}</strong>
@@ -814,7 +925,7 @@ function renderProfileQueueRows(items) {
               ? `
                 <div class="profile-publication-editor">
                   <div class="profile-publication-preview">
-                    ${renderThumb(getPublicationPreview(item), title, "video-thumb", "Preview")}
+                    ${getPublicationPreviewMarkup(item, "video-thumb", "Preview", true)}
                   </div>
                   <div class="profile-publication-fields">
                     <label>
